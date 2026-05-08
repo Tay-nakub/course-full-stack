@@ -22,11 +22,13 @@ import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type { Product } from '@coffee/shared';
 import { ProductForm } from './product-form';
+import { RecipeEditor } from './recipe-editor';
 
 export function ProductList() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [recipeFor, setRecipeFor] = useState<Product | null>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: queryKeys.products(),
@@ -67,7 +69,7 @@ export function ProductList() {
               <TableHead>ราคา</TableHead>
               <TableHead>หมวด</TableHead>
               <TableHead>สถานะ</TableHead>
-              <TableHead className="w-32" />
+              <TableHead className="w-48" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,6 +80,13 @@ export function ProductList() {
                 <TableCell>{p.category?.name ?? '—'}</TableCell>
                 <TableCell>{p.isActive ? 'ขาย' : 'ปิด'}</TableCell>
                 <TableCell className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRecipeFor(p)}
+                  >
+                    สูตร
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -110,6 +119,20 @@ export function ProductList() {
             <ProductForm
               product={editing}
               onSuccess={() => setEditing(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!recipeFor} onOpenChange={() => setRecipeFor(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>สูตร: {recipeFor?.name}</DialogTitle>
+          </DialogHeader>
+          {recipeFor && (
+            <RecipeEditor
+              product={recipeFor}
+              onSuccess={() => setRecipeFor(null)}
             />
           )}
         </DialogContent>
