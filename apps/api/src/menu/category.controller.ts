@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   UseGuards,
-  UsePipes,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -41,16 +40,21 @@ export class CategoryController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @HttpCode(HttpStatus.CREATED)
-  @UsePipes(new ZodValidationPipe(CreateCategorySchema))
-  create(@Body() input: CreateCategoryInput) {
+  create(
+    @Body(new ZodValidationPipe(CreateCategorySchema))
+    input: CreateCategoryInput,
+  ) {
     return this.service.create(input);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  @UsePipes(new ZodValidationPipe(UpdateCategorySchema))
-  update(@Param('id') id: string, @Body() input: UpdateCategoryInput) {
+  update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateCategorySchema))
+    input: UpdateCategoryInput,
+  ) {
     return this.service.update(id, input);
   }
 

@@ -8,7 +8,6 @@ import {
   Post,
   Query,
   UseGuards,
-  UsePipes,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -42,16 +41,21 @@ export class ProductController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @HttpCode(HttpStatus.CREATED)
-  @UsePipes(new ZodValidationPipe(CreateProductSchema))
-  create(@Body() input: CreateProductInput) {
+  create(
+    @Body(new ZodValidationPipe(CreateProductSchema))
+    input: CreateProductInput,
+  ) {
     return this.service.create(input);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  @UsePipes(new ZodValidationPipe(UpdateProductSchema))
-  update(@Param('id') id: string, @Body() input: UpdateProductInput) {
+  update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateProductSchema))
+    input: UpdateProductInput,
+  ) {
     return this.service.update(id, input);
   }
 
