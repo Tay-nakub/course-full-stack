@@ -91,7 +91,7 @@ docs/instructor/
 | 2 | ✅ [Plan](../superpowers/plans/2026-05-08-week-2-nestjs-postgres-auth.md) | ✅ **Complete** (7 artifacts) |
 | 3 | ✅ [Plan](../superpowers/plans/2026-05-08-week-3-end-to-end-menu-crud.md) | ✅ **Complete** (7 artifacts) |
 | 4 | ✅ [Plan](../superpowers/plans/2026-05-08-week-4-order-flow.md) | ✅ **Complete** (7 artifacts) |
-| 5 | ⏳ | ⏳ |
+| 5 | ✅ [Plan](../superpowers/plans/2026-05-08-week-5-inventory-reports.md) | ✅ **Complete** (7 artifacts) |
 | 6 | ⏳ | ⏳ |
 
 ### Week 2 Instructor Pack — Files
@@ -130,6 +130,18 @@ docs/instructor/
 | Pitfalls & FAQ | [week-4/pitfalls-faq.md](week-4/pitfalls-faq.md) |
 | Assessment | [week-4/assessment-checklist.md](week-4/assessment-checklist.md) |
 
+### Week 5 Instructor Pack — Files ⭐
+
+| Artifact | File |
+|---|---|
+| Session Plan | [week-5/session-plan.md](week-5/session-plan.md) |
+| Session 1 Script | [week-5/session-1-lesson-script.md](week-5/session-1-lesson-script.md) |
+| Session 2 Script | [week-5/session-2-lesson-script.md](week-5/session-2-lesson-script.md) |
+| Slides Outline | [week-5/slides-outline.md](week-5/slides-outline.md) |
+| Exercises | [week-5/exercises.md](week-5/exercises.md) |
+| Pitfalls & FAQ | [week-5/pitfalls-faq.md](week-5/pitfalls-faq.md) |
+| Assessment | [week-5/assessment-checklist.md](week-5/assessment-checklist.md) |
+
 ### Master Artifacts ✅ Complete
 
 | Artifact | File | Audience |
@@ -166,6 +178,6 @@ docs/instructor/
 3. ✅ Week 2 Plan + Instructor Pack — complete
 4. ✅ Week 3 Plan + Instructor Pack — complete
 5. ✅ Week 4 Plan + Instructor Pack — complete
-6. 🟡 **Strongly recommended pause: run Week 1-4 with real students before Weeks 5-6**
-7. ⏳ Week 5 Plan + Pack (Inventory + reports — heart of business logic)
+6. ✅ Week 5 Plan + Instructor Pack — complete (heart of business logic ⭐)
+7. 🟡 **Strongly recommended pause: run Week 1-5 with real students before Week 6 (deploy)**
 8. ⏳ Week 6 Plan + Pack (Deploy + GitOps)
