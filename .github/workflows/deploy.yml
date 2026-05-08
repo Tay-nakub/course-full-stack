@@ -1,0 +1,100 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only one deploy at a time on main; queue subsequent pushes (do NOT cancel —
+# we want every commit on main to actually ship).
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  build-push:
+    name: Build & push to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      sha: ${{ steps.sha.outputs.sha_short }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.api
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/coffee-api:latest
+            ghcr.io/${{ github.repository_owner }}/coffee-api:${{ steps.sha.outputs.sha_short }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build & push web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.web
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/coffee-web:latest
+            ghcr.io/${{ github.repository_owner }}/coffee-web:${{ steps.sha.outputs.sha_short }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    name: SSH deploy to VPS
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known hosts
+        run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Pull new images and restart stack
+        env:
+          TAG: ${{ needs.build-push.outputs.sha }}
+        run: |
+          ssh '${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}' bash -s <<EOF
+          set -euo pipefail
+          cd ~/coffeeshop
+          export TAG='${{ needs.build-push.outputs.sha }}'
+          docker compose pull
+          docker compose up -d --remove-orphans
+          docker image prune -f
+          EOF
+
+      - name: Smoke test
+        run: |
+          # Wait up to 60s for /healthz to come back 200 after restart
+          for i in $(seq 1 12); do
+            if curl -fsS --max-time 5 "https://${{ secrets.DEPLOY_DOMAIN }}/healthz" > /dev/null; then
+              echo "✅ Deploy healthy"
+              exit 0
+            fi
+            echo "Waiting for healthz… ($i/12)"
+            sleep 5
+          done
+          echo "❌ Deploy did not become healthy in 60s"
+          exit 1
