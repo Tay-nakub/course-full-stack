@@ -7,6 +7,10 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    // Prisma 7 reads the seed command from prisma.config.ts (the `prisma`
+    // block in package.json no longer applies). `pnpm prisma db seed` and
+    // `prisma migrate reset` will both invoke this command.
+    seed: "tsx prisma/seed.ts",
   },
   datasource: {
     url: process.env["DATABASE_URL"],
