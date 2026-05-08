@@ -20,8 +20,7 @@ export default function AdminLayout({
             href="/admin/orders"
             className="block rounded px-3 py-2 hover:bg-gray-200"
           >
-            ออเดอร์{' '}
-            <span className="text-xs text-gray-500">(Week 4)</span>
+            ออเดอร์
           </Link>
           <Link
             href="/admin/reports"
