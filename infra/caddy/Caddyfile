@@ -1,0 +1,36 @@
+# Caddy 2 — TLS termination + reverse proxy.
+#
+# - Auto-issues + renews Let's Encrypt certs for {$DOMAIN}.
+# - /api/*  → NestJS container (preserves the /api prefix; Nest sets
+#            global prefix `api` in main.ts so the upstream path matches).
+# - /healthz → /api/healthz on Nest (passthrough alias for monitoring).
+# - everything else → Next.js standalone server.
+#
+# Set DOMAIN via env (docker-compose.prod.yml passes it through). For local
+# `docker compose -f docker-compose.prod.yml up` smoke tests without a real
+# domain, override with DOMAIN=:80 and Caddy will serve plain HTTP.
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# API routes → NestJS
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+
+	# Healthcheck (alias /healthz → /api/healthz)
+	handle /healthz {
+		rewrite * /api/healthz
+		reverse_proxy api:4000
+	}
+
+	# Everything else → Next.js
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
