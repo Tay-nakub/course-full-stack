@@ -92,7 +92,9 @@ docs/instructor/
 | 3 | ✅ [Plan](../superpowers/plans/2026-05-08-week-3-end-to-end-menu-crud.md) | ✅ **Complete** (7 artifacts) |
 | 4 | ✅ [Plan](../superpowers/plans/2026-05-08-week-4-order-flow.md) | ✅ **Complete** (7 artifacts) |
 | 5 | ✅ [Plan](../superpowers/plans/2026-05-08-week-5-inventory-reports.md) | ✅ **Complete** (7 artifacts) |
-| 6 | ⏳ | ⏳ |
+| 6 | ✅ [Plan](../superpowers/plans/2026-05-08-week-6-deploy-gitops.md) | ✅ **Complete** (7 artifacts) |
+
+🎉 **COURSE COMPLETE — All 6 weeks delivered**
 
 ### Week 2 Instructor Pack — Files
 
@@ -142,6 +144,18 @@ docs/instructor/
 | Pitfalls & FAQ | [week-5/pitfalls-faq.md](week-5/pitfalls-faq.md) |
 | Assessment | [week-5/assessment-checklist.md](week-5/assessment-checklist.md) |
 
+### Week 6 Instructor Pack — Files 🚀 FINAL
+
+| Artifact | File |
+|---|---|
+| Session Plan | [week-6/session-plan.md](week-6/session-plan.md) |
+| Session 1 Script | [week-6/session-1-lesson-script.md](week-6/session-1-lesson-script.md) |
+| Session 2 Script | [week-6/session-2-lesson-script.md](week-6/session-2-lesson-script.md) |
+| Slides Outline | [week-6/slides-outline.md](week-6/slides-outline.md) |
+| Exercises | [week-6/exercises.md](week-6/exercises.md) |
+| Pitfalls & FAQ | [week-6/pitfalls-faq.md](week-6/pitfalls-faq.md) |
+| Assessment | [week-6/assessment-checklist.md](week-6/assessment-checklist.md) |
+
 ### Master Artifacts ✅ Complete
 
 | Artifact | File | Audience |
@@ -164,20 +178,36 @@ docs/instructor/
 
 ---
 
-## ▶️ Next Steps
+## ▶️ Next Steps (Course Complete!)
 
-1. **Review master artifacts + Week 1 Instructor Pack** — adjust tone/details ก่อน scale
-2. Customize student-facing artifacts:
+### Before First Batch
+1. **Customize student-facing artifacts**:
    - `master/syllabus.md` — fill in instructor name, cohort dates, communication channel, tuition
-   - `master/pre-course-checklist.md` — add/remove tools ตาม batch จริง
-3. Scale to Week 2-6 — Plan + Instructor Pack ต่อกันทีละสัปดาห์
+   - `master/pre-course-checklist.md` — adjust per batch needs
+2. **Build slides** from each week's `slides-outline.md`
+3. **Create demo project repos** for each week's "instructor-start" branch
+4. **Test deploy demo end-to-end** before Week 6
+5. **Set up alumni community** (Slack/Discord channel)
 
-### Recommended Order
-1. ✅ Master artifacts — complete
-2. ✅ Week 1 Plan + Instructor Pack — complete
-3. ✅ Week 2 Plan + Instructor Pack — complete
-4. ✅ Week 3 Plan + Instructor Pack — complete
-5. ✅ Week 4 Plan + Instructor Pack — complete
-6. ✅ Week 5 Plan + Instructor Pack — complete (heart of business logic ⭐)
-7. 🟡 **Strongly recommended pause: run Week 1-5 with real students before Week 6 (deploy)**
-8. ⏳ Week 6 Plan + Pack (Deploy + GitOps)
+### After First Batch
+1. **Update pitfalls-faq.md** — add real student issues encountered
+2. **Update common-mistakes heatmap** in each FAQ
+3. **Refine time blocks** based on actual session timing
+4. **Collect testimonials + portfolio links** for next batch marketing
+5. **Improve content** for next batch
+
+### All Complete ✅
+- ✅ Master artifacts (3 files)
+- ✅ Week 1 Plan + Pack — FE foundation
+- ✅ Week 2 Plan + Pack — BE foundation
+- ✅ Week 3 Plan + Pack — First end-to-end slice
+- ✅ Week 4 Plan + Pack — Order flow (multi-actor)
+- ✅ Week 5 Plan + Pack — Inventory + Reports ⭐
+- ✅ Week 6 Plan + Pack — Deploy + GitOps 🚀
+
+**Total artifacts**: 6 plans + 6 packs (7 files each) + 3 master = **48 files, ~30,000+ lines**
+
+### Course Stats
+- **Total class time**: 12 sessions × 120 min = **24 hours**
+- **Total student time** (incl. homework): ~74 hours over 6 weeks
+- **Final deliverable**: Live coffee shop with HTTPS + GitOps + portfolio
