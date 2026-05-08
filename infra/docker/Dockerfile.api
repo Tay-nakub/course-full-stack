@@ -1,0 +1,70 @@
+# syntax=docker/dockerfile:1.7
+# ───────── Stage 1: Builder ─────────
+FROM node:20-alpine AS builder
+
+# pnpm via corepack (matches root packageManager: pnpm@9.15.0)
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+WORKDIR /repo
+
+# Copy workspace manifests first to maximise layer cache hit
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml turbo.json tsconfig.base.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/api/package.json apps/api/
+
+# Install ALL deps (incl. dev) for build stage
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY packages/shared packages/shared/
+COPY apps/api apps/api/
+
+# Build @coffee/shared first (api imports from packages/shared/dist/*)
+RUN pnpm --filter @coffee/shared build
+
+# Generate Prisma client (Prisma 7 prisma-client generator emits TS to
+# apps/api/src/generated/prisma; nest build then compiles it as part of dist/)
+RUN cd apps/api && pnpm prisma generate
+
+# Build NestJS to apps/api/dist
+RUN pnpm --filter @coffee/api build
+
+# Re-install with prod-only deps (drops devDependencies; keeps workspace symlinks)
+RUN pnpm install --frozen-lockfile --prod
+
+# ───────── Stage 2: Runtime ─────────
+FROM node:20-alpine AS runtime
+
+# Non-root runtime user
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+# pnpm is needed only for `prisma` CLI invocation in CMD; we use plain npx instead
+# (prisma is in apps/api/node_modules/.bin after the prod install).
+
+# Built api dist + its production node_modules + prisma assets
+COPY --from=builder --chown=nestjs:nodejs /repo/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=nestjs:nodejs /repo/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder --chown=nestjs:nodejs /repo/apps/api/prisma ./apps/api/prisma
+COPY --from=builder --chown=nestjs:nodejs /repo/apps/api/package.json ./apps/api/package.json
+
+# Workspace shared package (apps/api/node_modules/@coffee/shared is a pnpm
+# symlink into ../../../packages/shared — keep the link target around)
+COPY --from=builder --chown=nestjs:nodejs /repo/packages/shared/dist ./packages/shared/dist
+COPY --from=builder --chown=nestjs:nodejs /repo/packages/shared/package.json ./packages/shared/package.json
+
+# Hoisted root node_modules (pnpm puts shared peer deps here)
+COPY --from=builder --chown=nestjs:nodejs /repo/node_modules ./node_modules
+
+USER nestjs
+
+WORKDIR /app/apps/api
+
+EXPOSE 4000
+
+# Idempotent migrations on container start, then boot Nest
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
