@@ -1,22 +1,31 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import type { MenuItem } from '@/lib/data/menu';
+import type { Product } from '@coffee/shared';
 
-export function MenuCard({ item }: { item: MenuItem }) {
+export function MenuCard({ item }: { item: Product }) {
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardHeader>
-        <div className="text-4xl">{item.imageEmoji}</div>
+        {item.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="aspect-square w-full rounded object-cover"
+          />
+        ) : (
+          <div className="flex aspect-square items-center justify-center rounded bg-gray-100 text-4xl">
+            ☕
+          </div>
+        )}
         <CardTitle>{item.name}</CardTitle>
-        <CardDescription>{item.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="text-lg font-semibold">฿{item.price}</div>
+        <div className="text-lg font-semibold">฿{Number(item.price)}</div>
       </CardContent>
     </Card>
   );
