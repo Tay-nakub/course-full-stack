@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ConflictException,
@@ -22,6 +23,8 @@ const VALID_TRANSITIONS: Record<OrderStatusType, OrderStatusType[]> = {
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(input: CreateOrderInput) {
@@ -116,27 +119,129 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, input: UpdateOrderStatusInput) {
-    const order = await this.findOne(id);
-    const allowed = VALID_TRANSITIONS[order.status];
-    if (!allowed.includes(input.status)) {
-      throw new ConflictException(
-        `เปลี่ยนสถานะจาก ${order.status} → ${input.status} ไม่ได้`,
-      );
-    }
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { items: true },
+      });
+      if (!order) throw new NotFoundException('ไม่พบออเดอร์');
 
-    const data: Prisma.OrderUpdateInput = { status: input.status };
-    if (input.status === 'PREPARING' && !order.paidAt) {
-      data.paidAt = new Date(); // mark paid when staff accept
-    }
-    if (input.status === 'COMPLETED') {
-      data.completedAt = new Date();
-    }
+      const allowed = VALID_TRANSITIONS[order.status];
+      if (!allowed.includes(input.status)) {
+        throw new ConflictException(
+          `เปลี่ยนสถานะจาก ${order.status} → ${input.status} ไม่ได้`,
+        );
+      }
 
-    return this.prisma.order.update({
-      where: { id },
-      data,
-      include: { items: true },
+      const data: Prisma.OrderUpdateInput = { status: input.status };
+      if (input.status === 'PREPARING' && !order.paidAt) {
+        data.paidAt = new Date();
+      }
+      if (input.status === 'COMPLETED') {
+        data.completedAt = new Date();
+
+        // 🎯 Stock deduct + COGS snapshot — atomic 4-table transaction
+        await this.deductStockAndSnapshotCogs(tx, order);
+      }
+
+      return tx.order.update({
+        where: { id },
+        data,
+        include: { items: true },
+      });
     });
+  }
+
+  /**
+   * Atomic stock deduction + COGS snapshot — runs inside the parent transaction.
+   *
+   * For each OrderItem:
+   *   - Look up the Product's recipe (RecipeItem[] with Ingredient).
+   *   - Compute total ingredient deduction (qtyPerUnit × orderItem.qty).
+   *   - Insert one StockMovement (type=SALE, signed-negative quantity, refOrderId set).
+   *   - Decrement Ingredient.currentStock by that amount.
+   *   - Sum (ingredient.costPerUnit × deductedQty) → write OrderItem.cogsSnapshot.
+   *
+   * Behavior on edge cases:
+   *   - Recipe missing for a product → log warn, snapshot 0, skip stock changes.
+   *     (Business decision: don't block sales for misconfigured products; admin
+   *     fixes recipe later. Recipe should normally exist for active products.)
+   *
+   * If any step throws, the parent transaction rolls back the entire status
+   * change — order stays in its prior state, no stock movement persists.
+   */
+  private async deductStockAndSnapshotCogs(
+    tx: Prisma.TransactionClient,
+    order: {
+      id: string;
+      items: Array<{ id: string; productId: string; qty: number }>;
+    },
+  ) {
+    // 1. Fetch recipes for all products in this order
+    const productIds = order.items.map((i) => i.productId);
+    const recipes = await tx.recipeItem.findMany({
+      where: { productId: { in: productIds } },
+      include: { ingredient: true },
+    });
+
+    // Group by productId for lookup
+    const recipesByProduct = new Map<string, typeof recipes>();
+    for (const r of recipes) {
+      const existing = recipesByProduct.get(r.productId);
+      if (existing) {
+        existing.push(r);
+      } else {
+        recipesByProduct.set(r.productId, [r]);
+      }
+    }
+
+    // 2. For each OrderItem: calculate COGS + create StockMovements
+    for (const item of order.items) {
+      const recipe = recipesByProduct.get(item.productId) ?? [];
+      if (recipe.length === 0) {
+        this.logger.warn(
+          `Order ${order.id} OrderItem ${item.id} (productId=${item.productId}) has no recipe — COGS = 0, no stock deduct`,
+        );
+        // เก็บ cogsSnapshot = 0 เพื่อให้ report ทำงาน
+        await tx.orderItem.update({
+          where: { id: item.id },
+          data: { cogsSnapshot: 0 },
+        });
+        continue;
+      }
+
+      let cogsTotal = 0;
+
+      for (const r of recipe) {
+        const totalAmount = Number(r.quantity) * item.qty; // amount used
+        const ingredientCost = Number(r.ingredient.costPerUnit) * totalAmount;
+        cogsTotal += ingredientCost;
+
+        // Create stock movement (SALE = negative)
+        await tx.stockMovement.create({
+          data: {
+            ingredientId: r.ingredientId,
+            quantity: -totalAmount, // signed negative
+            reason: 'SALE',
+            refOrderId: order.id,
+            costAtTime: r.ingredient.costPerUnit,
+            note: `Order ${order.id} item ${item.id}`,
+          },
+        });
+
+        // Update cached currentStock
+        await tx.ingredient.update({
+          where: { id: r.ingredientId },
+          data: { currentStock: { decrement: totalAmount } },
+        });
+      }
+
+      // 3. Snapshot COGS into OrderItem
+      await tx.orderItem.update({
+        where: { id: item.id },
+        data: { cogsSnapshot: cogsTotal },
+      });
+    }
   }
 }
 
