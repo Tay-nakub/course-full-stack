@@ -127,3 +127,61 @@ The plan called for Vitest in Task 10. NestJS scaffold writes a `jest` config bl
 
 ### No env-validation / healthcheck module yet
 Plan Task 10 includes `EnvSchema` (Zod), a `validateEnv` hook into `ConfigModule.forRoot`, and a `/healthz` controller. These are valuable but not on the acceptance-criteria critical path for the Week 2 tag — they will be the first improvements in Week 3 if needed. The current `JWT_SECRET` is read via `config.getOrThrow<string>('JWT_SECRET')` so a missing secret fails fast at boot, which is the most important part of env validation in practice.
+
+## Week 3
+
+### `apps/web` needed `@coffee/shared` as an explicit workspace dependency
+Week 1 + 2 set up the web app without ever importing from `@coffee/shared`, so the package wasn't listed in `apps/web/package.json`. Task 7 (login form) was the first consumer in `apps/web`, and `tsc` failed with `Cannot find module '@coffee/shared'`. Fix: `pnpm --filter web add @coffee/shared@workspace:^`. (The api workspace already had this dep from Week 2.)
+
+### Zod 4 `.default()` makes form input/output types diverge — RHF needs the 3-generic form
+`CreateCategorySchema` and `CreateProductSchema` both use `.default(...)` (`sortOrder: 0`, `isActive: true`). Zod 4 + `z.infer` returns the **output** type where those fields are required. RHF's `useForm<T>` infers the resolver's input type from `T`, so passing the output type causes the resolver-shape mismatch:
+
+```
+Type 'Resolver<{ sortOrder?: number }, ...>' is not assignable to
+Type 'Resolver<{ sortOrder: number }, ...>'
+```
+
+Fix: use the 3-generic form `useForm<TInput, TContext, TOutput>`:
+
+```ts
+type CategoryFormInput = z.input<typeof CreateCategorySchema>;
+useForm<CategoryFormInput, unknown, CreateCategoryInput>({
+  resolver: zodResolver(CreateCategorySchema),
+  // ...
+});
+```
+
+`handleSubmit((d) => mutation.mutate(d))` then receives `d: CreateCategoryInput` (the parsed output), which is what `apiFetch` and the API expect.
+
+### `nestjs-zod` `ZodValidationPipe` must be applied to `@Body()`, NOT via `@UsePipes` on PATCH handlers
+Week 2's REFERENCE_NOTES preferred `@UsePipes(new ZodValidationPipe(Schema))` on the handler — and that's fine when the handler only has `@Body()` (e.g. `register`, `login`). On PATCH handlers like `update(@Param('id') id, @Body() input)`, `@UsePipes` runs the pipe against EVERY argument including `@Param`. The id string then fails validation as `expected: object, received: string`.
+
+Fix: apply the pipe inline on `@Body()` only:
+
+```ts
+@Patch(':id')
+update(
+  @Param('id') id: string,
+  @Body(new ZodValidationPipe(UpdateCategorySchema)) input: UpdateCategoryInput,
+) { ... }
+```
+
+Both `category.controller.ts` and `product.controller.ts` use this inline form for `create` (consistency) and `update` (correctness).
+
+### Next.js 16 deprecation: `middleware.ts` → `proxy.ts`
+Next.js 16 emits a deprecation warning at dev start: *"The 'middleware' file convention is deprecated. Please use 'proxy' instead."* The plan calls for `middleware.ts` and the convention still works in 16.2 — Next will support it for at least one major. We left `middleware.ts` to match the plan and the broader ecosystem of docs/courses; migration to `proxy.ts` will be a Week 6 deploy-time tweak if needed.
+
+### Auth-cookie constant split into its own file (`lib/auth-constants.ts`)
+The plan put `AUTH_COOKIE_NAME` in `lib/auth.ts` next to `getServerToken()`. But `lib/auth.ts` imports `cookies` from `next/headers`, which is a Server-Component / Route-Handler-only API. The Edge `middleware.ts` needs only `AUTH_COOKIE_NAME` and would otherwise drag the `next/headers` import into the Edge bundle. Split the constant into `lib/auth-constants.ts`; `middleware.ts` and the route handlers import from there, while `lib/auth.ts` re-exports it for Server Components.
+
+### Logout route does a 303 redirect, not just JSON
+Plan returns `NextResponse.json({ success: true })`. With the admin-sidebar logout button being a plain `<form action="/api/auth/logout" method="POST">`, the browser navigates to `/api/auth/logout` and renders raw JSON. We changed the handler to `NextResponse.redirect('/login', { status: 303 })` so the browser lands on `/login` after the cookie is cleared. Programmatic `fetch` callers can still inspect status (303 is treated as success).
+
+### `imageUrl` in `CreateProductSchema` uses Zod 4's `z.url(...)`
+Top-level Zod 4 helper, same Week 2 pattern as `z.email(...)`. The plan wrote `z.string().url(...)` which still works in Zod 4 but emits a deprecation warning. We use the new helper for consistency with `RegisterSchema` / `LoginSchema`.
+
+### Prisma `Decimal` price serializes as a string in JSON
+`Product.price` is `Decimal @db.Decimal(10, 2)` so the JSON-serialized API response sends `"price": "75"` (string), not `75` (number). The web side coerces with `Number(p.price)` everywhere it's displayed (`product-list.tsx`, `menu-card.tsx`) and at form-load (`product-form.tsx` defaultValues). The shared `ProductSchema.price` is typed as `z.number()` for clients that re-validate after parsing — runtime parse will coerce/throw if needed, but in practice we cast at the display layer. This is a deliberate trade-off: exact dollar-and-cents in DB, lossy JS-number for UI display.
+
+### Post-Task-4 hotfix needed for Prisma client regen
+After editing `prisma/schema.prisma` (Task 2), `pnpm typecheck` fails with `Property 'category' does not exist on type 'PrismaService'` until you run `pnpm prisma generate` (or `prisma migrate dev` which generates as a side effect). The schema edit itself isn't a regen trigger; Prisma 7's `prisma-client` generator emits TypeScript source on-demand only.
