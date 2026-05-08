@@ -185,3 +185,23 @@ Top-level Zod 4 helper, same Week 2 pattern as `z.email(...)`. The plan wrote `z
 
 ### Post-Task-4 hotfix needed for Prisma client regen
 After editing `prisma/schema.prisma` (Task 2), `pnpm typecheck` fails with `Property 'category' does not exist on type 'PrismaService'` until you run `pnpm prisma generate` (or `prisma migrate dev` which generates as a side effect). The schema edit itself isn't a regen trigger; Prisma 7's `prisma-client` generator emits TypeScript source on-demand only.
+
+## Week 4
+
+### `OrderStatus` exported as Zod enum from `@coffee/shared`
+Both api and web need to know the valid statuses (`PENDING`, `PREPARING`, `READY`, `COMPLETED`, `CANCELLED`). Defined once as `z.enum([...])` in `packages/shared/src/schemas/order.ts` and re-derived as a Prisma enum on the api side via the same string literals. Status transition table (`VALID_TRANSITIONS`) lives next to `OrdersService` since it is a server-side state-machine concern.
+
+### Atomic create uses interactive `$transaction(async (tx) => ...)`
+Plan suggested array-form `$transaction([createOrder, createItems])` but order-item creation depends on `order.id` from the create call. Switched to interactive form with a callback so we can fetch products → validate active → compute totals server-side → write order + items in one ACID unit. Server NEVER trusts FE-supplied prices; `unitPrice` and `lineTotal` are computed from `Product.price` inside the transaction.
+
+### Mock types in `orders.service.spec.ts` had to be hoisted
+Vitest type-checks specs as part of `tsc --noEmit`. Inline `vi.fn()` mocks for `prisma.$transaction` produced a circular type-inference loop. Fix: declared explicit `MockTx` and `MockPrisma` interfaces at the top of the file, then assigned mock-impls to those typed vars. Captured in commit `0c5ec89` (`fix(api): hoist mock types in OrdersService spec to satisfy tsc`).
+
+### Cart hydration — render placeholder until mounted
+Zustand `persist` rehydrates from `localStorage` after first paint, so SSR-rendered HTML always shows `Cart (0)` while the hydrated client may show `Cart (3)`. React 19 then logs a hydration mismatch warning. Fix in `components/cart-icon.tsx`: track a `mounted` flag with `useEffect`, render `0` until mounted, real `totalQty()` after. Same pattern would apply if cart total is rendered in any other Server Component subtree's child Client Component.
+
+### Order tracking page — "smart" polling
+`useQuery({ refetchInterval: 3000 })` is fine for active orders, but wasteful once the order is `COMPLETED` or `CANCELLED`. We pass a function to `refetchInterval` that returns `false` when `query.state.data?.status` is in a terminal state, so the polling stops automatically once the order finishes. No manual cleanup needed.
+
+### Status-update guard uses `RolesGuard` with `@Roles('admin')`
+Plan suggested a separate `KitchenGuard`. We reused the existing `JwtAuthGuard` + `RolesGuard` from Week 2. Realistic prod would have a `staff` role distinct from `admin`, but the course only ships `admin`/`customer` so kitchen and admin both authenticate with admin role. Documented as a stretch upgrade for any student wanting RBAC depth.
