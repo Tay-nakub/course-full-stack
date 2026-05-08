@@ -87,15 +87,40 @@ docs/instructor/
 
 | Week | Plan | Instructor Pack |
 |---|---|---|
-| 1 | ✅ [Plan](../superpowers/plans/2026-05-08-week-1-monorepo-and-nextjs-foundation.md) | 🟡 Sample (session-1 lesson script only) |
-| 2-6 | ⏳ Plan ยังไม่เขียน | ⏳ ยังไม่ทำ |
+| 1 | ✅ [Plan](../superpowers/plans/2026-05-08-week-1-monorepo-and-nextjs-foundation.md) | ✅ **Complete** (7 artifacts) |
+| 2 | ⏳ Plan ยังไม่เขียน | ⏳ ยังไม่ทำ |
+| 3 | ⏳ | ⏳ |
+| 4 | ⏳ | ⏳ |
+| 5 | ⏳ | ⏳ |
+| 6 | ⏳ | ⏳ |
 
 **Master artifacts** (syllabus, pre-course, rubric): ⏳ ยังไม่ทำ
+
+### Week 1 Instructor Pack — Files
+
+| Artifact | File |
+|---|---|
+| Session Plan | [week-1/session-plan.md](week-1/session-plan.md) |
+| Session 1 Script | [week-1/session-1-lesson-script.md](week-1/session-1-lesson-script.md) |
+| Session 2 Script | [week-1/session-2-lesson-script.md](week-1/session-2-lesson-script.md) |
+| Slides Outline | [week-1/slides-outline.md](week-1/slides-outline.md) |
+| Exercises | [week-1/exercises.md](week-1/exercises.md) |
+| Pitfalls & FAQ | [week-1/pitfalls-faq.md](week-1/pitfalls-faq.md) |
+| Assessment | [week-1/assessment-checklist.md](week-1/assessment-checklist.md) |
 
 ---
 
 ## ▶️ Next Steps
 
-1. Review `week-1/session-1-lesson-script.md` (sample) — ปรับ format/tone
-2. Approve format → ผมจะ scale ไปทำครบทั้ง Week 1 Pack (session 2, slides, exercises, FAQ, checklist)
-3. Plan Week 2-6 + Master artifacts
+1. **Review Week 1 Instructor Pack** — อ่านครบ 7 ไฟล์, ปรับ tone/format ตามต้องการ
+2. Decide format final → scale ทำ Week 2-6 (Plan + Instructor Pack คู่กัน)
+3. **Master artifacts** ที่ยังขาด:
+   - `master/syllabus.md` — student-facing course outline
+   - `master/pre-course-checklist.md` — student preparation (Node, pnpm, Git, VS Code)
+   - `master/final-project-rubric.md` — portfolio assessment
+
+### Recommended Order
+1. Master artifacts (syllabus + pre-course) — ใช้ก่อนเริ่มสอน batch แรก
+2. Week 2 Plan + Instructor Pack — backend foundation (NestJS + Postgres)
+3. Week 3-6 ตามลำดับ
+4. Final project rubric — ก่อน Week 5
