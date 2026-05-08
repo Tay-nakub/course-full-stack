@@ -205,3 +205,41 @@ Zustand `persist` rehydrates from `localStorage` after first paint, so SSR-rende
 
 ### Status-update guard uses `RolesGuard` with `@Roles('admin')`
 Plan suggested a separate `KitchenGuard`. We reused the existing `JwtAuthGuard` + `RolesGuard` from Week 2. Realistic prod would have a `staff` role distinct from `admin`, but the course only ships `admin`/`customer` so kitchen and admin both authenticate with admin role. Documented as a stretch upgrade for any student wanting RBAC depth.
+
+## Week 5
+
+### `cogsSnapshot` lives on `OrderItem`, not `Order`
+The pre-flight notes mentioned a `cogsSnapshot` JSON field on `Order`, but the plan (Task 1.5) places `cogsSnapshot` as a `Decimal?` per **OrderItem** so each line carries its own COGS. Aggregating an order's total COGS is a `SUM(items.cogsSnapshot)`. This is a cleaner schema — same line-level granularity as `lineTotal` — and the Prisma 7 raw SQL in `revenueLastDays` can do the sum inline. Reports work the same way as the JSON-on-Order alternative, with one less serialization layer.
+
+### `revenueLastDays` raw SQL — quoted identifiers
+Postgres lowercases unquoted identifiers but our schema fields (`completedAt`, `cogsSnapshot`, `orderId`) use camelCase as their column names (no `@map` for these). The raw SQL therefore double-quotes every camelCase column reference: `"completedAt"`, `"cogsSnapshot"`, `"orderId"`. Without the quotes Postgres would search for `completedat` and the query would fail with `column "completedat" does not exist`. Same holds for `id` (lowercase) — it works unquoted, but we kept all references explicit for readability.
+
+### Recipe replace endpoint accepts `items[]`, not `{ productId, items[] }`
+Plan's `SetRecipeSchema` wraps the items in an object with `productId`, but the controller already takes `productId` from `@Param('productId')`. The PUT body is therefore the bare items array (`SetRecipeItemSchema[]`). Exported a separate `SetRecipeItemSchema` from `@coffee/shared` so the controller can validate exactly the array shape the client sends. The full `SetRecipeSchema` stays exported for any client that wants the wrapped form (e.g. an unscoped "set recipe by productId" RPC).
+
+### `inventory.module.ts` ordering of route handlers
+`IngredientsController` declares `POST movements` (no `:id` param) **before** the dynamic `GET/PATCH/DELETE :id` and `:id/movements` routes. Nest's router would otherwise match `:id = "movements"` and try to look up an ingredient with id `"movements"`. Same Week-4 pattern as `orders.controller.ts` declaring `GET /` before `GET /:id`.
+
+### Manual stock-movement form: `SALE` is server-only
+The `STOCK_MOVEMENT_REASONS` enum exposes `SALE`, but the admin UI filters it out: `ALLOWED_REASONS = STOCK_MOVEMENT_REASONS.filter(r => r !== 'SALE')`. SALE rows are written exclusively by the order-COMPLETED transaction so admins can't accidentally double-deduct stock by recording a manual SALE. PURCHASE / WASTE / ADJUSTMENT are admin-driven; the form auto-signs the quantity (positive for PURCHASE, negative for WASTE, user-chosen for ADJUSTMENT).
+
+### Idempotent seed via composite-name lookup, not `upsert`
+`Category.name` and `Product.name` are not `@unique` (categories can theoretically share names, products are unique by `(name, categoryId)`). `prisma.category.upsert({ where: { name } })` therefore fails to typecheck. The seed uses `findFirst({ where: { name } }) ?? create(...)` for categories and a small `upsertProduct(name, price, categoryId)` helper for products. `Ingredient.name` IS `@unique` so it uses `upsert` directly. PURCHASE rows are wiped by `deleteMany({ where: { note: 'Initial seed' }})` before re-inserting, then `currentStock` is recomputed from movements — guarantees rerun safety.
+
+### Prisma 7 seed config — `migrations.seed`, not top-level `seed`
+The PrismaConfig type from `@prisma/config@7.8.0` puts `seed?: string` under the `migrations` block (alongside `path` and `initShadowDb`). Plan suggested `seed: { command: 'tsx prisma/seed.ts' }` as a separate top-level option — that's a Prisma 5/6 convention. The `prisma` block in `package.json` is also no longer read. We added `migrations.seed: "tsx prisma/seed.ts"` to `prisma.config.ts` AND a sibling `pnpm db:seed` script for direct invocation that bypasses prisma's wrapper. `pnpm prisma migrate reset` and `pnpm prisma db seed` both invoke the same command.
+
+### Seed PrismaClient construction — must pass adapter
+Same gotcha as `PrismaService` in Week 2: `new PrismaClient()` throws without an adapter. Seed script imports `PrismaPg` from `@prisma/adapter-pg` and passes it. Also imports `'dotenv/config'` at the top so `DATABASE_URL` is loaded when running `tsx prisma/seed.ts` standalone (Prisma's CLI loads it automatically, but `pnpm db:seed` does not).
+
+### Recharts `<LineChart>`/`<BarChart>` rendered inside a Client Component
+Plan flagged this as a Next.js 16 / App Router concern. Confirmed: Recharts uses `useState`/`useEffect` internally, so its components must run on the client. We placed `'use client'` on `revenue-chart.tsx`, `top-products-table.tsx`, and `kpi-cards.tsx` (all of them already need `'use client'` for `useQuery` anyway). No SSR issues observed; ResponsiveContainer measures the parent on mount.
+
+### Mock-tx hoist pattern from Week 4 carried into orders.service.spec.ts
+The new COMPLETED stock-deduct tests added 4 more `tx.*` mocks (`recipeItem`, `stockMovement`, `ingredient`, `orderItem`). Same `MockTx` interface pattern from Week 4 — declared at the top of the spec, with `vi.fn().mockResolvedValue({})` defaults so individual tests only override the calls they care about. `findUnique` was moved off `prisma` and onto `tx` because the new `updateStatus` runs the lookup INSIDE the transaction (where it logically belongs — needed for serializable reads of order + items together).
+
+### Atomic-deduct rollback test uses mock rejection
+Test `rolls back: tx callback throws → no order.update applied` makes `tx.ingredient.update` reject for the first call. Since the parent `updateStatus` wraps everything in `prisma.$transaction(async (tx) => ...)` and the order.update is the LAST step, an early rejection bubbles before order.update runs. The test asserts `tx.order.update).not.toHaveBeenCalled()` — proves rollback semantics at the application layer. (DB-level rollback is exercised end-to-end by the manual COMPLETED→COMPLETED test in REPORT.md, which returned 409 with stock unchanged.)
+
+### `randomOrderNumber` collisions are not handled
+`#XXXXX` over 31-char alphabet = 28.6 million combinations. At a few-thousand-orders-per-day scale it's fine; production would either retry on unique-violation or use a sequence. Marked as Week 6 hardening if needed.
