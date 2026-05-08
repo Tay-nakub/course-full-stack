@@ -1,12 +1,18 @@
+'use client';
+
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useCart } from '@/stores/cart-store';
 import type { Product } from '@coffee/shared';
 
 export function MenuCard({ item }: { item: Product }) {
+  const add = useCart((s) => s.add);
+
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardHeader>
@@ -24,8 +30,21 @@ export function MenuCard({ item }: { item: Product }) {
         )}
         <CardTitle>{item.name}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-lg font-semibold">฿{Number(item.price)}</div>
+      <CardContent className="flex items-center justify-between">
+        <span className="text-lg font-semibold">฿{Number(item.price)}</span>
+        <Button
+          size="sm"
+          onClick={() =>
+            add({
+              productId: item.id,
+              name: item.name,
+              unitPrice: Number(item.price),
+              imageUrl: item.imageUrl,
+            })
+          }
+        >
+          เพิ่มลงตะกร้า
+        </Button>
       </CardContent>
     </Card>
   );
