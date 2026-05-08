@@ -94,7 +94,13 @@ docs/instructor/
 | 5 | ⏳ | ⏳ |
 | 6 | ⏳ | ⏳ |
 
-**Master artifacts** (syllabus, pre-course, rubric): ⏳ ยังไม่ทำ
+### Master Artifacts ✅ Complete
+
+| Artifact | File | Audience |
+|---|---|---|
+| Course Syllabus | [master/syllabus.md](master/syllabus.md) | **student-facing** |
+| Pre-Course Checklist | [master/pre-course-checklist.md](master/pre-course-checklist.md) | **student-facing** |
+| Final Project Rubric | [master/final-project-rubric.md](master/final-project-rubric.md) | shared |
 
 ### Week 1 Instructor Pack — Files
 
@@ -112,15 +118,17 @@ docs/instructor/
 
 ## ▶️ Next Steps
 
-1. **Review Week 1 Instructor Pack** — อ่านครบ 7 ไฟล์, ปรับ tone/format ตามต้องการ
-2. Decide format final → scale ทำ Week 2-6 (Plan + Instructor Pack คู่กัน)
-3. **Master artifacts** ที่ยังขาด:
-   - `master/syllabus.md` — student-facing course outline
-   - `master/pre-course-checklist.md` — student preparation (Node, pnpm, Git, VS Code)
-   - `master/final-project-rubric.md` — portfolio assessment
+1. **Review master artifacts + Week 1 Instructor Pack** — adjust tone/details ก่อน scale
+2. Customize student-facing artifacts:
+   - `master/syllabus.md` — fill in instructor name, cohort dates, communication channel, tuition
+   - `master/pre-course-checklist.md` — add/remove tools ตาม batch จริง
+3. Scale to Week 2-6 — Plan + Instructor Pack ต่อกันทีละสัปดาห์
 
 ### Recommended Order
-1. Master artifacts (syllabus + pre-course) — ใช้ก่อนเริ่มสอน batch แรก
-2. Week 2 Plan + Instructor Pack — backend foundation (NestJS + Postgres)
-3. Week 3-6 ตามลำดับ
-4. Final project rubric — ก่อน Week 5
+1. ✅ Master artifacts — complete
+2. ✅ Week 1 Plan + Instructor Pack — complete
+3. ⏳ Week 2 Plan + Instructor Pack (NestJS + Postgres)
+4. ⏳ Week 3 Plan + Pack (FE↔BE first slice)
+5. ⏳ Week 4 Plan + Pack (Order flow)
+6. ⏳ Week 5 Plan + Pack (Inventory + reports)
+7. ⏳ Week 6 Plan + Pack (Deploy + GitOps)
