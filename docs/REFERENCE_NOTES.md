@@ -243,3 +243,48 @@ Test `rolls back: tx callback throws → no order.update applied` makes `tx.ingr
 
 ### `randomOrderNumber` collisions are not handled
 `#XXXXX` over 31-char alphabet = 28.6 million combinations. At a few-thousand-orders-per-day scale it's fine; production would either retry on unique-violation or use a sequence. Marked as Week 6 hardening if needed.
+
+## Week 6
+
+### No real Hetzner provisioning — local artifacts only
+Per the user constraint, Tasks 1-3 (Hetzner account, ufw/fail2ban hardening, Docker install on the VPS) and Task 8 (DNS + first manual deploy) and the Task 10.4 cron-install step are **not executed**. All file-shaped deliverables (Dockerfiles, compose, Caddyfile, workflows, backup script, runbook) are produced and verified locally; a course student following `docs/DEPLOY.md` can follow the plan's Tasks 1-3 + 8 to actually take the stack live. This is reflected as a "Course-mode note" at the bottom of `DEPLOY.md`.
+
+### `Dockerfile.api` carries the root `node_modules/` — runtime image is 654 MB
+The plan's spec was "< 250 MB" for the api image, achieved by running `pnpm install --frozen-lockfile --prod` in the builder stage and copying `apps/api/node_modules` only. In a pnpm workspace, `apps/api/node_modules` only holds workspace symlinks + a few package-local entries; the actual transitive deps are hoisted to `/repo/node_modules`. We therefore copy the root `node_modules/` into runtime as well so `require()` resolution works after the symlinks bottom out at `packages/shared/dist`. The result is 654 MB instead of 250 MB. Two follow-ups for any reader who wants to slim it:
+
+1. Switch the api `package.json` to `"bundler": "nest build --webpack"` so the runtime stage just needs the bundle + its peer deps.
+2. Or use `pnpm deploy --filter @coffee/api --prod ./out` (Pnpm's deploy command flattens workspace deps into a real `node_modules` for one app), then COPY `./out` only.
+
+Both are stretch goals; the current image works correctly and pulls from GHCR fast enough on a CX22.
+
+### `next.config.ts` — `outputFileTracingRoot` MUST be set in a monorepo
+With `output: 'standalone'`, Next.js traces only files under the app root by default. In a pnpm workspace, `@coffee/shared` and most shared deps live above `apps/web/` — Next.js silently misses them and the standalone server crashes at runtime with `Cannot find module '@coffee/shared'`. Fix: `outputFileTracingRoot: path.join(__dirname, '../..')`. The Next.js build then produces `.next/standalone/apps/web/server.js` plus a parallel `.next/standalone/packages/shared/...` and `.next/standalone/node_modules/...` tree; the Dockerfile copies the entire standalone directory verbatim, then layers the static assets and `public/` on top. Final web image is 192 MB (under the plan's 300 MB target).
+
+### `next.config.ts` skips the dev rewrite in production
+The Week 1 rewrite (`/api/:path* → http://localhost:4000`) is now wrapped in `if (process.env.NODE_ENV === 'production') return [];`. In production Caddy proxies `/api/*` directly to the api container, so a Next.js rewrite would needlessly hairpin requests through the web server (and it points at `localhost:4000`, which doesn't resolve inside a container). Dev still works as before.
+
+### Caddy `handle /healthz` rewrites to `/api/healthz`
+Caddy 2's `reverse_proxy` does not strip or remap path prefixes by default — `reverse_proxy api:4000/api/healthz` (the plan's syntax) does not actually rewrite the upstream URL, it sets it as a transport pool target. We use the explicit `rewrite * /api/healthz` directive followed by `reverse_proxy api:4000` to alias `/healthz` (per the plan's external healthz endpoint) onto Nest's `/api/healthz` (matching its global prefix). Note: there's no `/api/healthz` controller in the api yet — adding one is a 5-line follow-up; in the meantime `https://DOMAIN/api/` returns the bare `getHello` handler from `app.controller.ts` which is sufficient as a "is the api up" probe.
+
+### `deploy.yml` SSH command runs from a heredoc (no SC2029 advisory)
+First pass used `ssh user@host "cd ... && export TAG=$TAG && ..."` with `$TAG` from the runner env — actionlint flagged it as `SC2029:info Note that, unescaped, this expands on the client side`. Even though that's the intended behaviour (we _want_ the runner to template the SHA before sending), actionlint exits non-zero on any finding (including info-level). Fix: switched to `ssh user@host bash -s <<EOF`, with the SHA templated by GitHub Actions's `${{ }}` syntax inside the heredoc. No shell expansion happens between the runner and ssh, and actionlint is silent.
+
+### Backup script lives at `scripts/backup.sh`, runs from cron on the VPS
+Plan called for `scripts/backup.sh`. We use `set -euo pipefail`, validate the postgres container is up before dumping, gzip with `-9`, and rotate via `find -mtime +7 -delete`. The script is intentionally NOT installed by Docker — it's a host-side cron job because `docker exec` from inside another container into the postgres container is awkward. Cron entry (run as `deploy` user on the VPS) is documented in `DEPLOY.md`: `0 3 * * * /home/deploy/scripts/backup.sh >> /var/log/coffee-backup.log 2>&1`.
+
+### CI workflow runs Postgres service even though tests don't touch it
+Current Vitest suites mock Prisma fully — `pnpm test` does not need a live DB. The CI workflow nevertheless boots a `postgres:16-alpine` service container and exports `DATABASE_URL` because (a) `pnpm prisma generate` reads the URL via the `prisma.config.ts` adapter even though it doesn't actually connect, and (b) it costs ~3 s and futureproofs the workflow for the moment a test wants to hit a real DB (Week 6+ stretch — integration tests). Removing the postgres service is a one-line change if it's ever a CI-time concern.
+
+### `actionlint` validation via `rhysd/actionlint:latest` Docker image
+No host-installed `actionlint` — we use `docker run --rm -v $PWD:/repo rhysd/actionlint:latest`. Both `ci.yml` and `deploy.yml` lint clean (exit 0). Caddy validation likewise via `docker run --rm caddy:2-alpine caddy validate`, with `DOMAIN=:80` so it doesn't try to issue a real cert during validation.
+
+### Verification gate (instead of live deploy)
+- `docker build -f infra/docker/Dockerfile.api -t coffee-api:test .` → succeeds, 654 MB
+- `docker build -f infra/docker/Dockerfile.web -t coffee-web:test .` → succeeds, 192 MB
+- `docker compose -f infra/docker-compose.prod.yml config` → exit 0, no warnings
+- `caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile` (via Docker) → "Valid configuration", exit 0
+- `actionlint .github/workflows/*.yml` (via Docker) → exit 0
+- `pnpm typecheck` → 4/4 tasks pass
+- `pnpm test` → 28 tests pass (3 web + 25 api)
+
+Test images deleted with `docker rmi coffee-api:test coffee-web:test` after verification — no leftover prod-sized images on disk.
