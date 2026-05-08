@@ -23,11 +23,16 @@ export default function AdminLayout({
             ออเดอร์
           </Link>
           <Link
+            href="/admin/inventory"
+            className="block rounded px-3 py-2 hover:bg-gray-200"
+          >
+            วัตถุดิบ
+          </Link>
+          <Link
             href="/admin/reports"
             className="block rounded px-3 py-2 hover:bg-gray-200"
           >
-            รายงาน{' '}
-            <span className="text-xs text-gray-500">(Week 5)</span>
+            รายงาน
           </Link>
           <form action="/api/auth/logout" method="POST" className="pt-4">
             <button className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50">
