@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same ref (saves CI minutes when pushing fast)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: typecheck + test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: coffee_test
+          POSTGRES_USER: coffee
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://coffee:test@localhost:5432/coffee_test?schema=public
+      JWT_SECRET: test-secret-32-chars-min-required-length-here
+      JWT_EXPIRES_IN: 7d
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @coffee/shared (consumed by api + web typecheck)
+        run: pnpm --filter @coffee/shared build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @coffee/api prisma generate
+
+      - name: Typecheck (web + api)
+        run: pnpm typecheck
+
+      - name: Test (web + api)
+        run: pnpm test
