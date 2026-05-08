@@ -1,0 +1,82 @@
+# Production stack: Caddy (TLS edge) → Next.js + NestJS → Postgres.
+# Only Caddy publishes ports (80/443). All other services are reachable only on
+# the docker-compose default network (`coffeeshop_default`) by service name.
+#
+# Required env vars (load from infra/.env on the VPS — see .env.prod.example):
+#   GH_USER       GitHub username/org owning the GHCR images
+#   TAG           Image tag (commit SHA short or `latest`)
+#   DB_PASSWORD   Postgres password
+#   JWT_SECRET    NestJS JWT secret (>= 32 chars)
+#   DOMAIN        Public domain for Caddy (e.g. coffee.example.com)
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: coffee-caddy
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+    restart: unless-stopped
+
+  web:
+    image: ghcr.io/${GH_USER}/coffee-web:${TAG:-latest}
+    container_name: coffee-web
+    environment:
+      NODE_ENV: production
+      # In-cluster URL the Next.js server uses for any same-process server
+      # fetches. Browser traffic goes via Caddy → /api/* directly.
+      NESTJS_INTERNAL_URL: http://api:4000
+      NEXT_PUBLIC_API_URL: /api
+    expose:
+      - '3000'
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/${GH_USER}/coffee-api:${TAG:-latest}
+    container_name: coffee-api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://coffee:${DB_PASSWORD}@postgres:5432/coffee?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: '7d'
+      PORT: '4000'
+    expose:
+      - '4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: coffee-postgres
+    environment:
+      POSTGRES_DB: coffee
+      POSTGRES_USER: coffee
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'coffee']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    expose:
+      - '5432'
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
