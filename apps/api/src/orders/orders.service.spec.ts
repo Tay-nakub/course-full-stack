@@ -8,20 +8,24 @@ import {
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 
+interface MockTx {
+  product: { findMany: ReturnType<typeof vi.fn> };
+  order: { create: ReturnType<typeof vi.fn> };
+}
+
+interface MockPrisma {
+  $transaction: ReturnType<typeof vi.fn>;
+  order: {
+    findUnique: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
+}
+
 describe('OrdersService', () => {
   let service: OrdersService;
-  let tx: {
-    product: { findMany: ReturnType<typeof vi.fn> };
-    order: { create: ReturnType<typeof vi.fn> };
-  };
-  let prisma: {
-    $transaction: ReturnType<typeof vi.fn>;
-    order: {
-      findUnique: ReturnType<typeof vi.fn>;
-      findMany: ReturnType<typeof vi.fn>;
-      update: ReturnType<typeof vi.fn>;
-    };
-  };
+  let tx: MockTx;
+  let prisma: MockPrisma;
 
   beforeEach(async () => {
     tx = {
@@ -29,7 +33,7 @@ describe('OrdersService', () => {
       order: { create: vi.fn() },
     };
     prisma = {
-      $transaction: vi.fn((fn: (tx: typeof tx) => unknown) => fn(tx)),
+      $transaction: vi.fn((fn: (tx: MockTx) => unknown) => fn(tx)),
       order: {
         findUnique: vi.fn(),
         findMany: vi.fn(),
