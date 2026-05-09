@@ -36,11 +36,8 @@
 ### Windows
 - ❌ **ห้ามใช้ Windows native** — Docker, terminal commands, npm scripts จะมี edge cases
 - ✅ ใช้ **WSL2 + Ubuntu 22.04** (recommended)
-- Setup WSL2:
-  1. PowerShell (Admin): `wsl --install -d Ubuntu-22.04`
-  2. Restart, configure username/password
-  3. ทุกคำสั่งใน course **รันใน Ubuntu terminal** (ไม่ใช่ PowerShell)
-  4. แนะนำ install [Windows Terminal](https://aka.ms/terminal) สำหรับ tab management
+- 📖 **Step-by-step guide:** [docs/student/setup-windows.md](../../student/setup-windows.md) — install WSL2 + nvm + Docker Desktop + VS Code (with screenshots + troubleshooting)
+- Quick setup: PowerShell (Admin) → `wsl --install -d Ubuntu-22.04` → restart → ทำตาม guide
 
 ---
 
@@ -364,3 +361,11 @@ Ready for Week 1!
 ---
 
 🚀 **Pre-course done? See you in Week 1!**
+
+---
+
+## 📚 Related Guides
+
+- 🪟 [Windows Setup (WSL2 + nvm + Docker Desktop + VS Code)](../../student/setup-windows.md) — full step-by-step
+- 🏗️ [Monorepo Setup (clone → install → dev)](../../student/setup-monorepo.md) — what to do AFTER tools are installed
+- 🎬 [Week 1 Slides](../../slides/week-1/) — `npm install && npm run dev`
