@@ -205,7 +205,7 @@ docker run hello-world
 <div class="text-base">
 
 ```bash {1|2|3-4|5|6|7|all}
-git clone git@github.com:<org>/course-full-stack.git
+git clone git@github.com:sangzn34/course-full-stack.git
 cd course-full-stack && pnpm install         # 3-5 min
 cp apps/api/.env.example apps/api/.env
 pnpm db:up                                    # Postgres @ 5433
