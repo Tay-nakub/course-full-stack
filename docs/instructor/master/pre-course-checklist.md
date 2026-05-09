@@ -155,12 +155,29 @@ git config --global user.email
 
 ### Essential Extensions (install ทุกตัว)
 
-| Extension                     | Why                                                 |
-| ----------------------------- | --------------------------------------------------- |
-| **ESLint**                    | Catch lint errors ใน editor                         |
-| **Prettier**                  | Format on save (consistent style)                   |
-| **Tailwind CSS IntelliSense** | Autocomplete + class hover docs                     |
-| **Prisma**                    | Syntax highlight + format `.prisma` files (Week 2+) |
+| Extension                     | Extension ID                       | Why                                                 |
+| ----------------------------- | ---------------------------------- | --------------------------------------------------- |
+| **ESLint**                    | `dbaeumer.vscode-eslint`           | Catch lint errors ใน editor                         |
+| **Prettier**                  | `esbenp.prettier-vscode`           | Format on save (consistent style)                   |
+| **Tailwind CSS IntelliSense** | `bradlc.vscode-tailwindcss`        | Autocomplete + class hover docs                     |
+| **Prisma**                    | `Prisma.prisma`                    | Syntax highlight + format `.prisma` files (Week 2+) |
+| **ES7+ React/Redux snippets** | `dsznajder.es7-react-js-snippets`  | `rafce`, `useState`, `useEffect` snippets (Week 3+) |
+| **vscode-icons**              | `vscode-icons-team.vscode-icons`   | File/folder icons — เห็น project structure ชัดขึ้น  |
+| **Code Spell Checker**        | `streetsidesoftware.code-spell-checker` | กัน typo ใน variable names / commit messages   |
+| **GitLens**                   | `eamodio.gitlens`                  | Git blame + history ใน editor                       |
+
+### Quick install ผ่าน CLI (one-liner)
+
+```bash
+code --install-extension dbaeumer.vscode-eslint \
+  --install-extension esbenp.prettier-vscode \
+  --install-extension bradlc.vscode-tailwindcss \
+  --install-extension Prisma.prisma \
+  --install-extension dsznajder.es7-react-js-snippets \
+  --install-extension vscode-icons-team.vscode-icons \
+  --install-extension streetsidesoftware.code-spell-checker \
+  --install-extension eamodio.gitlens
+```
 
 ### Recommended (ไม่บังคับ แต่ช่วยมาก)
 
@@ -168,8 +185,6 @@ git config --global user.email
 | ---------------------------- | ---------------------------------------------- |
 | **Error Lens**               | แสดง error inline (ไม่ต้องเปิด Problems panel) |
 | **Pretty TypeScript Errors** | TS error อ่านง่ายขึ้น                          |
-| **GitLens**                  | Git blame + history ใน editor                  |
-| **Code Spell Checker**       | กัน typo ใน variable names                     |
 
 ### Settings (recommended `settings.json`)
 
@@ -190,9 +205,15 @@ git config --global user.email
   "tailwindCSS.experimental.classRegex": [
     ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
     ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
-  ]
+  ],
+  "workbench.iconTheme": "vscode-icons",
+  "cSpell.ignoreRegExpList": ["/[^\\x00-\\x7F]+/"]
 }
 ```
+
+> 💡 **`cSpell.ignoreRegExpList` คืออะไร?**
+> Code Spell Checker ไม่รู้จักภาษาไทย → จะขีดเส้นใต้ทุกคำไทยใน comment / string ว่าเป็น typo.
+> Regex `/[^\x00-\x7F]+/` = "ignore ทุกตัวอักษรที่ไม่ใช่ ASCII" → ภาษาไทย/จีน/ญี่ปุ่นจะถูกข้าม แต่ตัว spell-check ภาษาอังกฤษยังทำงานปกติ.
 
 ---
 

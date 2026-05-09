@@ -137,7 +137,7 @@ Block สั้นๆ ตรวจ environment ก่อนเข้า content 
 - ✅ Node 20+ <span class="muted">(via nvm/fnm)</span>
 - ✅ pnpm 9+ <span class="muted">(via corepack)</span>
 - ✅ Git + GitHub SSH key
-- ✅ VS Code + 4 extensions
+- ✅ VS Code + 8 extensions <span class="muted">(ESLint, Prettier, Tailwind, Prisma, ES7 React, GitLens, vscode-icons, cSpell)</span>
 - ✅ Docker Desktop
 
 </v-clicks>
