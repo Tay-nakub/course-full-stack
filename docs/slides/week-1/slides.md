@@ -164,7 +164,7 @@ docker run hello-world
 </div>
 
 <div class="mt-8 coffee text-center">
-ติด ↓ — ดู <code>docs/student/setup-windows.md</code>
+ติด ↓ — ดู <a href="../../student/setup-windows.md" target="_blank" rel="noopener" class="font-mono underline hover:opacity-80">docs/student/setup-windows.md</a>
 </div>
 
 ---
@@ -221,7 +221,7 @@ pnpm dev                                      # web:3000 + api:4000
 </div>
 
 <div class="mt-6 muted text-sm">
-รายละเอียด → <code>docs/student/setup-monorepo.md</code>
+รายละเอียด → <a href="../../student/setup-monorepo.md" target="_blank" rel="noopener" class="font-mono underline hover:opacity-80">docs/student/setup-monorepo.md</a>
 </div>
 
 ---
@@ -278,17 +278,17 @@ layout: center
 
 <div>
 🪟 <span class="coffee">Windows users</span> — install WSL2 + Node + Docker + VS Code<br>
-<code class="muted">docs/student/setup-windows.md</code>
+<a href="../../student/setup-windows.md" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/student/setup-windows.md</a>
 </div>
 
 <div>
 🏗️ <span class="coffee">Monorepo flow</span> — clone, install, env, db, dev<br>
-<code class="muted">docs/student/setup-monorepo.md</code>
+<a href="../../student/setup-monorepo.md" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/student/setup-monorepo.md</a>
 </div>
 
 <div>
 🔧 <span class="coffee">Pre-course (OS-agnostic)</span> — checklist + verify commands<br>
-<code class="muted">docs/instructor/master/pre-course-checklist.md</code>
+<a href="../../instructor/master/pre-course-checklist.md" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/instructor/master/pre-course-checklist.md</a>
 </div>
 
 <div>
