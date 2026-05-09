@@ -164,7 +164,7 @@ docker run hello-world
 </div>
 
 <div class="mt-8 coffee text-center">
-ติด ↓ — ดู <a href="../../student/setup-windows.md" target="_blank" rel="noopener" class="font-mono underline hover:opacity-80">docs/student/setup-windows.md</a>
+ติด ↓ — ดู <a href="/docs/student/setup-windows.html" target="_blank" rel="noopener" class="font-mono underline hover:opacity-80">docs/student/setup-windows.md</a>
 </div>
 
 ---
@@ -221,7 +221,7 @@ pnpm dev                                      # web:3000 + api:4000
 </div>
 
 <div class="mt-6 muted text-sm">
-รายละเอียด → <a href="../../student/setup-monorepo.md" target="_blank" rel="noopener" class="font-mono underline hover:opacity-80">docs/student/setup-monorepo.md</a>
+รายละเอียด → <a href="/docs/student/setup-monorepo.html" target="_blank" rel="noopener" class="font-mono underline hover:opacity-80">docs/student/setup-monorepo.md</a>
 </div>
 
 ---
@@ -278,17 +278,17 @@ layout: center
 
 <div>
 🪟 <span class="coffee">Windows users</span> — install WSL2 + Node + Docker + VS Code<br>
-<a href="../../student/setup-windows.md" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/student/setup-windows.md</a>
+<a href="/docs/student/setup-windows.html" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/student/setup-windows.md</a>
 </div>
 
 <div>
 🏗️ <span class="coffee">Monorepo flow</span> — clone, install, env, db, dev<br>
-<a href="../../student/setup-monorepo.md" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/student/setup-monorepo.md</a>
+<a href="/docs/student/setup-monorepo.html" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/student/setup-monorepo.md</a>
 </div>
 
 <div>
 🔧 <span class="coffee">Pre-course (OS-agnostic)</span> — checklist + verify commands<br>
-<a href="../../instructor/master/pre-course-checklist.md" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/instructor/master/pre-course-checklist.md</a>
+<a href="/docs/instructor/master/pre-course-checklist.html" target="_blank" rel="noopener" class="font-mono underline opacity-70 hover:opacity-100">docs/instructor/master/pre-course-checklist.md</a>
 </div>
 
 <div>

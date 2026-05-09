@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build:docs": "node scripts/build-docs.mjs",
+    "predev": "npm run build:docs",
+    "prebuild": "npm run build:docs",
     "dev": "slidev --open",
     "build": "slidev build",
     "export": "slidev export"
@@ -10,6 +13,7 @@
   "devDependencies": {
     "@slidev/cli": "^52.0.0",
     "@slidev/theme-default": "latest",
-    "@slidev/theme-seriph": "latest"
+    "@slidev/theme-seriph": "latest",
+    "marked": "^14.1.3"
   }
 }

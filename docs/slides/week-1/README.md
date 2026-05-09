@@ -6,14 +6,18 @@ Slidev deck สำหรับ Week 1 (Session 1 + Session 2 รวม 25 slides
 
 ```bash
 cd docs/slides/week-1
-pnpm install
-pnpm dev          # opens http://localhost:3030
+npm install
+npm run dev          # opens http://localhost:3030
 ```
+
+> The `predev` hook auto-runs `scripts/build-docs.mjs` which renders the 3 setup
+> guides referenced in the slides (`docs/student/*.md` + pre-course-checklist)
+> into `public/docs/.../*.html` so the in-slide links work on localhost.
 
 ## Build static site
 
 ```bash
-pnpm build        # outputs to dist/
+npm run build        # outputs to dist/ (includes pre-rendered docs/)
 ```
 
 ## Export to PDF
