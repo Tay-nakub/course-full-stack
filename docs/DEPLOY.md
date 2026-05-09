@@ -25,16 +25,16 @@ exposes ports 22, 80, 443. Internal services use docker network names.
 
 ## Files
 
-| Path                                | Role                                      |
-| ----------------------------------- | ----------------------------------------- |
-| `infra/docker/Dockerfile.api`       | Multi-stage build for NestJS API          |
-| `infra/docker/Dockerfile.web`       | Multi-stage build for Next.js standalone  |
-| `infra/docker-compose.prod.yml`     | The production stack                      |
-| `infra/caddy/Caddyfile`             | TLS edge + reverse proxy rules            |
-| `infra/.env.prod.example`           | Template for production `.env`            |
-| `scripts/backup.sh`                 | Daily Postgres dump (cron entrypoint)     |
-| `.github/workflows/ci.yml`          | PR + main: typecheck + tests              |
-| `.github/workflows/deploy.yml`      | main: build, push to GHCR, ssh deploy     |
+| Path                            | Role                                     |
+| ------------------------------- | ---------------------------------------- |
+| `infra/docker/Dockerfile.api`   | Multi-stage build for NestJS API         |
+| `infra/docker/Dockerfile.web`   | Multi-stage build for Next.js standalone |
+| `infra/docker-compose.prod.yml` | The production stack                     |
+| `infra/caddy/Caddyfile`         | TLS edge + reverse proxy rules           |
+| `infra/.env.prod.example`       | Template for production `.env`           |
+| `scripts/backup.sh`             | Daily Postgres dump (cron entrypoint)    |
+| `.github/workflows/ci.yml`      | PR + main: typecheck + tests             |
+| `.github/workflows/deploy.yml`  | main: build, push to GHCR, ssh deploy    |
 
 ## Required environment variables (production `infra/.env` on the VPS)
 
@@ -50,12 +50,12 @@ DOMAIN=your-coffee-shop.com           # public domain pointing to VPS
 
 ## GitHub Secrets needed by `deploy.yml`
 
-| Name              | Value                                                 |
-| ----------------- | ----------------------------------------------------- |
-| `SSH_PRIVATE_KEY` | Full contents of `~/.ssh/id_ed25519` (BEGIN…END)      |
-| `VPS_HOST`        | VPS IPv4 address                                      |
-| `VPS_USER`        | `deploy`                                              |
-| `DEPLOY_DOMAIN`   | `your-coffee-shop.com` (used by smoke-test step)      |
+| Name              | Value                                            |
+| ----------------- | ------------------------------------------------ |
+| `SSH_PRIVATE_KEY` | Full contents of `~/.ssh/id_ed25519` (BEGIN…END) |
+| `VPS_HOST`        | VPS IPv4 address                                 |
+| `VPS_USER`        | `deploy`                                         |
+| `DEPLOY_DOMAIN`   | `your-coffee-shop.com` (used by smoke-test step) |
 
 `GITHUB_TOKEN` is auto-injected by Actions and has `packages:write` scope via
 the workflow's `permissions:` block.
@@ -66,6 +66,7 @@ These steps assume Tasks 1–3 of the Week 6 plan are done (VPS exists,
 hardened, Docker installed, `deploy@vps` reachable).
 
 1. **Local: build + push images to GHCR.**
+
    ```bash
    echo $GHCR_PAT | docker login ghcr.io -u <gh-user> --password-stdin
    docker build -f infra/docker/Dockerfile.api -t ghcr.io/<gh-user>/coffee-api:latest .
@@ -73,10 +74,12 @@ hardened, Docker installed, `deploy@vps` reachable).
    docker push ghcr.io/<gh-user>/coffee-api:latest
    docker push ghcr.io/<gh-user>/coffee-web:latest
    ```
+
    Make both packages public: GitHub → Profile → Packages → coffee-api →
    Package settings → Change visibility → Public. Repeat for `coffee-web`.
 
 2. **Local: copy compose + Caddyfile to VPS.**
+
    ```bash
    ssh deploy@$VPS_IP 'mkdir -p ~/coffeeshop/caddy ~/scripts'
    scp infra/docker-compose.prod.yml      deploy@$VPS_IP:~/coffeeshop/docker-compose.yml
@@ -85,6 +88,7 @@ hardened, Docker installed, `deploy@vps` reachable).
    ```
 
 3. **VPS: write `.env`.**
+
    ```bash
    ssh deploy@$VPS_IP
    cd ~/coffeeshop
@@ -101,11 +105,13 @@ hardened, Docker installed, `deploy@vps` reachable).
 4. **VPS: point DNS at the VPS IP.** Cloudflare/Namecheap/Route53 → A record
    for `@` (or your subdomain) → VPS IPv4. Cloudflare proxy must be **OFF**
    for the initial Let's Encrypt cert issuance. Wait ~5 min for propagation:
+
    ```bash
    dig +short your-coffee-shop.com   # should print VPS IP
    ```
 
 5. **VPS: bring up the stack.**
+
    ```bash
    cd ~/coffeeshop
    docker compose pull
@@ -116,6 +122,7 @@ hardened, Docker installed, `deploy@vps` reachable).
 6. **VPS: run migrations + seed.** The `api` container's CMD already runs
    `prisma migrate deploy` on every start, so migrations are applied. Seed
    once:
+
    ```bash
    docker compose exec api npx prisma db seed
    docker compose exec postgres psql -U coffee -d coffee \

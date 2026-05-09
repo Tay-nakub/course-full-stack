@@ -15,11 +15,7 @@ export default function KitchenPage() {
   if (isLoading) return <p>กำลังโหลด...</p>;
 
   if (orders.length === 0) {
-    return (
-      <div className="py-12 text-center text-gray-500">
-        🎉 ยังไม่มีออเดอร์ค้าง
-      </div>
-    );
+    return <div className="py-12 text-center text-gray-500">🎉 ยังไม่มีออเดอร์ค้าง</div>;
   }
 
   // Group by status for visual order
@@ -31,9 +27,7 @@ export default function KitchenPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">
-        ออเดอร์ที่ค้าง ({orders.length})
-      </h1>
+      <h1 className="mb-6 text-2xl font-bold">ออเดอร์ที่ค้าง ({orders.length})</h1>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Column title="🕐 รอชำระ" orders={byStatus.PENDING} />

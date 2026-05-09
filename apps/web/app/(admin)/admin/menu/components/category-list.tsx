@@ -34,10 +34,8 @@ export function CategoryList() {
   });
 
   const removeMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/menu/categories/${id}`, { method: 'DELETE' }),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.categories }),
+    mutationFn: (id: string) => apiFetch(`/menu/categories/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.categories }),
     onError: (error) => alert(`ลบไม่ได้: ${error.message}`),
   });
 
@@ -75,19 +73,13 @@ export function CategoryList() {
                 <TableCell>{c.name}</TableCell>
                 <TableCell>{c.sortOrder}</TableCell>
                 <TableCell className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditing(c)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setEditing(c)}>
                     แก้ไข
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      confirm(`ลบ "${c.name}"?`) && removeMutation.mutate(c.id)
-                    }
+                    onClick={() => confirm(`ลบ "${c.name}"?`) && removeMutation.mutate(c.id)}
                   >
                     ลบ
                   </Button>
@@ -103,12 +95,7 @@ export function CategoryList() {
           <DialogHeader>
             <DialogTitle>แก้ไขหมวด</DialogTitle>
           </DialogHeader>
-          {editing && (
-            <CategoryForm
-              category={editing}
-              onSuccess={() => setEditing(null)}
-            />
-          )}
+          {editing && <CategoryForm category={editing} onSuccess={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
     </section>

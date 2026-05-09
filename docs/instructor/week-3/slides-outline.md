@@ -67,7 +67,7 @@ Week 3: Connect them          ⬅ HERE
    ───────────   ───────────
    RHF +         ZodValidationPipe
    zodResolver    in @Post() body
-   
+
    FE validate   BE validate
    Same errors   Same errors
    Same types    Same types
@@ -135,26 +135,26 @@ delegates to Service      transaction handling
 ### Slide 1.08 — The Cross-Origin Problem
 
 ```
-Dev:                                                    
-  Browser   localhost:3000  ─?─►  localhost:4000        
-                                                         
-  Different origin = ❌ CORS preflight                   
-                     ❌ Cookies don't share              
-                                                         
-                                                         
-Solution: Next.js rewrites                              
-  next.config.ts:                                        
-  rewrites: [{ source: '/api/:path*',                   
+Dev:
+  Browser   localhost:3000  ─?─►  localhost:4000
+
+  Different origin = ❌ CORS preflight
+                     ❌ Cookies don't share
+
+
+Solution: Next.js rewrites
+  next.config.ts:
+  rewrites: [{ source: '/api/:path*',
                destination: 'http://localhost:4000/...'}]
-                                                         
-  Browser  localhost:3000  ─►  /api/menu/products       
-                                       │                 
-                              Next.js proxies            
-                                       │                 
-                                       ▼                 
-                              NestJS:4000                
-                                                         
-  Same origin = ✅ no CORS, ✅ cookies work             
+
+  Browser  localhost:3000  ─►  /api/menu/products
+                                       │
+                              Next.js proxies
+                                       │
+                                       ▼
+                              NestJS:4000
+
+  Same origin = ✅ no CORS, ✅ cookies work
 ```
 
 ### Slide 1.09 — TanStack Query Mental Model
@@ -178,7 +178,7 @@ Component A                     Component B
               │
        Single fetch
        Both components updated
-       
+
 useMutation → write → onSuccess: invalidateQueries → auto refetch
 ```
 
@@ -238,19 +238,19 @@ End state:
 ### Slide 2.03 — Why Proxy Pattern (Not Direct)
 
 ```
-❌ FE ─────► NestJS                       
-            (token in localStorage)        
-            XSS = steal token              
+❌ FE ─────► NestJS
+            (token in localStorage)
+            XSS = steal token
 
-✅ FE ─────► Next.js Route Handler        
-                 │                         
-                 │ proxy                   
-                 ▼                         
-              NestJS                       
-                 │                         
-                 ▼                         
-        Set httpOnly cookie               
-        (JS can't read = XSS-safe)        
+✅ FE ─────► Next.js Route Handler
+                 │
+                 │ proxy
+                 ▼
+              NestJS
+                 │
+                 ▼
+        Set httpOnly cookie
+        (JS can't read = XSS-safe)
 
   JS-invisible token = security upgrade
 ```
@@ -281,7 +281,7 @@ CSRF                  ✅ safe              ⚠️ mitigate via
                                             SameSite
 Mobile / native       ✅ easy              ⚠️ cookie jar
 Cross-origin          ✅ trivial           ❌ same domain
-                                                         
+
   Course web app: cookie wins (XSS > CSRF in real-world)
 ```
 
@@ -300,7 +300,7 @@ middleware.ts        ← runs at edge, BEFORE route
 Edge runtime:
   ✅ Fast (V8 isolates)
   ❌ No Node APIs (fs, crypto.createHash)
-  
+
 Strategy: short-circuit
   - Token exists? Allow.
   - No token? Redirect to /login.
@@ -355,15 +355,15 @@ Page (Server Component)
 // Server Component — runs on server
 async function MenuPage() {
   const token = await getServerToken();
-  
+
   const products = await fetch(
     'http://localhost:4000/api/menu/products?active=true',
-    { 
+    {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       cache: 'no-store',
     }
   ).then(r => r.json());
-  
+
   return <Grid products={products} />;
 }
 
@@ -399,11 +399,13 @@ Reuse from Week 3:
 ## 🛠️ Build Notes (instructor)
 
 ### Visual Aids
+
 - **Live network tab** during all live demos — show request/response
 - **React Query Devtools** open — show cache lifecycle
 - **DBeaver** open — show DB updates after mutations
 - **3 windows tile**: code editor / browser+devtools / DBeaver
 
 ### Live Coding Tip
+
 - Block F (Admin CRUD) — heaviest. Open all 4 files (CategoryList, CategoryForm, ProductList, ProductForm) ก่อน demo. Switch fast
 - ProductList/Form = student exercise — instructor walk around debug live

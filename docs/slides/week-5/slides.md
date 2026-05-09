@@ -21,6 +21,7 @@ defaults:
 # ☕ Coffee Shop Course
 
 ## Week 5 · Session 1
+
 ### Inventory + Stock Deduct ⭐
 
 <div class="muted mt-8 text-sm">
@@ -33,8 +34,8 @@ Week 5 = centerpiece. Atomic transaction across 4 tables.
 -->
 
 ---
-layout: center
----
+
+## layout: center
 
 # The Big Idea
 
@@ -76,8 +77,8 @@ Build:
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Event-Sourced Inventory
 
@@ -114,7 +115,7 @@ Truth: <code>SUM(quantity)</code> · Cache: read-fast denormalized · Recompute 
 ### ❌ JS Float
 
 ```js
-0.1 + 0.2
+0.1 + 0.2;
 // 0.30000000000000004
 ```
 
@@ -190,8 +191,8 @@ Trade-off: lose granular audit (which item changed) — acceptable for course MV
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # ⭐ Atomic Transaction (4 tables)
 
@@ -392,19 +393,20 @@ graceful degradation > strict
 </div>
 
 ---
-layout: cover
----
+
+## layout: cover
 
 # ☕ Session 2
 
 ## Week 5 · Session 2
+
 ### Reports Backend + Dashboard
 
 <div class="muted mt-8 text-sm">Make the data VISIBLE</div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Today's Outcome
 
@@ -553,12 +555,9 @@ const rows = await prisma.$queryRaw<DayRow[]>`
     <YAxis />
     <Tooltip />
     <Legend />
-    <Line type="monotone" dataKey="revenue"
-          stroke="#2563eb" name="รายได้" />
-    <Line type="monotone" dataKey="cogs"
-          stroke="#ea580c" name="ต้นทุน" />
-    <Line type="monotone" dataKey="grossProfit"
-          stroke="#16a34a" name="กำไร" />
+    <Line type="monotone" dataKey="revenue" stroke="#2563eb" name="รายได้" />
+    <Line type="monotone" dataKey="cogs" stroke="#ea580c" name="ต้นทุน" />
+    <Line type="monotone" dataKey="grossProfit" stroke="#16a34a" name="กำไร" />
   </LineChart>
 </ResponsiveContainer>
 ```
@@ -583,11 +582,7 @@ SALE:        - (auto from order completion)
 ```
 
 ```ts
-const signed = reason === 'PURCHASE'
-  ? Math.abs(qty)
-  : reason === 'WASTE'
-  ? -Math.abs(qty)
-  : qty;
+const signed = reason === 'PURCHASE' ? Math.abs(qty) : reason === 'WASTE' ? -Math.abs(qty) : qty;
 ```
 
 <div class="mt-4 muted text-sm">
@@ -598,8 +593,8 @@ In form: `reason="WASTE"`, `quantity=50` → server: `-50` ✓
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # KPI Card Design
 

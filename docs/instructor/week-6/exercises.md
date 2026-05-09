@@ -6,14 +6,14 @@
 
 ## 📋 Exercise Map
 
-| # | Type | When | Difficulty | Time |
-|---|---|---|---|---|
-| **EX-6.1** | In-class | Session 1, Block A | ⭐ | 5 min |
-| **EX-6.2** | In-class | Session 1, Block D | ⭐⭐ | 7 min |
-| **HW-6-mid** | Homework | Between sessions | ⭐⭐⭐ | 3-4 hrs |
-| **EX-6.3** | In-class | Session 2, Block G | ⭐⭐ | 10 min |
-| **HW-6-final** | Homework | After course | ⭐⭐⭐⭐ | 6+ hrs |
-| **HW-6-stretch** | Optional | Anytime | ⭐⭐⭐⭐ | 4-8 hrs |
+| #                | Type     | When               | Difficulty | Time    |
+| ---------------- | -------- | ------------------ | ---------- | ------- |
+| **EX-6.1**       | In-class | Session 1, Block A | ⭐         | 5 min   |
+| **EX-6.2**       | In-class | Session 1, Block D | ⭐⭐       | 7 min   |
+| **HW-6-mid**     | Homework | Between sessions   | ⭐⭐⭐     | 3-4 hrs |
+| **EX-6.3**       | In-class | Session 2, Block G | ⭐⭐       | 10 min  |
+| **HW-6-final**   | Homework | After course       | ⭐⭐⭐⭐   | 6+ hrs  |
+| **HW-6-stretch** | Optional | Anytime            | ⭐⭐⭐⭐   | 4-8 hrs |
 
 ---
 
@@ -64,6 +64,7 @@ docker images | grep coffee
 ```
 
 ตอบ:
+
 1. ขนาดของ coffee-api ประมาณเท่าไร? (MB)
 2. ขนาดของ coffee-web ประมาณเท่าไร?
 3. ถ้า single-stage build (ไม่มี multi-stage): จะใหญ่กี่เท่า?
@@ -133,6 +134,7 @@ FROM node:20           # ~270 MB final
    - Place a test order through the live URL
 
 ### Acceptance Criteria
+
 - [ ] HTTPS valid (browser shows lock icon)
 - [ ] Domain resolves correctly
 - [ ] All 4 containers running
@@ -140,16 +142,18 @@ FROM node:20           # ~270 MB final
 - [ ] Healthcheck endpoint passes
 
 ### 🟢 Solution
+
 ดู Plan Task 8 — full step-by-step
 
 ### Common Mistakes
-| Mistake | Fix |
-|---|---|
-| DNS not propagated yet | Wait 5-10 min, use `dig +short` to verify |
-| Cert request fails | Caddy logs say "rate limit" or "challenge fail". Verify port 80 open + DNS correct |
-| GHCR pull fails on VPS | Make image public, or login on VPS with token |
-| Env var typo | `docker compose config` shows resolved env |
-| Caddyfile path wrong in compose | Volume mount `./caddy/Caddyfile:/etc/caddy/Caddyfile:ro` |
+
+| Mistake                         | Fix                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| DNS not propagated yet          | Wait 5-10 min, use `dig +short` to verify                                          |
+| Cert request fails              | Caddy logs say "rate limit" or "challenge fail". Verify port 80 open + DNS correct |
+| GHCR pull fails on VPS          | Make image public, or login on VPS with token                                      |
+| Env var typo                    | `docker compose config` shows resolved env                                         |
+| Caddyfile path wrong in compose | Volume mount `./caddy/Caddyfile:/etc/caddy/Caddyfile:ro`                           |
 
 ---
 
@@ -170,6 +174,7 @@ FROM node:20           # ~270 MB final
 5. Note total time from push → live
 
 ตอบ:
+
 - กี่นาที total?
 - Build + push: กี่นาที? (Job 1 timing)
 - SSH deploy: กี่วินาที? (Job 2 timing)
@@ -178,6 +183,7 @@ FROM node:20           # ~270 MB final
 ### 🟢 Solution
 
 ผลลัพธ์ปกติ:
+
 - Total: 3-5 min first run, 1.5-2 min subsequent (cached)
 - Job 1 (build + push):
   - First: 3-4 min (no cache)
@@ -188,6 +194,7 @@ FROM node:20           # ~270 MB final
 > **Teaching point**: layer caching = huge win. Don't break the cache (don't `COPY .` early)
 
 ### Common Mistakes
+
 - Push but no Actions run → check `branches: [main]` in YAML
 - Image push 401 → check `permissions: packages: write`
 - SSH fail → check secrets format (entire key including BEGIN/END)
@@ -227,12 +234,14 @@ FROM node:20           # ~270 MB final
    - Optional: 3-5 min walkthrough video
 
 ### Timeline
+
 - Soft deadline: 2 weeks after course
 - Final review: 1 month after course (instructor 1-on-1)
 
 ### 🟢 Tier guidance
 
 ตาม rubric:
+
 - **Functional Baseline** → "Complete"
 - **Professional Quality** → "Complete (Strong)"
 - **Production Ready + 1 stretch** → "Distinction"
@@ -244,30 +253,36 @@ FROM node:20           # ~270 MB final
 **Difficulty**: ⭐⭐⭐⭐
 
 ### Stretch 1: Blue-Green Deploy (4 hrs)
+
 - Run 2 instances of api (blue + green)
 - Caddy weighted load balance: 100/0 → 0/100
 - Zero-downtime deploys
 
 ### Stretch 2: Off-site Backup with B2 (3 hrs)
+
 - Sign up Backblaze B2 (10GB free)
 - rclone config + auto-upload to B2
 - Restore drill from B2
 
 ### Stretch 3: Add Slack Deploy Notifications (1 hr)
+
 - GitHub Actions step: post to Slack on success/fail
 - Use `slackapi/slack-github-action@v1`
 
 ### Stretch 4: Sentry Integration (4 hrs)
+
 - Sign up Sentry (free tier)
 - Add `@sentry/nextjs` + `@sentry/nestjs`
 - Track errors + releases (link to git SHA)
 
 ### Stretch 5: Uptime Monitor (1 hr)
+
 - Self-host Uptime Kuma in another container
 - Or use UptimeRobot.com (free 50 monitors)
 - Alert via Slack/LINE/email
 
 ### Stretch 6: Container Image Scanning (2 hrs)
+
 - Add Trivy scan in CI (`aquasecurity/trivy-action`)
 - Block deploys with critical CVEs
 - Document accepted vulnerabilities

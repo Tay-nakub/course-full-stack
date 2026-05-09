@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ Order + OrderItem schemas + Prisma models migrated
 - ✅ NestJS Orders module: atomic create + status transitions + tests
 - ✅ Zustand cart store with persist (localStorage)
@@ -31,19 +32,20 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Preview** | Quiz Week 3 + show today's outcome |
-| **10-55** | **Block A** | **Order schemas + Prisma + atomic transaction** |
-| **55-75** | **Block B** | **Tests + state transitions** |
-| **75-110** | **Block C** | **Zustand cart + add to cart UI** |
-| 110-120 | Wrap-up | Homework + Q&A |
+| Time       | Block               | Activity                                        |
+| ---------- | ------------------- | ----------------------------------------------- |
+| 0-10       | **Recap + Preview** | Quiz Week 3 + show today's outcome              |
+| **10-55**  | **Block A**         | **Order schemas + Prisma + atomic transaction** |
+| **55-75**  | **Block B**         | **Tests + state transitions**                   |
+| **75-110** | **Block C**         | **Zustand cart + add to cart UI**               |
+| 110-120    | Wrap-up             | Homework + Q&A                                  |
 
 ---
 
 ## 🟢 Recap + Preview (0-10 min)
 
 ### Recap (3 min)
+
 - "TanStack Query useMutation onSuccess ทำอะไร?"
 - "Schema เดียวสองฝั่ง — ตัวอย่างจาก Week 3?"
 - "Cookie httpOnly ดียังไง?"
@@ -51,12 +53,14 @@
 ### Today's Preview (7 min)
 
 **Show end-state**:
+
 1. Customer (incognito browser): /menu → add to cart → /cart → /checkout → place order
 2. Tracking page shows order
 3. Staff browser: /kitchen → see order → "รับออเดอร์" → "ทำเสร็จ" → "ลูกค้ารับแล้ว"
 4. Tracking page (customer) auto-updates within 5 sec
 
 📢 **Big idea**:
+
 > "วันนี้ + Session 2 = use Week 3 patterns + 1 new pattern (transactions). 80% practice, 20% new"
 
 ---
@@ -64,6 +68,7 @@
 ## 📦 Block A: Order Schemas + Prisma + Atomic Transaction (10-55 min, 45 min)
 
 ### 🎯 Block Goals
+
 - Define Order/OrderItem schemas (input vs output)
 - Migrate Prisma with relations + indexes
 - Implement `prisma.$transaction` for atomic create
@@ -74,6 +79,7 @@
 **1. Why atomic transaction for order create** (5 min)
 
 วาดบนกระดาน:
+
 ```
 Order create involves:
   1. Validate products exist + active
@@ -158,6 +164,7 @@ Pattern: VALID_TRANSITIONS map
 (พิมพ์ตาม Plan)
 
 📢 **Highlight**:
+
 - `OrderItemSchema` = output (with id, all fields)
 - `CreateOrderItemSchema` = input (just productId + qty)
 - `CreateOrderSchema.items.min(1)` — must have ≥1 item
@@ -167,6 +174,7 @@ Pattern: VALID_TRANSITIONS map
 (พิมพ์ตาม Plan)
 
 📢 **เน้น indexes**:
+
 - `@@index([status])` — kitchen filter by status (faster)
 - `@@index([createdAt])` — orderBy createdAt (faster)
 
@@ -187,7 +195,7 @@ return this.prisma.$transaction(async (tx) => {
   const products = await tx.product.findMany({
     where: { id: { in: productIds } },
   });
-  
+
   if (products.length !== productIds.length) {
     throw new BadRequestException('สินค้าบางรายการไม่พบ');
   }
@@ -196,6 +204,7 @@ return this.prisma.$transaction(async (tx) => {
 ```
 
 📢 **อธิบายแต่ละ step**:
+
 1. ดึง products → validate ทุกตัวมี + active
 2. Map productId → product (สะดวก lookup)
 3. คำนวณ items + subtotal **ฝั่ง server**
@@ -207,6 +216,7 @@ return this.prisma.$transaction(async (tx) => {
 (พิมพ์ตาม Plan)
 
 📢 **เน้น permissions**:
+
 - `POST /orders` — ไม่มี guard (public — guest checkout)
 - `GET /orders/:id` — ไม่มี guard (track via ID)
 - `GET /orders` — STAFF/ADMIN
@@ -228,24 +238,26 @@ SELECT * FROM order_items;
 ```
 
 Commit:
+
 ```bash
 git commit -m "feat(api): add Orders module with atomic create"
 ```
 
 ### ❓ Common Questions (Block A)
 
-| Q | A |
-|---|---|
-| `tx` กับ `this.prisma` ต่างกันไง? | `tx` คือ transaction client. ทุก query ใน callback ใช้ `tx` ไม่ใช่ `this.prisma` (กัน leak ออกจาก transaction) |
-| Nested write `items: { create: [...] }` ทำงานยังไง? | Prisma single insert ที่สร้าง parent + children ใน 1 query (atomic implicitly) |
-| ถ้า product ที่อยู่ใน DB ลบไปแล้ว — order เก่าทำงานยังไง? | OrderItem ใช้ `productName` snapshot — แต่ FK constraint `Restrict` ห้ามลบ. Soft delete = stretch |
-| State machine — ทำไมไม่ใช่ enum direct check? | `VALID_TRANSITIONS` declarative + extensible. Add new state = update map |
+| Q                                                         | A                                                                                                              |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `tx` กับ `this.prisma` ต่างกันไง?                         | `tx` คือ transaction client. ทุก query ใน callback ใช้ `tx` ไม่ใช่ `this.prisma` (กัน leak ออกจาก transaction) |
+| Nested write `items: { create: [...] }` ทำงานยังไง?       | Prisma single insert ที่สร้าง parent + children ใน 1 query (atomic implicitly)                                 |
+| ถ้า product ที่อยู่ใน DB ลบไปแล้ว — order เก่าทำงานยังไง? | OrderItem ใช้ `productName` snapshot — แต่ FK constraint `Restrict` ห้ามลบ. Soft delete = stretch              |
+| State machine — ทำไมไม่ใช่ enum direct check?             | `VALID_TRANSITIONS` declarative + extensible. Add new state = update map                                       |
 
 ---
 
 ## 🧪 Block B: Tests + State Transitions (55-75 min, 20 min)
 
 ### 🎯 Block Goals
+
 - Mock `$transaction` ใน Vitest
 - Test state machine transitions
 - Verify server-side total calculation
@@ -256,7 +268,7 @@ git commit -m "feat(api): add Orders module with atomic create"
 
 ```ts
 prisma = {
-  $transaction: vi.fn((fn) => fn(tx)),  // execute callback with mock tx
+  $transaction: vi.fn((fn) => fn(tx)), // execute callback with mock tx
   // ...
 };
 ```
@@ -270,6 +282,7 @@ prisma = {
 (พิมพ์ตาม Plan)
 
 📢 **Walkthrough tests**:
+
 - `throws BadRequest ถ้า product ไม่มี` — basic guard
 - `throws BadRequest ถ้า inactive` — business rule
 - `คำนวณ total ฝั่ง server` — verify with `expect.objectContaining`
@@ -284,23 +297,25 @@ pnpm --filter @coffee/api test
 ```
 
 Commit:
+
 ```bash
 git commit -m "test(api): OrdersService tests for create + state transitions"
 ```
 
 ### ❓ Common Questions (Block B)
 
-| Q | A |
-|---|---|
-| ทำไม mock $transaction simple? | เป้าหมาย unit test = test business logic, ไม่ใช่ DB. Real transaction tests = integration tests |
-| Test ProductMap collisions? | Service ดึงทุก product ครั้งเดียว → no N+1. ถ้าซ้ำ key, Map keeps last (acceptable behavior) |
-| Test orderNumber random collision? | Course skip — chance ต่ำมาก. Production: add unique constraint + retry |
+| Q                                  | A                                                                                               |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| ทำไม mock $transaction simple?     | เป้าหมาย unit test = test business logic, ไม่ใช่ DB. Real transaction tests = integration tests |
+| Test ProductMap collisions?        | Service ดึงทุก product ครั้งเดียว → no N+1. ถ้าซ้ำ key, Map keeps last (acceptable behavior)    |
+| Test orderNumber random collision? | Course skip — chance ต่ำมาก. Production: add unique constraint + retry                          |
 
 ---
 
 ## 🛒 Block C: Zustand Cart + Add to Cart UI (75-110 min, 35 min)
 
 ### 🎯 Block Goals
+
 - Setup Zustand with persist middleware
 - Build cart store with selectors
 - Add "เพิ่มลงตะกร้า" button to MenuCard
@@ -328,13 +343,16 @@ import { persist } from 'zustand/middleware';
 
 export const useCart = create<CartStore>()(
   persist(
-    (set, get) => ({ /* state + actions */ }),
-    { name: 'coffee-cart' },   // localStorage key
+    (set, get) => ({
+      /* state + actions */
+    }),
+    { name: 'coffee-cart' }, // localStorage key
   ),
 );
 ```
 
 📢 **What it does**:
+
 - Save state to localStorage on every update
 - Hydrate from localStorage on app start
 - SSR-safe (loaded after hydration)
@@ -365,6 +383,7 @@ pnpm add zustand
 (พิมพ์ store ตาม Plan)
 
 📢 **เน้น add() consolidation**:
+
 ```ts
 add: (product, qty = 1) => {
   const existing = get().items.find(...);
@@ -399,6 +418,7 @@ return (
 (พิมพ์ตาม Plan)
 
 📢 **เน้น `'use client'`**:
+
 > "Week 1 MenuCard เป็น Server Component. ตอนนี้ต้องเป็น Client เพราะมี `onClick`. เปลี่ยน boundary"
 
 **4. Test persistence** (Task 4.5 — 6 min)
@@ -410,24 +430,26 @@ return (
 5. Click Cart icon → navigate `/cart` → 404 OK (Session 2 จะสร้าง)
 
 Commit:
+
 ```bash
 git commit -m "feat(web): Zustand cart + add-to-cart UI"
 ```
 
 ### ❓ Common Questions (Block C)
 
-| Q | A |
-|---|---|
-| Zustand store ใน Server Component ได้ไหม? | ไม่ได้ — Zustand = browser state. Server Component pure read DB. ใช้ใน Client Component เท่านั้น |
+| Q                                                  | A                                                                                                    |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Zustand store ใน Server Component ได้ไหม?          | ไม่ได้ — Zustand = browser state. Server Component pure read DB. ใช้ใน Client Component เท่านั้น     |
 | Persistence ตอน user login ใหม่ — cart ต้อง clear? | Course MVP: cart persist across logins (anonymous). Real apps: associate with user — clear on logout |
-| Multiple tabs sync cart? | Default ไม่ sync. ใช้ Zustand `subscribeWithSelector` + `BroadcastChannel` API → stretch |
-| Cart price stale ถ้า admin เปลี่ยนราคา? | Yes — cart snapshot price. Server validate ตอน checkout (re-fetch products) → recalculate |
+| Multiple tabs sync cart?                           | Default ไม่ sync. ใช้ Zustand `subscribeWithSelector` + `BroadcastChannel` API → stretch             |
+| Cart price stale ถ้า admin เปลี่ยนราคา?            | Yes — cart snapshot price. Server validate ตอน checkout (re-fetch products) → recalculate            |
 
 ---
 
 ## 🏁 Wrap-up + Homework (110-120 min, 10 min)
 
 ### Recap (3 min)
+
 - "atomic transaction ใช้เพื่ออะไรใน order create?"
 - "Snapshot pattern แก้ปัญหาอะไร?"
 - "Zustand selectors ดียังไง?"
@@ -452,6 +474,7 @@ git commit -m "feat(web): Zustand cart + add-to-cart UI"
    - **Don't wire mutation yet** — Session 2
 
 📚 **Reading** (~30 min)
+
 - [TanStack Query — refetchInterval](https://tanstack.com/query/latest/docs/react/reference/useQuery)
 - [Zustand — Patterns](https://zustand.docs.pmnd.rs/getting-started/introduction)
 
@@ -461,10 +484,10 @@ git commit -m "feat(web): Zustand cart + add-to-cart UI"
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| Atomic transaction concept ติดที่ใคร? | ___ |
-| State machine ติดไหม? | ___ |
-| Zustand setup ทุกคนผ่าน? | ___ |
-| Block ไหน over-run? | ___ |
-| Energy ห้องโดยรวม | low / medium / high |
+| Item                                  | Note                |
+| ------------------------------------- | ------------------- |
+| Atomic transaction concept ติดที่ใคร? | \_\_\_              |
+| State machine ติดไหม?                 | \_\_\_              |
+| Zustand setup ทุกคนผ่าน?              | \_\_\_              |
+| Block ไหน over-run?                   | \_\_\_              |
+| Energy ห้องโดยรวม                     | low / medium / high |

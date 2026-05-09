@@ -85,11 +85,11 @@ For money & stock:
 
 Prisma Decimal:
   @db.Decimal(precision, scale)
-  
+
   Decimal(10, 2) = max 99,999,999.99    (money)
   Decimal(10, 4) = max 999,999.9999     (cost/g)
   Decimal(12, 4) = max 99,999,999.9999  (large stock)
-  
+
   Stored exact in Postgres
   Returned as string in JS — Number() at boundary
 ```
@@ -112,7 +112,7 @@ Prisma Decimal:
 Trade-off:
    - lose granular audit (which item changed)
    - acceptable for course MVP
-   
+
 HTTP semantic:
    PUT /recipes/product/:id
    (replace entire resource)
@@ -181,7 +181,7 @@ Two strategies:
   ❌ throw → order stuck at READY
      - Customer can't get receipt
      - Staff blocked
-     
+
   ✅ log warning + cogsSnapshot=0
      - Order completes (UX)
      - Admin sees log → fixes recipe
@@ -258,7 +258,7 @@ Need 4 different aggregations:
 
 1. Daily summary (single row)
    → fetch + JS reduce
-   
+
 2. Top products (group)
    → Prisma groupBy
    → orderBy _sum desc
@@ -266,7 +266,7 @@ Need 4 different aggregations:
 3. Low stock (filter)
    → fetch all + JS filter
    → Postgres comparison fine too
-   
+
 4. Revenue chart (time series)
    → date_trunc('day') needs SQL
    → use $queryRaw
@@ -361,7 +361,7 @@ SALE:     - (auto from order completion)
 In form:
   reason="PURCHASE", quantity=1000
   → server: +1000 ✓
-  
+
   reason="WASTE", quantity=50
   → server: -50
 
@@ -404,7 +404,7 @@ async function main() {
     update: {},
     create: { email, password: hash, role: 'ADMIN' },
   });
-  
+
   // ... ingredients, products, recipes
   // ... initial PURCHASE stock movements
 }
@@ -447,10 +447,12 @@ Pre-class:
 ## 🛠️ Build Notes
 
 ### Critical Visual Aids
+
 - **DBeaver multi-tab open**: orders, order_items, ingredients, stock_movements (Session 1)
 - **Whiteboard atomic transaction diagram** — pre-drawn, refer to ทุก demo
 - **Postman collection ready** with all endpoints
 
 ### Live Coding Tips
+
 - Block C ⭐ (atomic stock deduct) is the densest 40 min — pause frequently
 - Block F (Recharts) — use first chart as live demo, others = student build

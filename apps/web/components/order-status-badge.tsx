@@ -18,9 +18,7 @@ const COLORS: Record<OrderStatus, string> = {
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
   return (
-    <span
-      className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${COLORS[status]}`}
-    >
+    <span className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${COLORS[status]}`}>
       {LABELS[status]}
     </span>
   );

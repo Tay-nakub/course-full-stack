@@ -17,16 +17,13 @@ import type { RevenueDayRow } from '@coffee/shared';
 export function RevenueChart() {
   const { data = [], isLoading } = useQuery({
     queryKey: ['reports', 'revenue-last-7'],
-    queryFn: () =>
-      apiFetch<RevenueDayRow[]>('/reports/revenue-last-days?days=7'),
+    queryFn: () => apiFetch<RevenueDayRow[]>('/reports/revenue-last-days?days=7'),
     refetchInterval: 60_000,
   });
 
   if (isLoading) return <p>กำลังโหลด...</p>;
   if (data.length === 0) {
-    return (
-      <p className="py-12 text-center text-gray-500">ยังไม่มีข้อมูลรายได้</p>
-    );
+    return <p className="py-12 text-center text-gray-500">ยังไม่มีข้อมูลรายได้</p>;
   }
 
   return (
@@ -39,24 +36,9 @@ export function RevenueChart() {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            stroke="#2563eb"
-            name="รายได้"
-          />
-          <Line
-            type="monotone"
-            dataKey="cogs"
-            stroke="#ea580c"
-            name="ต้นทุน"
-          />
-          <Line
-            type="monotone"
-            dataKey="grossProfit"
-            stroke="#16a34a"
-            name="กำไร"
-          />
+          <Line type="monotone" dataKey="revenue" stroke="#2563eb" name="รายได้" />
+          <Line type="monotone" dataKey="cogs" stroke="#ea580c" name="ต้นทุน" />
+          <Line type="monotone" dataKey="grossProfit" stroke="#16a34a" name="กำไร" />
         </LineChart>
       </ResponsiveContainer>
     </div>

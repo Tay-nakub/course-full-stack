@@ -67,10 +67,7 @@ export function StockMovementForm({
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((d) => mutation.mutate(d))}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
       <input type="hidden" {...register('ingredientId')} />
 
       <div className="space-y-1">
@@ -91,12 +88,8 @@ export function StockMovementForm({
       <div className="space-y-1">
         <Label htmlFor="quantity">
           จำนวน ({INGREDIENT_UNIT_LABELS[ingredient.unit]})
-          {reason === 'WASTE' && (
-            <span className="text-red-500"> — จะลด stock</span>
-          )}
-          {reason === 'PURCHASE' && (
-            <span className="text-green-700"> — จะเพิ่ม stock</span>
-          )}
+          {reason === 'WASTE' && <span className="text-red-500"> — จะลด stock</span>}
+          {reason === 'PURCHASE' && <span className="text-green-700"> — จะเพิ่ม stock</span>}
           {reason === 'ADJUSTMENT' && (
             <span className="text-gray-500"> — ใส่ +/- ตามที่ต้องการ</span>
           )}
@@ -107,18 +100,12 @@ export function StockMovementForm({
           step="0.0001"
           {...register('quantity', { valueAsNumber: true })}
         />
-        {errors.quantity && (
-          <p className="text-sm text-destructive">{errors.quantity.message}</p>
-        )}
+        {errors.quantity && <p className="text-destructive text-sm">{errors.quantity.message}</p>}
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="note">หมายเหตุ</Label>
-        <Input
-          id="note"
-          {...register('note')}
-          placeholder="เช่น ซื้อจากร้าน X"
-        />
+        <Input id="note" {...register('note')} placeholder="เช่น ซื้อจากร้าน X" />
       </div>
 
       <Button type="submit" disabled={isSubmitting || mutation.isPending}>

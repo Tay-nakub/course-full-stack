@@ -21,6 +21,7 @@ defaults:
 # ☕ Coffee Shop Course
 
 ## Week 3 · Session 1
+
 ### Backend Menu CRUD + Plumbing
 
 <div class="muted mt-8 text-sm">
@@ -32,8 +33,8 @@ Welcome back. Week 1 = FE, Week 2 = BE. วันนี้คือวันท�
 -->
 
 ---
-layout: center
----
+
+## layout: center
 
 # Where We Are
 
@@ -75,8 +76,8 @@ Week 3: Connect them          ⬅ HERE
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # One Schema, Two Sides
 
@@ -111,11 +112,11 @@ layout: center
 ```ts
 @Injectable()
 class XService {
-  findAll()         // list
-  findOne(id)       // detail (throw 404 if not found)
-  create(input)     // INSERT
-  update(id, input) // UPDATE (validate exists first)
-  remove(id)        // DELETE (validate constraints first)
+  findAll(); // list
+  findOne(id); // detail (throw 404 if not found)
+  create(input); // INSERT
+  update(id, input); // UPDATE (validate exists first)
+  remove(id); // DELETE (validate constraints first)
 }
 ```
 
@@ -188,8 +189,8 @@ create() // admin only
 <div class="mt-4 muted text-center">Pattern ปกติของ <span class="coffee">catalog-style</span> data</div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # The Cross-Origin Problem
 
@@ -285,19 +286,20 @@ Component A                     Component B
 </div>
 
 ---
-layout: cover
----
+
+## layout: cover
 
 # ☕ Session 2
 
 ## Week 3 · Session 2
+
 ### Login + Admin CRUD + Wire UP
 
 <div class="muted mt-8 text-sm">First slice goes LIVE today</div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Today's Outcome
 
@@ -367,11 +369,11 @@ FE ─────► Next.js Route Handler
 response.cookies.set({
   name: 'coffee_token',
   value: data.accessToken,
-  httpOnly: true,        // JS read = ❌
-  sameSite: 'lax',       // CSRF mitigation
-  path: '/',             // available everywhere
-  maxAge: 7 * 86400,     // 7 days
-  secure: prod,          // HTTPS only
+  httpOnly: true, // JS read = ❌
+  sameSite: 'lax', // CSRF mitigation
+  path: '/', // available everywhere
+  maxAge: 7 * 86400, // 7 days
+  secure: prod, // HTTPS only
 });
 ```
 
@@ -389,12 +391,12 @@ Each attribute = security choice
 
 <div class="text-sm mt-4">
 
-| | Header + localStorage | httpOnly Cookie |
-|---|---|---|
-| **XSS** | ❌ vulnerable | ✅ safe |
-| **CSRF** | ✅ safe | ⚠️ mitigate via SameSite |
-| **Mobile / native** | ✅ easy | ⚠️ cookie jar |
-| **Cross-origin** | ✅ trivial | ❌ same domain |
+|                     | Header + localStorage | httpOnly Cookie          |
+| ------------------- | --------------------- | ------------------------ |
+| **XSS**             | ❌ vulnerable         | ✅ safe                  |
+| **CSRF**            | ✅ safe               | ⚠️ mitigate via SameSite |
+| **Mobile / native** | ✅ easy               | ⚠️ cookie jar            |
+| **Cross-origin**    | ✅ trivial            | ❌ same domain           |
 
 </div>
 
@@ -403,8 +405,8 @@ Course web app: <span class="coffee">cookie wins</span> <span class="muted">(XSS
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Next.js Middleware
 
@@ -466,8 +468,8 @@ Page (Server Component)
 ```
 
 ---
-layout: center
----
+
+## layout: center
 
 # Mutation Lifecycle
 
@@ -499,13 +501,10 @@ layout: center
 async function MenuPage() {
   const token = await getServerToken();
 
-  const products = await fetch(
-    'http://localhost:4000/api/menu/products?active=true',
-    {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      cache: 'no-store',
-    }
-  ).then(r => r.json());
+  const products = await fetch('http://localhost:4000/api/menu/products?active=true', {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: 'no-store',
+  }).then((r) => r.json());
 
   return <Grid products={products} />;
 }

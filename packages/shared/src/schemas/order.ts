@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
-export const ORDER_STATUSES = [
-  'PENDING',
-  'PREPARING',
-  'READY',
-  'COMPLETED',
-  'CANCELLED',
-] as const;
+export const ORDER_STATUSES = ['PENDING', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const OrderItemSchema = z.object({
@@ -44,9 +38,7 @@ export type CreateOrderItemInput = z.infer<typeof CreateOrderItemSchema>;
 export const CreateOrderSchema = z.object({
   customerName: z.string().min(1, 'กรุณากรอกชื่อ').max(50),
   customerPhone: z.string().min(9, 'เบอร์โทรไม่ครบ').max(15),
-  items: z
-    .array(CreateOrderItemSchema)
-    .min(1, 'ตะกร้าต้องมีของอย่างน้อย 1 อย่าง'),
+  items: z.array(CreateOrderItemSchema).min(1, 'ตะกร้าต้องมีของอย่างน้อย 1 อย่าง'),
 });
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
 

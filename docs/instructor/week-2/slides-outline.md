@@ -234,17 +234,17 @@ Practice:
 ```
 Plaintext password:    "password123"
 
-❌ MD5/SHA1:                          
-  fast = brute force easy             
-  no salt = same input → same hash    
-                                      
-✅ bcrypt:                            
-  slow on purpose (rounds parameter)   
-  built-in salt                        
-  auto-incremental cost                
+❌ MD5/SHA1:
+  fast = brute force easy
+  no salt = same input → same hash
+
+✅ bcrypt:
+  slow on purpose (rounds parameter)
+  built-in salt
+  auto-incremental cost
 
   $2b$10$N9qo8uLOickgx2ZMRZoMye...
-   ↑   ↑                          
+   ↑   ↑
    alg rounds + salt + hash
 ```
 
@@ -432,16 +432,19 @@ Pre-Week 3 (light homework):
 ## 🛠️ Build Notes (instructor)
 
 ### Reuse from Week 1
+
 - ✅ Same template / theme
 - ✅ Same color scheme (dark + coffee accent)
 - ✅ Same monospace font for code
 
 ### New visual challenges in Week 2
+
 - **Docker layered architecture** — diagram of containers + volumes
 - **JWT decode visual** — use jwt.io screenshot in slide
 - **Request pipeline** — Middleware → Guard → Pipe → Controller flow
 
 ### Live JWT Decode Demo
+
 - ระหว่าง Block E (after issuing token) → paste real token to https://jwt.io
 - Show payload decoded — student เห็นจริงๆ ว่า "claim" คืออะไร
 - ⚠️ ใช้ token จาก demo user, **ไม่ใช่** account จริง (กัน leak)

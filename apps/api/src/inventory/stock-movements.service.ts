@@ -16,10 +16,7 @@ export class StockMovementsService {
     if (input.reason === 'PURCHASE' && sign < 0) {
       throw new BadRequestException('PURCHASE ต้องเป็นบวก');
     }
-    if (
-      (input.reason === 'SALE' || input.reason === 'WASTE') &&
-      sign > 0
-    ) {
+    if ((input.reason === 'SALE' || input.reason === 'WASTE') && sign > 0) {
       throw new BadRequestException(`${input.reason} ต้องเป็นลบ`);
     }
 

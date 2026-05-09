@@ -6,14 +6,14 @@
 
 ## 📋 Exercise Map
 
-| # | Type | When | Difficulty | Time |
-|---|---|---|---|---|
-| **EX-5.1** | In-class | Session 1, Block A end | ⭐⭐ | 5 min |
-| **EX-5.2** | In-class | Session 1, Block C end | ⭐⭐⭐ | 7 min |
-| **HW-5-mid** | Homework | Between sessions | ⭐⭐⭐ | 3 hrs |
-| **EX-5.3** | In-class | Session 2, Block E | ⭐⭐⭐ | 10 min |
-| **HW-5-post** | Homework | After Session 2 | ⭐⭐⭐ | 3-4 hrs |
-| **HW-5-stretch** | Optional | Anytime | ⭐⭐⭐⭐ | 3-5 hrs |
+| #                | Type     | When                   | Difficulty | Time    |
+| ---------------- | -------- | ---------------------- | ---------- | ------- |
+| **EX-5.1**       | In-class | Session 1, Block A end | ⭐⭐       | 5 min   |
+| **EX-5.2**       | In-class | Session 1, Block C end | ⭐⭐⭐     | 7 min   |
+| **HW-5-mid**     | Homework | Between sessions       | ⭐⭐⭐     | 3 hrs   |
+| **EX-5.3**       | In-class | Session 2, Block E     | ⭐⭐⭐     | 10 min  |
+| **HW-5-post**    | Homework | After Session 2        | ⭐⭐⭐     | 3-4 hrs |
+| **HW-5-stretch** | Optional | Anytime                | ⭐⭐⭐⭐   | 3-5 hrs |
 
 ---
 
@@ -52,6 +52,7 @@
 ### Task
 
 Given:
+
 - Order: 3 Croissant
 - Croissant recipe: 50g flour + 10g butter
 - Flour cost: ฿0.10/g, current stock: 5000g
@@ -60,6 +61,7 @@ Given:
 When status changes READY → COMPLETED:
 
 ตอบ:
+
 1. คำนวณ COGS per Croissant
 2. Order COGS total?
 3. หลัง transaction:
@@ -122,15 +124,18 @@ When status changes READY → COMPLETED:
    - Just table, no CRUD yet
 
 ### Acceptance Criteria
+
 - [ ] All 5 ingredients in DB with correct stock after PURCHASE
 - [ ] All recipes set
 - [ ] After 5 orders completed: stock matches manual calc
 - [ ] No "recipe missing" warnings in API logs
 
 ### 🟢 Solution
+
 ดู Plan Tasks 7-8 สำหรับ UI
 
 ### Common Mistakes
+
 - ลืม PURCHASE → currentStock = 0 → orders complete แต่ stock = -36 etc.
 - ใส่ recipe quantity เป็น string ไม่ใช่ number → Zod fail
 - Recipe missing สำหรับบาง product → log warning + cogsSnapshot=0 (acceptable but flag in HW)
@@ -155,14 +160,17 @@ When status changes READY → COMPLETED:
 - onSuccess: invalidate cache + close
 
 ### 🟢 Solution
+
 ดู Plan Task 8 — full code
 
 ### Hints (when stuck)
+
 - "Use `useEffect` to sync existing recipe → state"
 - "Available ingredients = all ingredients - those already in current rows"
 - "Submit body = array of { ingredientId, quantity }"
 
 ### Common Mistakes
+
 - Submit ส่งแค่ rows ที่ไม่ว่าง (incorrect — empty rows allowed during edit, filter on submit)
 - Quantity = 0 — Zod fail (`.positive()`)
 - Forget useEffect → form starts empty even if recipe exists
@@ -196,12 +204,13 @@ When status changes READY → COMPLETED:
 ### 🟢 Solution sketch
 
 **AreaChart**:
+
 ```tsx
 <AreaChart data={data}>
   <defs>
     <linearGradient id="revenue" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+      <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
     </linearGradient>
   </defs>
   <YAxis tickFormatter={(v) => `฿${v.toLocaleString()}`} />
@@ -210,6 +219,7 @@ When status changes READY → COMPLETED:
 ```
 
 **Ingredient usage endpoint**:
+
 ```ts
 async ingredientUsage(days = 7) {
   const since = new Date();
@@ -227,6 +237,7 @@ async ingredientUsage(days = 7) {
 ```
 
 **Recipe cost preview**:
+
 ```tsx
 const ingredients = useQuery({...});
 const estimatedCost = rows.reduce((s, r) => {
@@ -238,6 +249,7 @@ const marginPct = (margin / product.price) * 100;
 ```
 
 ### Acceptance Criteria
+
 - [ ] Chart polished (gradient + formatted)
 - [ ] Ingredient usage table working
 - [ ] Recipe editor shows estimated COGS + margin
@@ -249,24 +261,28 @@ const marginPct = (margin / product.price) * 100;
 **Difficulty**: ⭐⭐⭐⭐
 
 ### Stretch 1: Stock Reorder Suggestion (3 hrs)
+
 - Algorithm: predict avg daily usage from last 14 days
 - Suggest reorder amount: (target days × avg daily) - current stock
 - Show on inventory page next to low stock alert
 - Endpoint: GET /reports/reorder-suggestions
 
 ### Stretch 2: Cost Variance Tracking (2 hrs)
+
 - When admin updates ingredient `costPerUnit` → log price change
 - New table `ingredient_price_history`
 - Reports show how cost changes affect margin
 - Admin sees price history line chart
 
 ### Stretch 3: Recipe Versioning (4 hrs)
+
 - Make RecipeItem immutable history (don't delete on update)
 - Add `version` field, `replacedAt` field
 - Order COGS uses recipe version active at order time
 - Important for: "ดูสูตรเก่าตอนคำนวณกำไรเดือนก่อน"
 
 ### Stretch 4: Real-time Reports with SSE (3 hrs)
+
 - NestJS SSE endpoint streams report updates
 - FE subscribes via EventSource
 - KPI cards update instantly when order completes

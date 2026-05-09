@@ -11,6 +11,7 @@
 **Symptom**: SSH `deploy@<ip>` denied, can't login
 
 **Common causes**:
+
 1. Disabled root + password auth + lost SSH key
 2. Edited `sshd_config` wrong + restarted SSH (current session OK but new fail)
 3. ufw blocked port 22
@@ -18,6 +19,7 @@
 **Recovery options**:
 
 **Option A** (preferred): Hetzner Rescue System
+
 1. Hetzner Console → Server → Rescue → Activate
 2. Reboot server (also from Console)
 3. SSH as root with rescue password (shown in Console)
@@ -26,11 +28,13 @@
 6. Reboot to normal
 
 **Option B**: Hetzner Web Console
+
 1. Hetzner Console → Server → Console (web shell)
 2. Login as root with original password (still works in console)
 3. Fix config
 
 **Prevention**:
+
 > "ห้าม disable root + password ก่อน confirm new SSH config works.
 > ทดสอบ ssh ใน new terminal ก่อน logout เก่า"
 
@@ -41,12 +45,14 @@
 **Symptom**: Browser shows "Not Secure" or `connection refused` on https
 
 **Common causes**:
+
 1. DNS not propagated / wrong IP
 2. Port 80 blocked (Let's Encrypt HTTP-01 challenge needs)
 3. Cloudflare proxy enabled (intercepts challenge)
 4. Rate limit hit (too many cert requests)
 
 **Debug**:
+
 ```bash
 # Check DNS resolves to your IP
 dig +short your-domain.com
@@ -60,6 +66,7 @@ docker compose logs caddy --tail 50
 ```
 
 **Fixes**:
+
 - DNS: wait 5-10 min, verify with `dig`
 - Cloudflare: turn off proxy (gray cloud) for cert issue, can re-enable after
 - Rate limit: 50 certs/week per domain. Wait or use staging endpoint:
@@ -77,11 +84,13 @@ docker compose logs caddy --tail 50
 **Symptom**: `denied: permission_denied` ตอน docker push
 
 **Common causes**:
+
 1. PAT token missing `write:packages` scope
 2. Workflow missing `permissions: packages: write`
 3. Image namespace mismatch (`<owner>/<repo>` should match GitHub user/org)
 
 **Fix Workflow**:
+
 ```yaml
 permissions:
   contents: read
@@ -89,6 +98,7 @@ permissions:
 ```
 
 **Fix local**:
+
 ```bash
 # Token scopes: write:packages, read:packages, delete:packages
 echo $GHCR_TOKEN | docker login ghcr.io -u <username> --password-stdin
@@ -104,6 +114,7 @@ docker push ghcr.io/<username-lowercase>/coffee-api:latest
 **Symptom**: `docker compose pull` fails with `manifest unknown` or `unauthorized`
 
 **Causes**:
+
 1. Image is private + no auth on VPS
 2. Image namespace mismatch
 3. Wrong image name in compose
@@ -111,9 +122,11 @@ docker push ghcr.io/<username-lowercase>/coffee-api:latest
 **Fix options**:
 
 **A** (simplest): Make GHCR image public
+
 - GitHub → Profile → Packages → coffee-api → Settings → Change visibility → Public
 
 **B**: Login on VPS
+
 ```bash
 # Generate PAT with read:packages
 ssh deploy@<ip>
@@ -127,11 +140,13 @@ echo $TOKEN | docker login ghcr.io -u <user> --password-stdin
 **Symptom**: Deploy job: `Permission denied (publickey)` หรือ `Host key verification failed`
 
 **Common causes**:
+
 1. SSH_PRIVATE_KEY secret missing/incomplete
 2. Forgot `ssh-keyscan` to known_hosts
 3. Public key not in VPS authorized_keys
 
 **Debug**:
+
 ```yaml
 - name: Debug SSH
   run: |
@@ -141,6 +156,7 @@ echo $TOKEN | docker login ghcr.io -u <user> --password-stdin
 ```
 
 **Fix SSH_PRIVATE_KEY format**:
+
 ```
 -----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAA...
@@ -159,6 +175,7 @@ b3BlbnNzaC1rZXktdjEAAAAA...
 **Symptom**: Some containers won't start, others restart
 
 **Debug**:
+
 ```bash
 docker compose ps
 # Status: Restarting (1) → check logs
@@ -167,6 +184,7 @@ docker compose logs <service> --tail 100
 ```
 
 **Common errors**:
+
 - `database "coffee" does not exist` → first deploy + Postgres not migrated
   - Run: `docker compose exec api npx prisma migrate deploy`
 - `JWT_SECRET must be at least 32 characters` → env var too short
@@ -181,6 +199,7 @@ docker compose logs <service> --tail 100
 **Cause**: `prisma migrate deploy` ทำงาน even if no new migrations
 
 **Reality check**: Idempotent — fast (~1-2 sec) when no new migrations. ถ้าช้าจริง:
+
 - Many migrations to apply (ปกติ + first start)
 - Slow DB (network latency)
 - Verify: `docker compose logs api | grep migrate`
@@ -196,6 +215,7 @@ docker compose logs <service> --tail 100
 **Cause**: ใช้ `down -v` (removes volumes!) แทน `down`
 
 **Rule**:
+
 ```bash
 docker compose down       # ✓ stop containers, keep volumes
 docker compose down -v    # ✗ stop containers + DELETE volumes
@@ -212,6 +232,7 @@ docker compose down -v    # ✗ stop containers + DELETE volumes
 **Cause**: Disk filled with old Docker images + logs + DB data + backups
 
 **Cleanup**:
+
 ```bash
 # Check disk usage
 df -h
@@ -236,12 +257,14 @@ sudo journalctl --vacuum-time=7d
 **Symptom**: `/var/backups/coffee` empty after several days
 
 **Common causes**:
+
 1. Cron not enabled
 2. Script not executable
 3. Path in cron wrong
 4. Script fails silently
 
 **Debug**:
+
 ```bash
 # Cron service running?
 systemctl status cron
@@ -257,6 +280,7 @@ grep CRON /var/log/syslog | tail
 ```
 
 **Fix**:
+
 - Make sure script `chmod +x`
 - Use absolute paths in cron entry (not `~`)
 - Test script manually first
@@ -292,12 +316,14 @@ A: Stretch — `docker buildx build --platform linux/amd64,linux/arm64`. Hetzner
 
 **Q: Bind mount vs volume?**
 A:
+
 - Bind mount: `./data:/app/data` — host folder
 - Volume: `data:/app/data` (named) — Docker-managed
 - Volume = preferred (portable, no permission issues)
 
 **Q: Compose vs Swarm vs k8s?**
 A:
+
 - Compose = single host (course)
 - Swarm = multi-host, simple (Docker built-in)
 - k8s = multi-host, complex (industry std for scale)
@@ -311,6 +337,7 @@ A: ได้ — nginx + certbot + cron. ~50 lines config + manual renew. Caddy 
 
 **Q: Multiple sites on same Caddy?**
 A: ใช่:
+
 ```caddyfile
 site1.com { reverse_proxy app1:3000 }
 site2.com { reverse_proxy app2:3000 }
@@ -318,6 +345,7 @@ site2.com { reverse_proxy app2:3000 }
 
 **Q: Custom domain on top of subdomain?**
 A: Multiple domains in Caddyfile:
+
 ```caddyfile
 example.com, www.example.com { ... }
 ```
@@ -344,17 +372,20 @@ A: `actions/setup-node@v4` มี `cache: 'pnpm'` built-in. ใช้แล้�
 
 **Q: Monitoring at scale?**
 A:
+
 - Tier 1: Uptime Kuma (self-host) or UptimeRobot
 - Tier 2: Grafana + Prometheus + node_exporter
 - Tier 3: Datadog/New Relic (paid)
 
 **Q: Log aggregation?**
 A:
+
 - Course: `docker compose logs` (direct read)
 - Production: Loki + Grafana, or hosted (Datadog, Logtail)
 
 **Q: Incident response?**
 A:
+
 - DEPLOY.md runbook = first steps
 - On-call rotation (PagerDuty if team)
 - Post-mortem after every incident
@@ -378,6 +409,7 @@ A: Course = single Postgres (downtime if crash). Prod: managed (RDS) or Patroni
 
 **Q: ทำให้ถูกกว่า €4.5/mo?**
 A:
+
 - Free: Render free tier (750hr/mo, sleeps after inactivity)
 - Free: Fly.io free tier (3 small VMs)
 - Cheap: Oracle Cloud Free Tier (forever 4 ARM cores!)
@@ -457,11 +489,11 @@ TAG=<previous-sha-short> docker compose up -d
 
 ## 📊 Common Mistakes Heatmap (อัปเดตหลังสอน)
 
-| Mistake | Frequency | Notes |
-|---|---|---|
-| Locked out via SSH config | TBD | — |
-| DNS not propagated | TBD | — |
-| GHCR auth on VPS | TBD | — |
-| GitHub Secrets format | TBD | — |
-| Cert request fails | TBD | — |
-| docker compose down -v (data loss) | TBD | — |
+| Mistake                            | Frequency | Notes |
+| ---------------------------------- | --------- | ----- |
+| Locked out via SSH config          | TBD       | —     |
+| DNS not propagated                 | TBD       | —     |
+| GHCR auth on VPS                   | TBD       | —     |
+| GitHub Secrets format              | TBD       | —     |
+| Cert request fails                 | TBD       | —     |
+| docker compose down -v (data loss) | TBD       | —     |

@@ -9,12 +9,7 @@ export const INGREDIENT_UNIT_LABELS: Record<IngredientUnit, string> = {
   PIECE: 'ชิ้น',
 };
 
-export const STOCK_MOVEMENT_REASONS = [
-  'PURCHASE',
-  'SALE',
-  'WASTE',
-  'ADJUSTMENT',
-] as const;
+export const STOCK_MOVEMENT_REASONS = ['PURCHASE', 'SALE', 'WASTE', 'ADJUSTMENT'] as const;
 export type StockMovementReason = (typeof STOCK_MOVEMENT_REASONS)[number];
 
 export const IngredientSchema = z.object({
@@ -45,9 +40,7 @@ export const CreateStockMovementSchema = z.object({
   reason: z.enum(STOCK_MOVEMENT_REASONS),
   note: z.string().optional(),
 });
-export type CreateStockMovementInput = z.infer<
-  typeof CreateStockMovementSchema
->;
+export type CreateStockMovementInput = z.infer<typeof CreateStockMovementSchema>;
 
 // Recipe (Product ↔ Ingredient)
 export const RecipeItemSchema = z.object({

@@ -21,6 +21,7 @@ defaults:
 # ☕ Coffee Shop Course
 
 ## Week 6 · Session 1
+
 ### Deploy to VPS 🚀
 
 <div class="muted mt-8 text-sm">
@@ -32,8 +33,8 @@ Last week. ของจริง — VPS, HTTPS, Docker images, public URL.
 -->
 
 ---
-layout: center
----
+
+## layout: center
 
 # Course Arc
 
@@ -105,8 +106,8 @@ Course = <span class="coffee">VPS</span> · cost-effective · skills transferabl
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Server Hardening — Defense in Depth
 
@@ -162,6 +163,7 @@ CMD start
 FROM node:20
 # install + build
 ```
+
 ```dockerfile
 # Stage 1 (builder)
 FROM node:20
@@ -337,12 +339,13 @@ Ask in Slack if stuck — don't suffer alone.
 </div>
 
 ---
-layout: cover
----
+
+## layout: cover
 
 # ☕ Session 2 — FINAL
 
 ## Week 6 · Session 2
+
 ### GitOps + Course Closing 🎉
 
 <div class="muted mt-8 text-sm">git push → live in 3 minutes</div>
@@ -382,8 +385,8 @@ Together: "Push to main = trustworthy live"
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # GitOps Flow
 
@@ -414,19 +417,19 @@ layout: center
 # GitHub Actions Workflow Anatomy
 
 ```yaml
-on:                       # trigger
+on: # trigger
   pull_request:
     branches: [main]
   push:
     branches: [main]
 
-jobs:                     # parallel by default
-  quality:                # job name
+jobs: # parallel by default
+  quality: # job name
     runs-on: ubuntu-latest
-    services:             # sidecar (DB, Redis)
+    services: # sidecar (DB, Redis)
       postgres: ...
 
-    steps:                # sequential
+    steps: # sequential
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - run: pnpm install
@@ -639,8 +642,10 @@ The rest is practice + reading docs.
 </div>
 
 ---
+
 layout: center
 class: text-center
+
 ---
 
 # 🎉 Congratulations! 🎉

@@ -4,10 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import type {
-  CreateCategoryInput,
-  UpdateCategoryInput,
-} from '@coffee/shared';
+import type { CreateCategoryInput, UpdateCategoryInput } from '@coffee/shared';
 
 @Injectable()
 export class CategoryService {

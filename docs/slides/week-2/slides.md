@@ -21,6 +21,7 @@ defaults:
 # ☕ Coffee Shop Course
 
 ## Week 2 · Session 1
+
 ### Backend Setup & Database
 
 <div class="muted mt-8 text-sm">
@@ -54,8 +55,8 @@ NestJS · Postgres · Prisma · Docker
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # ⚠️ Cognitive Load Warning
 
@@ -127,8 +128,8 @@ packages/
 <div class="mt-4 muted">Schema เดียว. Type เดียว. Sync ทั้ง stack.</div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # NestJS Mental Model
 
@@ -163,7 +164,7 @@ layout: center
 ### Express
 
 ```ts
-app.get('/x', fn)
+app.get('/x', fn);
 ```
 
 - Manual middleware chains
@@ -237,15 +238,15 @@ Reproducibility wins
 
 ```yaml
 services:
-  postgres:                          # service name
-    image: postgres:16-alpine        # what to run
-    environment: { ... }             # env vars
-    volumes: ['data:/var/lib/...']   # persistent
-    ports: ['5432:5432']             # host:container
-    healthcheck: { ... }             # liveness probe
+  postgres: # service name
+    image: postgres:16-alpine # what to run
+    environment: { ... } # env vars
+    volumes: ['data:/var/lib/...'] # persistent
+    ports: ['5432:5432'] # host:container
+    healthcheck: { ... } # liveness probe
 
 volumes:
-  data:                              # named volume
+  data: # named volume
 ```
 
 <div class="mt-6 muted">Volume = data ไม่หายตอน <code>down</code>. Healthcheck = บอกว่าพร้อมรับ connection.</div>
@@ -280,8 +281,8 @@ Schema-first. Migration + Client = side effect
 -->
 
 ---
-layout: center
----
+
+## layout: center
 
 # Migration Workflow
 
@@ -342,12 +343,13 @@ Practice:
 </div>
 
 ---
-layout: cover
----
+
+## layout: cover
 
 # ☕ Session 2
 
 ## Week 2 · Session 2
+
 ### Auth Implementation
 
 <div class="muted mt-8 text-sm">bcrypt · JWT · Guards · Decorators</div>
@@ -475,8 +477,8 @@ Live demo — paste token ที่ jwt.io. ใช้ token จาก demo user 
 -->
 
 ---
-layout: center
----
+
+## layout: center
 
 # Login Flow
 
@@ -538,8 +540,8 @@ Client → POST /auth/login {email, pw}
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # NestJS Request Pipeline
 
@@ -689,6 +691,7 @@ Crash early > silent compromise
 <div class="mt-6 muted text-sm">
 
 Mental model:
+
 - Week 1 = FE tools
 - Week 2 = BE tools
 - Week 3 = make them <span class="coffee">TALK</span>

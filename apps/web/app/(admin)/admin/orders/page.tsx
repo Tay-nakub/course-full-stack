@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
@@ -23,10 +24,7 @@ export default function AdminOrdersPage() {
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['orders', { status: filter }],
-    queryFn: () =>
-      apiFetch<Order[]>(
-        filter === 'ALL' ? '/orders' : `/orders?status=${filter}`,
-      ),
+    queryFn: () => apiFetch<Order[]>(filter === 'ALL' ? '/orders' : `/orders?status=${filter}`),
     refetchInterval: 10_000,
   });
 
@@ -67,11 +65,13 @@ export default function AdminOrdersPage() {
           <TableBody>
             {orders.map((o) => (
               <TableRow key={o.id}>
-                <TableCell className="font-mono">{o.orderNumber}</TableCell>
-                <TableCell>{o.customerName}</TableCell>
-                <TableCell>
-                  {o.items.reduce((s, i) => s + i.qty, 0)} ชิ้น
+                <TableCell className="font-mono">
+                  <Link href={`/admin/orders/${o.id}`} className="text-amber-700 hover:underline">
+                    {o.orderNumber}
+                  </Link>
                 </TableCell>
+                <TableCell>{o.customerName}</TableCell>
+                <TableCell>{o.items.reduce((s, i) => s + i.qty, 0)} ชิ้น</TableCell>
                 <TableCell>฿{Number(o.total)}</TableCell>
                 <TableCell>
                   <OrderStatusBadge status={o.status} />

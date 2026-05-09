@@ -21,6 +21,7 @@
 - Terminal ที่ comfort: zsh / bash
 
 **Verify**:
+
 ```bash
 node --version    # ควรเป็น v20.x หรือสูงกว่า
 pnpm --version    # ควรเป็น 9.x
@@ -79,6 +80,7 @@ course-full-stack/
 ```
 
 **Decomposition rationale**:
+
 - `apps/web/` self-contained — week ถัดไปเพิ่ม `apps/api` และ `packages/shared` ข้างๆ
 - `components/ui/` แยกจาก `components/` ให้ชัดเจนว่าตัวไหน shadcn-generated (อย่าแก้) vs custom
 - `lib/data/` คือ mock data → week 3 จะถูกแทนด้วย API calls
@@ -90,6 +92,7 @@ course-full-stack/
 ### Task 1: Initialize Monorepo Skeleton
 
 **Files:**
+
 - Create: `.gitignore`
 - Create: `.editorconfig`
 - Create: `.nvmrc`
@@ -105,11 +108,13 @@ course-full-stack/
 cd /Users/teerapatcheung/Desktop/0-Project/course-full-stack
 git status
 ```
+
 Expected: บอกว่าอยู่บน branch `main`, มี `docs/` (จาก spec) อยู่แล้ว
 
 - [ ] **Step 1.2: สร้าง `.gitignore`**
 
 Create file `/Users/teerapatcheung/Desktop/0-Project/course-full-stack/.gitignore`:
+
 ```
 # dependencies
 node_modules/
@@ -258,9 +263,9 @@ See [docs/superpowers/specs/2026-05-08-fullstack-coffee-shop-course-design.md](d
 ## Setup
 
 \`\`\`bash
-nvm use            # or fnm use
+nvm use # or fnm use
 pnpm install
-pnpm dev           # starts all apps
+pnpm dev # starts all apps
 \`\`\`
 
 ## Structure
@@ -274,9 +279,11 @@ pnpm dev           # starts all apps
 - [ ] **Step 1.10: Install root dev deps + verify**
 
 Run:
+
 ```bash
 pnpm install
 ```
+
 Expected: สร้าง `pnpm-lock.yaml` + `node_modules/` ที่ root, ไม่มี error
 
 - [ ] **Step 1.11: Commit**
@@ -296,6 +303,7 @@ git commit -m "chore: init monorepo skeleton with pnpm workspace
 ### Task 2: Add Turborepo
 
 **Files:**
+
 - Create: `turbo.json`
 
 - [ ] **Step 2.1: สร้าง `turbo.json`**
@@ -327,6 +335,7 @@ git commit -m "chore: init monorepo skeleton with pnpm workspace
 ```
 
 > 🎓 **Concept**:
+>
 > - `^build` = "build dependencies ก่อน" — ถ้า `apps/web` depend `packages/shared`, build shared ก่อน web
 > - `cache: false` สำหรับ `dev` — dev mode รัน watch ตลอด ไม่มี output ให้ cache
 > - `persistent: true` — Turbo รู้ว่า task นี้ไม่จบเอง (long-running)
@@ -335,15 +344,19 @@ git commit -m "chore: init monorepo skeleton with pnpm workspace
 - [ ] **Step 2.2: ตรวจสอบ Turbo รัน**
 
 Run:
+
 ```bash
 pnpm turbo --version
 ```
+
 Expected: เช่น `2.3.0` (หรือสูงกว่า)
 
 ลอง:
+
 ```bash
 pnpm dev
 ```
+
 Expected: Turbo บอก "no tasks to run" เพราะยังไม่มี app — OK กดติดถูกต้อง, Ctrl+C
 
 - [ ] **Step 2.3: Commit**
@@ -362,11 +375,13 @@ git commit -m "chore: configure Turborepo task pipeline
 ### Task 3: Scaffold Next.js 15 App
 
 **Files:**
+
 - Create: `apps/web/` (entire Next.js scaffold via `create-next-app`)
 
 - [ ] **Step 3.1: สร้าง Next.js app**
 
 Run จาก root:
+
 ```bash
 cd apps
 pnpm create next-app@latest web --typescript --tailwind --app --turbopack --import-alias "@/*" --no-src-dir --no-eslint --use-pnpm
@@ -374,6 +389,7 @@ cd ..
 ```
 
 > 📝 **Note**: Flag breakdown
+>
 > - `--typescript` = TS by default
 > - `--tailwind` = Tailwind CSS preconfigured
 > - `--app` = App Router (ไม่ใช่ Pages Router)
@@ -428,6 +444,7 @@ cd ..
 pnpm install
 pnpm dev
 ```
+
 Expected: Turbo รัน `apps/web` dev server ที่ port 3000. เปิด http://localhost:3000 เจอหน้า Next.js default. กด Ctrl+C เพื่อหยุด
 
 - [ ] **Step 3.5: Commit**
@@ -446,6 +463,7 @@ git commit -m "feat(web): scaffold Next.js 15 app with App Router
 ### Task 4: Explore App Router — Layouts + Route Groups
 
 **Files:**
+
 - Modify: `apps/web/app/layout.tsx`
 - Modify: `apps/web/app/page.tsx`
 - Create: `apps/web/app/(storefront)/layout.tsx`
@@ -464,22 +482,17 @@ export const metadata: Metadata = {
   description: 'A learning project — coffee shop web app',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
-      <body className="min-h-screen bg-background text-foreground antialiased">
-        {children}
-      </body>
+      <body className="bg-background text-foreground min-h-screen antialiased">{children}</body>
     </html>
   );
 }
 ```
 
 > 🎓 **Concept — Root Layout**:
+>
 > - `app/layout.tsx` ห่อทุก page ใน app
 > - ต้องมี `<html>` กับ `<body>` (Next.js บังคับ)
 > - `metadata` export = SEO meta tags อัตโนมัติ
@@ -504,11 +517,7 @@ Create file `apps/web/app/(storefront)/layout.tsx`:
 ```tsx
 import Link from 'next/link';
 
-export default function StorefrontLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StorefrontLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b bg-white">
@@ -519,9 +528,7 @@ export default function StorefrontLayout({
           <div className="text-sm text-gray-600">Cart (0)</div>
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-        {children}
-      </main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
       <footer className="border-t bg-gray-50 py-4 text-center text-sm text-gray-500">
         © 2026 Coffee Shop · Learning Project
       </footer>
@@ -531,6 +538,7 @@ export default function StorefrontLayout({
 ```
 
 > 🎓 **Concept — Route Groups**:
+>
 > - โฟลเดอร์ที่ห่อด้วย `()` เช่น `(storefront)` = **route group** — ไม่ปรากฏใน URL path
 > - ใช้แชร์ layout ระหว่าง pages โดยไม่กระทบ URL
 > - Week 4 จะเพิ่ม `(admin)` และ `(kitchen)` layouts ที่มี header ต่างกัน
@@ -555,6 +563,7 @@ export default function MenuPage() {
 ```bash
 pnpm dev
 ```
+
 Expected: เปิด http://localhost:3000 → redirect ไป `/menu` → เห็น header "☕ Coffee Shop" + h1 "เมนู" + footer
 
 - [ ] **Step 4.6: Commit**
@@ -576,12 +585,14 @@ git commit -m "feat(web): add storefront route group with layout
 > 📝 **Note**: `create-next-app --tailwind` ตั้งค่าให้แล้ว task นี้แค่ verify + customize เล็กน้อย
 
 **Files:**
+
 - Modify: `apps/web/app/globals.css`
 - Modify: `apps/web/tailwind.config.ts` (อาจมีอยู่แล้ว — ถ้ามาเป็น `.js` ให้ rename)
 
 - [ ] **Step 5.1: ตรวจสอบ `apps/web/app/globals.css`**
 
 ควรมี (จาก scaffold):
+
 ```css
 @tailwind base;
 @tailwind components;
@@ -603,7 +614,7 @@ Append ต่อท้าย `apps/web/app/globals.css`:
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 24 70% 30%;          /* coffee brown */
+    --primary: 24 70% 30%; /* coffee brown */
     --primary-foreground: 60 9% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -624,6 +635,7 @@ Append ต่อท้าย `apps/web/app/globals.css`:
 - [ ] **Step 5.3: ทดสอบว่า Tailwind ทำงาน**
 
 ในไฟล์ `apps/web/app/(storefront)/menu/page.tsx` ลองเปลี่ยน `<h1>` เป็น:
+
 ```tsx
 <h1 className="mb-6 text-3xl font-bold text-amber-800">เมนู</h1>
 ```
@@ -631,6 +643,7 @@ Append ต่อท้าย `apps/web/app/globals.css`:
 ```bash
 pnpm dev
 ```
+
 Expected: หัวข้อ "เมนู" เป็นสีน้ำตาลเข้ม
 
 - [ ] **Step 5.4: Commit**
@@ -648,6 +661,7 @@ git commit -m "style(web): add shadcn-compatible CSS variables
 ### Task 6: Install shadcn/ui + Add Core Components
 
 **Files:**
+
 - Create: `apps/web/components.json`
 - Create: `apps/web/lib/utils.ts`
 - Create: `apps/web/components/ui/button.tsx`
@@ -665,6 +679,7 @@ cd ../..
 ```
 
 ตอบคำถาม:
+
 - Style: **Default**
 - Base color: **Neutral** (หรืออะไรก็ได้ — เราจะ override ด้วย CSS vars แล้ว)
 - CSS variables: **yes**
@@ -682,6 +697,7 @@ cd ../..
 Expected: สร้างไฟล์ใน `apps/web/components/ui/`: `button.tsx`, `card.tsx`, `input.tsx`, `label.tsx`, `form.tsx`
 
 > 🎓 **Concept — shadcn/ui ปรัชญา**:
+>
 > - shadcn ไม่ใช่ component library ที่ install เป็น dependency
 > - **มัน copy code เข้าโปรเจกต์โดยตรง** → คุณเป็นเจ้าของ code, แก้ได้ตามต้องการ
 > - สร้างบน Radix UI (a11y) + Tailwind (styling) + Class Variance Authority (variants)
@@ -709,6 +725,7 @@ export default function MenuPage() {
 ```bash
 pnpm dev
 ```
+
 Expected: เห็นปุ่มสไตล์ shadcn บน `/menu`
 
 - [ ] **Step 6.5: Commit**
@@ -727,6 +744,7 @@ git commit -m "feat(web): add shadcn/ui with core components
 ### Task 7: Build Static Menu Page (Server Component)
 
 **Files:**
+
 - Create: `apps/web/lib/data/menu.ts` — mock data
 - Create: `apps/web/components/menu-card.tsx` — Server Component
 - Modify: `apps/web/app/(storefront)/menu/page.tsx`
@@ -830,6 +848,7 @@ export function MenuCard({ item }: { item: MenuItem }) {
 ```
 
 > 🎓 **Concept — Server Component**:
+>
 > - Component นี้ไม่มี `'use client'` → **Server Component by default**
 > - render บน server, ส่ง HTML ไป client → bundle ลูกค้าเล็กลง
 > - ห้ามใช้ `useState`, `useEffect`, event handlers (`onClick`)
@@ -854,9 +873,7 @@ export default function MenuPage() {
         if (items.length === 0) return null;
         return (
           <section key={category} className="mb-10">
-            <h2 className="mb-4 text-xl font-semibold">
-              {CATEGORY_LABELS[category]}
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold">{CATEGORY_LABELS[category]}</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
                 <MenuCard key={item.id} item={item} />
@@ -875,6 +892,7 @@ export default function MenuPage() {
 ```bash
 pnpm dev
 ```
+
 Expected: เปิด http://localhost:3000/menu เห็น 3 sections (เครื่องดื่ม / อาหาร / ของหวาน) มี card grid responsive (1 col mobile, 2 col tablet, 3 col desktop)
 
 - [ ] **Step 7.5: Commit**
@@ -893,6 +911,7 @@ git commit -m "feat(web): build static menu page with grouped categories
 ### Task 8: Add Cart Icon (Client Component)
 
 **Files:**
+
 - Create: `apps/web/components/cart-icon.tsx`
 - Modify: `apps/web/app/(storefront)/layout.tsx`
 
@@ -935,11 +954,7 @@ export function CartIcon() {
 import Link from 'next/link';
 import { CartIcon } from '@/components/cart-icon';
 
-export default function StorefrontLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StorefrontLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b bg-white">
@@ -950,9 +965,7 @@ export default function StorefrontLayout({
           <CartIcon />
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-        {children}
-      </main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
       <footer className="border-t bg-gray-50 py-4 text-center text-sm text-gray-500">
         © 2026 Coffee Shop · Learning Project
       </footer>
@@ -966,9 +979,11 @@ export default function StorefrontLayout({
 ```bash
 pnpm dev
 ```
+
 Expected: เปิด http://localhost:3000/menu → คลิกปุ่ม Cart → ตัวเลขเพิ่มขึ้น (state ทำงาน)
 
 > 🎓 **Concept — interleaving server/client**:
+>
 > - `(storefront)/layout.tsx` เป็น Server Component
 > - มัน render `<CartIcon />` ที่เป็น Client Component → React บอก browser ว่า "hydrate ตรงนี้"
 > - Server Component ปกติ ห้าม import ของ Client → แต่ render ได้ (pass children/JSX OK)
@@ -988,6 +1003,7 @@ git commit -m "feat(web): add interactive cart icon (Client Component)
 ### Task 9: Setup Vitest for Web App
 
 **Files:**
+
 - Modify: `apps/web/package.json`
 - Create: `apps/web/vitest.config.ts`
 - Create: `apps/web/tests/setup.ts`
@@ -1036,6 +1052,7 @@ import '@testing-library/jest-dom/vitest';
 - [ ] **Step 9.4: เพิ่ม script ใน `apps/web/package.json`**
 
 ตรวจสอบ `"scripts"` มี:
+
 ```json
 "test": "vitest run",
 "test:watch": "vitest"
@@ -1048,6 +1065,7 @@ cd apps/web
 pnpm test
 cd ../..
 ```
+
 Expected: Vitest บอก "No test files found" — OK (ยังไม่มี test)
 
 - [ ] **Step 9.6: Commit**
@@ -1065,6 +1083,7 @@ git commit -m "test(web): set up Vitest with jsdom and Testing Library
 ### Task 10: React Hook Form + Zod Practice (with Test)
 
 **Files:**
+
 - Create: `apps/web/components/feedback-form.tsx`
 - Create: `apps/web/tests/feedback-form.test.tsx`
 - Create: `apps/web/app/(storefront)/feedback/page.tsx`
@@ -1137,6 +1156,7 @@ cd apps/web
 pnpm test
 cd ../..
 ```
+
 Expected: FAIL — `Cannot find module '@/components/feedback-form'`
 
 - [ ] **Step 10.4: เขียน FeedbackForm component**
@@ -1179,9 +1199,7 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อ</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="space-y-1">
@@ -1189,12 +1207,10 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
         <textarea
           id="message"
           rows={4}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
           {...register('message')}
         />
-        {errors.message && (
-          <p className="text-sm text-destructive">{errors.message.message}</p>
-        )}
+        {errors.message && <p className="text-destructive text-sm">{errors.message.message}</p>}
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
@@ -1206,6 +1222,7 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
 ```
 
 > 🎓 **Concept — RHF + Zod คู่ที่ลงตัว**:
+>
 > - `zodResolver` ผูก Zod schema เข้ากับ RHF → validate ฟรีทั้ง form
 > - `register('name')` คืน props (`name`, `onChange`, `onBlur`, `ref`) ใส่ใน `<Input>` ตรงๆ
 > - `errors.name?.message` มาจาก Zod schema → message ภาษาไทยได้
@@ -1218,6 +1235,7 @@ cd apps/web
 pnpm test
 cd ../..
 ```
+
 Expected: 3 tests PASS
 
 - [ ] **Step 10.6: สร้างหน้า `/feedback` ใช้ component จริง**
@@ -1254,7 +1272,9 @@ export default function FeedbackPage() {
 ```bash
 pnpm dev
 ```
+
 Expected:
+
 - เปิด http://localhost:3000/feedback
 - ลอง submit ทั้ง form ว่าง → เห็น error "ต้องกรอกชื่อ"
 - กรอกชื่อ + ข้อความสั้น → error "อย่างน้อย 10 ตัวอักษร"
@@ -1266,6 +1286,7 @@ Expected:
 pnpm typecheck
 pnpm test
 ```
+
 Expected: ทั้งสอง command pass
 
 - [ ] **Step 10.9: Commit**
@@ -1296,18 +1317,21 @@ git commit -m "feat(web): add feedback form with React Hook Form + Zod
 ## Self-Review Notes
 
 **Spec coverage check:**
+
 - ✅ Week 1 Day 1-2 (monorepo + Turborepo): Tasks 1-2
 - ✅ Week 1 Day 3-4 (App Router): Tasks 3-4
 - ✅ Week 1 Day 5-6 (Tailwind + shadcn): Tasks 5-6 + 7
 - ✅ Week 1 Day 7 (RHF + Zod): Tasks 9-10
 
 **Concepts taught**:
+
 - pnpm workspace, Turborepo pipeline, TypeScript strict
 - App Router, layouts, route groups, Server vs Client Components
 - Tailwind, shadcn/ui philosophy, CSS variables theming
 - React Hook Form, Zod schema-derived types, TDD basics
 
 **Out of Week 1 scope** (deferred to later weeks):
+
 - ❌ NestJS / API (Week 2)
 - ❌ Database / Prisma (Week 2)
 - ❌ Real cart state (Week 4 with Zustand)

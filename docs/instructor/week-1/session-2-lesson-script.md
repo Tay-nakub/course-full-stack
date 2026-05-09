@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ อธิบาย Server vs Client Component **ได้ลึก** — เลือกถูกตัวในสถานการณ์จริง
 - ✅ Setup Vitest + Testing Library ใน Next.js ได้
 - ✅ เขียน feedback form ด้วย React Hook Form + Zod resolver แบบ TDD (test ก่อน → implement)
@@ -32,20 +33,21 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-20 | **Recap + Homework Review** | Quiz from Session 1 + showcase 2 student PRs |
-| **20-45** | **Block D** | **Server vs Client Component deep dive** (lecture 12 + demo 13) |
-| **45-65** | **Block E** | **Vitest + TDD intro** (lecture 8 + demo 12) |
-| **65-105** | **Block F** | **RHF + Zod feedback form (TDD live)** (full live build) |
-| 105-115 | Wrap-up | Week 2 preview + final Q&A |
-| 115-120 | Buffer | Stragglers / individual help |
+| Time       | Block                       | Activity                                                        |
+| ---------- | --------------------------- | --------------------------------------------------------------- |
+| 0-20       | **Recap + Homework Review** | Quiz from Session 1 + showcase 2 student PRs                    |
+| **20-45**  | **Block D**                 | **Server vs Client Component deep dive** (lecture 12 + demo 13) |
+| **45-65**  | **Block E**                 | **Vitest + TDD intro** (lecture 8 + demo 12)                    |
+| **65-105** | **Block F**                 | **RHF + Zod feedback form (TDD live)** (full live build)        |
+| 105-115    | Wrap-up                     | Week 2 preview + final Q&A                                      |
+| 115-120    | Buffer                      | Stragglers / individual help                                    |
 
 ---
 
 ## 🟢 Recap + Homework Review (0-20 min)
 
 ### Recap Quiz (5 min)
+
 - "ขอ volunteer 1 คน อธิบาย App Router file convention"
 - "ใครอธิบายได้ว่า route group `()` ใช้ทำอะไร?"
 - "Tailwind utility class ที่ใช้บ่อยที่สุดของคุณคือ?"
@@ -57,12 +59,14 @@
 **Format**: 2 student PR showcase (5 min/คน) + 5 min open discussion
 
 **สำหรับแต่ละ PR**:
+
 1. screen share PR — ดู diff structure
 2. ถาม student: "ตรงไหนติด, ตรงไหน aha?"
 3. Instructor highlight: 1 thing done well + 1 thing to improve (constructive)
 4. ทุกคนใน class learn จากเคสจริง
 
 **ถ้า student ทำ homework ไม่เสร็จ**:
+
 - ไม่ shame ในห้อง — DM ส่วนตัว
 - ให้ทำตาม `week1-homework-reference` branch (instructor backup) ระหว่าง buffer time
 
@@ -73,7 +77,9 @@
 ## ⚡ Block D: Server vs Client Component Deep Dive (20-45 min, 25 min)
 
 ### 🎯 Block Goals
+
 Student เข้าใจลึก:
+
 - "Default = Server Component" — เพราะอะไร, ส่งอะไรมา
 - "Client Component" — ใช้เมื่อไหร่, cost คืออะไร
 - "Component composition" — Server ครอบ Client ได้, Client ครอบ Server **ไม่ได้** (ผ่าน import)
@@ -81,9 +87,11 @@ Student เข้าใจลึก:
 ### 💬 Lecture (~12 min)
 
 **1. ใช้ Cart icon homework เป็นจุดตั้งต้น** (3 min)
+
 > "Homework Task 8 — ทุกคนต้องใส่ `'use client'` ใน `cart-icon.tsx`. ทำไม?"
 
 รอคำตอบ. Validate:
+
 - ใช้ `useState` (state) ✓
 - ใช้ `onClick` (event handler) ✓
 - → ทั้งสองคือ "client-only feature" — ทำที่ server ไม่ได้
@@ -91,6 +99,7 @@ Student เข้าใจลึก:
 **2. The mental model** (5 min)
 
 วาดบนกระดาน:
+
 ```
 ┌─────────────── SERVER ───────────────┐    ┌───── CLIENT (browser) ─────┐
 │                                        │    │                            │
@@ -112,6 +121,7 @@ Student เข้าใจลึก:
 **3. Decision flowchart** (3 min)
 
 > **🎓 Decision Rule**: "Default Server. Switch to Client เมื่อ — และเมื่อ — ต้องการ:"
+>
 > 1. State (`useState`, `useReducer`)
 > 2. Effects (`useEffect`)
 > 3. Browser APIs (window, localStorage, IntersectionObserver)
@@ -121,6 +131,7 @@ Student เข้าใจลึก:
 **4. The composition rule** (1 min)
 
 📢 **กฎสำคัญ — เน้น**:
+
 - Server Component import Client Component ได้ (ปกติ)
 - Client Component import Server Component **ไม่ได้** ตรงๆ
 - แต่ Server Component "pass เป็น children" ให้ Client Component ได้
@@ -129,18 +140,21 @@ Student เข้าใจลึก:
 ### 🖥️ Live Demo (~13 min)
 
 **1. Inspect homework: `cart-icon.tsx`** (3 min)
+
 - เปิดไฟล์, ชี้ `'use client'` บรรทัดแรก
 - เปิด `(storefront)/layout.tsx` — ชี้ว่ามี `<CartIcon />` import เข้ามา
 - 📢 **พูด**: "Layout เป็น Server Component (ไม่มี `'use client'`). มัน render `<CartIcon />` ที่เป็น Client. นี่คือ 'island' pattern — server-rendered ครอบ client-rendered"
 
 **2. Build mistake demo** (5 min)
 จงใจสร้าง bug:
+
 - เพิ่ม `useState` ใน `menu-card.tsx` (Server Component) — โดย**ไม่**ใส่ `'use client'`
 - รัน `pnpm dev` → error ใน terminal: "useState only works in Client Components"
 - 📢 **พูด**: "Error message ตรงๆ — บอกแก้ยังไง. Next.js error message ดีมากใน App Router"
 - แก้: เพิ่ม `'use client'` หรือลบ `useState` ออก
 
 **3. Show server-only data** (3 min)
+
 - เพิ่มใน `menu-card.tsx`:
   ```tsx
   console.log('Rendering on server', process.env.SECRET_KEY);
@@ -150,21 +164,24 @@ Student เข้าใจลึก:
 - Cleanup: ลบ console.log ออก
 
 **4. Bundle size demo** (2 min)
+
 - รัน `pnpm build` → output แสดง "First Load JS"
 - 📢 **พูด**: "ทุกครั้งที่ใส่ `'use client'`, code นั้นไป client bundle. Server Components ไม่ใช่ JS ที่ลูกค้าโหลด → bundle เล็กลง → site เร็วขึ้น"
 
 ### ❓ Common Questions
 
-| Q | A |
-|---|---|
-| ใส่ `'use client'` ที่ root layout ได้ไหม? | ได้ แต่ทุกอย่างจะกลายเป็น client → bundle ใหญ่. **ห้าม** — ใส่ใกล้ leaf ที่สุด |
-| Server Component fetch data ยังไง? | `async function Page() { const data = await fetch(...) }` — ใช่ async component ตรงๆ (Week 3 จะลงรายละเอียด) |
-| ถ้า Client Component ต้อง fetch จาก DB? | ผ่าน API route หรือ TanStack Query → เรียก endpoint (Week 3) |
-| Component library (เช่น shadcn) ส่วนใหญ่ Server หรือ Client? | shadcn UI primitives ที่มี state (Dialog, Dropdown) = Client. ที่ pure UI (Card) = Server |
-| ทำไมไม่ทำให้ทุกอย่าง Client เพื่อความง่าย? | Bundle ใหญ่ขึ้น, SEO แย่ลง, server work ทำใน client ไม่ได้ (DB, secrets) |
+| Q                                                            | A                                                                                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| ใส่ `'use client'` ที่ root layout ได้ไหม?                   | ได้ แต่ทุกอย่างจะกลายเป็น client → bundle ใหญ่. **ห้าม** — ใส่ใกล้ leaf ที่สุด                               |
+| Server Component fetch data ยังไง?                           | `async function Page() { const data = await fetch(...) }` — ใช่ async component ตรงๆ (Week 3 จะลงรายละเอียด) |
+| ถ้า Client Component ต้อง fetch จาก DB?                      | ผ่าน API route หรือ TanStack Query → เรียก endpoint (Week 3)                                                 |
+| Component library (เช่น shadcn) ส่วนใหญ่ Server หรือ Client? | shadcn UI primitives ที่มี state (Dialog, Dropdown) = Client. ที่ pure UI (Card) = Server                    |
+| ทำไมไม่ทำให้ทุกอย่าง Client เพื่อความง่าย?                   | Bundle ใหญ่ขึ้น, SEO แย่ลง, server work ทำใน client ไม่ได้ (DB, secrets)                                     |
 
 ### ✅ Student Checkpoint
+
 ถามทีละคน — quiz format:
+
 1. "บอก 3 สิ่งที่ Server Component ทำไม่ได้"
 2. "Cart icon ทำไมต้อง Client?"
 3. "ถ้าผม render `<MenuCard>` ใน Cart icon ได้ไหม? — จะเกิดอะไรขึ้น?" (trick — ได้ ผ่าน children prop, แต่ไม่ใช่ผ่าน import ตรงๆ)
@@ -174,7 +191,9 @@ Student เข้าใจลึก:
 ## 🧪 Block E: Vitest + TDD Intro (45-65 min, 20 min)
 
 ### 🎯 Block Goals
+
 Student เข้าใจ:
+
 - "Vitest = test runner. Compatible กับ Jest API"
 - "TDD cycle: Red → Green → Refactor"
 - Setup Vitest ใน Next.js project
@@ -182,12 +201,14 @@ Student เข้าใจ:
 ### 💬 Lecture (~8 min)
 
 **1. ทำไมต้อง test?** (2 min)
+
 - Live class poll: "ใครเคยปล่อย bug ขึ้น production?"
 - Reframe: "Test ไม่ใช่เพื่อ catch bug — มัน document behavior. อ่าน test → เข้าใจ feature ทันที"
 
 **2. Test pyramid** (2 min)
 
 วาดบนกระดาน:
+
 ```
         🔺 E2E (slow, expensive — Playwright)
        🔺🔺 Integration (medium — API calls)
@@ -208,6 +229,7 @@ Student เข้าใจ:
 📢 **เน้น**: "ฟังดูช้า แต่ลองทำจริง — เร็วกว่าเขียน code แล้วมา debug ทีหลัง 3 เท่า"
 
 **4. Vitest vs Jest** (2 min)
+
 - Same API (describe/it/expect)
 - Vitest = native ESM, faster, build บน Vite
 - Modern Next.js project → Vitest เป็น default ที่นิยม
@@ -215,6 +237,7 @@ Student เข้าใจ:
 ### 🖥️ Live Demo (~12 min)
 
 **1. Install Vitest + Testing Library** (3 min)
+
 ```bash
 cd apps/web
 pnpm add -D vitest @vitejs/plugin-react @testing-library/react \
@@ -223,6 +246,7 @@ cd ../..
 ```
 
 📢 **อธิบาย package**:
+
 - `vitest` = runner
 - `@vitejs/plugin-react` = parse JSX
 - `@testing-library/react` = render component ใน test
@@ -233,12 +257,13 @@ cd ../..
 **2. Configure Vitest** (5 min)
 
 สร้าง `vitest.config.ts` (ชี้แต่ละ option):
+
 ```ts
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',     // mock browser
-    globals: true,            // describe/it/expect ไม่ต้อง import
+    environment: 'jsdom', // mock browser
+    globals: true, // describe/it/expect ไม่ต้อง import
     setupFiles: ['./tests/setup.ts'],
   },
   resolve: {
@@ -252,6 +277,7 @@ export default defineConfig({
 📢 **พูด**: "Vitest ใช้ Vite config syntax — ถ้าเคยใช้ Vite จะคุ้นทันที"
 
 สร้าง `tests/setup.ts`:
+
 ```ts
 import '@testing-library/jest-dom/vitest';
 ```
@@ -259,6 +285,7 @@ import '@testing-library/jest-dom/vitest';
 **3. Write tiny first test** (3 min)
 
 สร้าง `tests/sanity.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 
@@ -270,6 +297,7 @@ describe('sanity', () => {
 ```
 
 รัน:
+
 ```bash
 pnpm test
 ```
@@ -279,6 +307,7 @@ pnpm test
 
 **4. Add `test` script ใน package.json** (1 min)
 ตรวจ scripts:
+
 ```json
 "test": "vitest run",
 "test:watch": "vitest"
@@ -286,19 +315,21 @@ pnpm test
 
 ### ❓ Common Questions
 
-| Q | A |
-|---|---|
-| ทำไม jsdom ไม่ใช่ Node เปล่าๆ? | jsdom mock DOM (window, document) ที่ Testing Library ต้องใช้ |
-| Vitest test file ต้องชื่อ `.test.ts` ไหม? | Default: `*.test.ts(x)` หรือ `*.spec.ts(x)`. Configure ได้ |
-| `globals: true` คืออะไร? | ทำให้ `describe`/`it`/`expect` ใช้ได้ไม่ต้อง import. ถ้า `false` ต้อง `import { describe, it, expect } from 'vitest'` |
-| TDD บังคับเสมอไหม? | ไม่ — บางครั้ง prototype/explore ก็ skip ได้. แต่ feature สำคัญ + bug fix ควร TDD |
+| Q                                         | A                                                                                                                     |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| ทำไม jsdom ไม่ใช่ Node เปล่าๆ?            | jsdom mock DOM (window, document) ที่ Testing Library ต้องใช้                                                         |
+| Vitest test file ต้องชื่อ `.test.ts` ไหม? | Default: `*.test.ts(x)` หรือ `*.spec.ts(x)`. Configure ได้                                                            |
+| `globals: true` คืออะไร?                  | ทำให้ `describe`/`it`/`expect` ใช้ได้ไม่ต้อง import. ถ้า `false` ต้อง `import { describe, it, expect } from 'vitest'` |
+| TDD บังคับเสมอไหม?                        | ไม่ — บางครั้ง prototype/explore ก็ skip ได้. แต่ feature สำคัญ + bug fix ควร TDD                                     |
 
 ---
 
 ## 🎨 Block F: Build Feedback Form with TDD (65-105 min, 40 min)
 
 ### 🎯 Block Goals
+
 **Student build feedback form ด้วยตัวเอง** ใน class — instructor guide ทีละ step:
+
 - Define Zod schema → derive type
 - Write 3 failing tests
 - Implement form ตาม tests
@@ -306,6 +337,7 @@ pnpm test
 - Commit
 
 ### 🧑‍🏫 Format
+
 **Live build together** — ไม่ใช่ instructor demo. Student พิมพ์ตามใน VS Code ของตัวเอง.
 
 📢 **กฎ**: "ทุกคน open `apps/web/` ของตัวเอง. ผมจะรอจนทุกคน save แต่ละ step ก่อนไป step ถัดไป"
@@ -315,6 +347,7 @@ pnpm test
 #### Step 1: Install RHF + Zod (3 min)
 
 ทุกคนรัน:
+
 ```bash
 cd apps/web
 pnpm add react-hook-form zod @hookform/resolvers
@@ -348,12 +381,14 @@ describe('FeedbackForm', () => {
 ```
 
 📢 **อธิบายแต่ละบรรทัด** (สำคัญ):
+
 - `vi.fn()` = mock function (track calls)
 - `userEvent.setup()` = simulate keyboard/mouse
 - `screen.getByRole('button', { name: /ส่ง/i })` = find by accessibility role + label (case-insensitive regex)
 - `findByText` (async) — รอจนกว่า text จะปรากฏ (useful สำหรับ async behavior อย่าง form validation)
 
 รัน:
+
 ```bash
 cd apps/web
 pnpm test
@@ -402,9 +437,7 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อ</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="space-y-1">
@@ -412,12 +445,10 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
         <textarea
           id="message"
           rows={4}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
           {...register('message')}
         />
-        {errors.message && (
-          <p className="text-sm text-destructive">{errors.message.message}</p>
-        )}
+        {errors.message && <p className="text-destructive text-sm">{errors.message.message}</p>}
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
@@ -439,6 +470,7 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
 7. `handleSubmit(onSubmit)` — RHF จะ validate ก่อน → ถ้า pass จะเรียก onSubmit
 
 รัน:
+
 ```bash
 pnpm test
 ```
@@ -523,30 +555,34 @@ git commit -m "feat(web): add feedback form with TDD"
 
 ### ❓ Common Questions
 
-| Q | A |
-|---|---|
-| `register('name')` return อะไร? | `{ name, ref, onChange, onBlur }` — props ของ controlled input |
+| Q                                     | A                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `register('name')` return อะไร?       | `{ name, ref, onChange, onBlur }` — props ของ controlled input                       |
 | ทำไม `findByText` ไม่ใช่ `getByText`? | `findBy*` = async (รอ element ปรากฏ). Form validation มา async (Zod resolve promise) |
-| `vi.waitFor` คืออะไร? | Polling helper — retry assertion จนกว่าจะ pass หรือ timeout |
-| Zod schema แชร์กับ NestJS ได้จริงไหม? | จริง — Week 3 จะ move schema ไป `packages/shared` แล้ว BE+FE import เดียวกัน |
+| `vi.waitFor` คืออะไร?                 | Polling helper — retry assertion จนกว่าจะ pass หรือ timeout                          |
+| Zod schema แชร์กับ NestJS ได้จริงไหม? | จริง — Week 3 จะ move schema ไป `packages/shared` แล้ว BE+FE import เดียวกัน         |
 
 ---
 
 ## 🏁 Wrap-up + Week 2 Preview (105-115 min, 10 min)
 
 ### Recap (3 min)
+
 ถามทีละคน:
+
 1. "Server Component ทำอะไรไม่ได้บ้าง?"
 2. "TDD 3 step คืออะไร?"
 3. "Zod schema กับ TypeScript type — ความสัมพันธ์?"
 
 ### Week 2 Preview (5 min)
+
 - Backend setup: NestJS + Postgres + Prisma
 - Auth: JWT + bcrypt + Guards
 - API endpoints: register, login, ดึง user info
 - 📢 **เน้น**: "Pre-Week 2 — ติดตั้ง Docker Desktop ก่อนคลาส. ผมจะส่ง pre-class checklist ใน Slack"
 
 ### Final Q&A (2 min)
+
 รับคำถามเปิด
 
 ---
@@ -559,20 +595,21 @@ git commit -m "feat(web): add feedback form with TDD"
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| Student ทุกคน 3 tests pass ไหม? | ___ |
-| Block ไหน over-run? | ___ |
-| Concept "RSC vs Client" ติดที่ใคร — ต้อง 1-on-1 ก่อน Week 2? | ___ |
-| Common mistake ใน TDD live build | ___ |
-| Energy ห้องโดยรวม | low / medium / high |
-| Pre-Week 2 readiness — ใครต้องช่วย Docker setup? | ___ |
+| Item                                                         | Note                |
+| ------------------------------------------------------------ | ------------------- |
+| Student ทุกคน 3 tests pass ไหม?                              | \_\_\_              |
+| Block ไหน over-run?                                          | \_\_\_              |
+| Concept "RSC vs Client" ติดที่ใคร — ต้อง 1-on-1 ก่อน Week 2? | \_\_\_              |
+| Common mistake ใน TDD live build                             | \_\_\_              |
+| Energy ห้องโดยรวม                                            | low / medium / high |
+| Pre-Week 2 readiness — ใครต้องช่วย Docker setup?             | \_\_\_              |
 
 ---
 
 ## 🔗 Connection to Week 2
 
 Week 2 จะใช้:
+
 - ✅ Monorepo structure (Week 1)
 - ✅ TypeScript strict (Week 1)
 - ✅ Vitest (Week 1) — เริ่ม unit test NestJS services

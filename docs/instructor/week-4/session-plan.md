@@ -8,11 +8,11 @@
 
 ## 📅 Cadence
 
-| Session | When | Duration | Covers (Plan tasks) |
-|---|---|---|---|
-| **1** | Day 1 | 120 min | Tasks 1-5: Order schemas + Prisma + atomic create + tests + Zustand cart |
-| _Homework_ | Day 2-6 | 3-5 hrs | Polish cart UI + read TanStack Query polling docs + (preview) build CheckoutForm |
-| **2** | Day 7 | 120 min | Tasks 6-10: Checkout + tracking + Kitchen UI + admin orders |
+| Session    | When    | Duration | Covers (Plan tasks)                                                              |
+| ---------- | ------- | -------- | -------------------------------------------------------------------------------- |
+| **1**      | Day 1   | 120 min  | Tasks 1-5: Order schemas + Prisma + atomic create + tests + Zustand cart         |
+| _Homework_ | Day 2-6 | 3-5 hrs  | Polish cart UI + read TanStack Query polling docs + (preview) build CheckoutForm |
+| **2**      | Day 7   | 120 min  | Tasks 6-10: Checkout + tracking + Kitchen UI + admin orders                      |
 
 > **Pre-Session 1**: ทุก student มี admin + staff users ใน DB (ทั้งสอง role) + menu data ≥3 categories และ ≥4 products
 
@@ -20,15 +20,15 @@
 
 ## 🎯 Week 4 Learning Outcomes
 
-| Skill | ทดสอบโดย |
-|---|---|
-| Prisma `$transaction` (interactive) | Session 1 atomic order create |
-| State machine pattern (status transitions) | Session 1 Service tests + Session 2 Kitchen UI |
-| Server-side total calculation (security) | Code review of OrdersService |
-| Snapshot pattern (productName, unitPrice in OrderItem) | Database inspection |
-| Zustand + persist middleware | Cart UI + localStorage persistence |
-| Smart polling (`refetchInterval` function form) | Tracking page + Kitchen polling |
-| Cross-domain end-to-end flow | Demo: customer place → staff kitchen → customer tracking |
+| Skill                                                  | ทดสอบโดย                                                 |
+| ------------------------------------------------------ | -------------------------------------------------------- |
+| Prisma `$transaction` (interactive)                    | Session 1 atomic order create                            |
+| State machine pattern (status transitions)             | Session 1 Service tests + Session 2 Kitchen UI           |
+| Server-side total calculation (security)               | Code review of OrdersService                             |
+| Snapshot pattern (productName, unitPrice in OrderItem) | Database inspection                                      |
+| Zustand + persist middleware                           | Cart UI + localStorage persistence                       |
+| Smart polling (`refetchInterval` function form)        | Tracking page + Kitchen polling                          |
+| Cross-domain end-to-end flow                           | Demo: customer place → staff kitchen → customer tracking |
 
 ---
 
@@ -65,11 +65,13 @@ Session 2 (120 min) — Checkout, Tracking, Kitchen
 Week 4 = "use patterns from Week 3 across new domain" → less new concept, more **practice**:
 
 **New things only**:
+
 - Prisma `$transaction` (atomic)
 - Zustand (vs Redux/Context — much simpler)
 - Polling patterns
 
 **Reused from Week 1-3**:
+
 - Schema sharing
 - NestJS CRUD pattern
 - TanStack Query `useQuery` + `useMutation` + invalidation
@@ -104,6 +106,7 @@ Week 4 = "use patterns from Week 3 across new domain" → less new concept, more
 ## 🔗 Connection Backwards/Forwards
 
 **ใช้จาก Week 1-3:**
+
 - Schema pattern (1 schema, 2 sides)
 - NestJS service/controller layering
 - Prisma + relations
@@ -111,6 +114,7 @@ Week 4 = "use patterns from Week 3 across new domain" → less new concept, more
 - TanStack Query patterns
 
 **ส่งต่อ Week 5 (Inventory + Reports):**
+
 - Order model + status — Week 5 จะ deduct stock เมื่อ COMPLETED
 - OrderItem snapshot — Week 5 เพิ่ม `cogsSnapshot` field
 - Transaction pattern — Week 5 จะใช้ใน complex stock deduction

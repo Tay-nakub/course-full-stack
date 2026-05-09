@@ -11,14 +11,10 @@ export const metadata: Metadata = {
   description: 'A learning project — coffee shop web app',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th" className={cn('font-sans', geist.variable)}>
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="bg-background text-foreground min-h-screen antialiased">
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

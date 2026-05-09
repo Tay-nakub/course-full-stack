@@ -21,6 +21,7 @@ defaults:
 # ☕ Coffee Shop Course
 
 ## Week 4 · Session 1
+
 ### Order Backend + Cart Store
 
 <div class="muted mt-8 text-sm">
@@ -33,8 +34,8 @@ Welcome to Week 4. Week 3 = first slice. Week 4 = second slice + 1 new tool (tra
 -->
 
 ---
-layout: center
----
+
+## layout: center
 
 # Where We Are
 
@@ -75,8 +76,8 @@ Today = "use Week 3 patterns + 1 new (transactions)"
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Why Atomic Transaction
 
@@ -164,7 +165,7 @@ Pattern in: <code>orderItem (price)</code> · <code>invoiceItem (price+tax)</cod
 
 ```ts
 await tx.order.create({
-  data: { total: input.total }
+  data: { total: input.total },
   //               ↑ FE could lie
 });
 ```
@@ -176,11 +177,7 @@ await tx.order.create({
 ### ✅ Good — server calculates
 
 ```ts
-const total = items.reduce(
-  (s, i) => s + i.qty *
-    productMap.get(i.productId)!.price,
-  0
-);
+const total = items.reduce((s, i) => s + i.qty * productMap.get(i.productId)!.price, 0);
 ```
 
 </div>
@@ -196,8 +193,8 @@ Customer can submit <code>{ total: 1 }</code> for ฿250 of coffee.<br>Server mu
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # State Machine for Order Status
 
@@ -209,11 +206,11 @@ PENDING ──► PREPARING ──► READY ──► COMPLETED
 
 ```ts
 const VALID_TRANSITIONS = {
-  PENDING:    ['PREPARING', 'CANCELLED'],
-  PREPARING:  ['READY', 'CANCELLED'],
-  READY:      ['COMPLETED', 'CANCELLED'],
-  COMPLETED:  [],   // terminal
-  CANCELLED:  [],   // terminal
+  PENDING: ['PREPARING', 'CANCELLED'],
+  PREPARING: ['READY', 'CANCELLED'],
+  READY: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [], // terminal
+  CANCELLED: [], // terminal
 };
 ```
 
@@ -316,19 +313,20 @@ Invalid: COMPLETED → PREPARING · PENDING → READY · CANCELLED → anywhere
 </div>
 
 ---
-layout: cover
----
+
+## layout: cover
 
 # ☕ Session 2
 
 ## Week 4 · Session 2
+
 ### Checkout + Tracking + Kitchen
 
 <div class="muted mt-8 text-sm">Multi-actor flow goes LIVE</div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Today's Outcome — Multi-Actor
 
@@ -405,11 +403,11 @@ Tracking page begins polling
 
 ```ts
 {
-  productId,
-  name,
-  unitPrice,    // ← stale risk
-  imageUrl,
-  qty
+  (productId,
+    name,
+    unitPrice, // ← stale risk
+    imageUrl,
+    qty);
 }
 ```
 
@@ -421,8 +419,7 @@ Tracking page begins polling
 
 ```ts
 {
-  productId,
-  qty
+  (productId, qty);
 }
 ```
 
@@ -459,7 +456,7 @@ useQuery({
     const status = query.state.data?.status;
     if (status === 'COMPLETED') return false;
     if (status === 'CANCELLED') return false;
-    return 5000;     // poll every 5 sec
+    return 5000; // poll every 5 sec
   },
 });
 ```
@@ -484,13 +481,13 @@ useQuery({
 
 <div class="text-sm mt-4">
 
-| | Polling | WebSocket |
-|---|---|---|
-| **Setup** | Trivial | Server + client |
-| **Latency** | 5-10 sec | Instant |
-| **Server load** | Higher (req/sec) | Lower (push) |
-| **Reliability** | Auto-reconnect | Need handle drops |
-| **Firewall** | HTTP = OK | Some block WS |
+|                 | Polling          | WebSocket         |
+| --------------- | ---------------- | ----------------- |
+| **Setup**       | Trivial          | Server + client   |
+| **Latency**     | 5-10 sec         | Instant           |
+| **Server load** | Higher (req/sec) | Lower (push)      |
+| **Reliability** | Auto-reconnect   | Need handle drops |
+| **Firewall**    | HTTP = OK        | Some block WS     |
 
 </div>
 
@@ -505,8 +502,8 @@ useQuery({
 </div>
 
 ---
-layout: center
----
+
+## layout: center
 
 # Kitchen Kanban Layout
 
@@ -534,9 +531,9 @@ Visual workflow → easy scan urgency · COMPLETED + CANCELLED hidden
 
 ```ts
 const NEXT_STATUS = {
-  PENDING:   { next: 'PREPARING', label: 'รับออเดอร์' },
-  PREPARING: { next: 'READY',     label: 'ทำเสร็จ' },
-  READY:     { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },
+  PENDING: { next: 'PREPARING', label: 'รับออเดอร์' },
+  PREPARING: { next: 'READY', label: 'ทำเสร็จ' },
+  READY: { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },
 };
 ```
 

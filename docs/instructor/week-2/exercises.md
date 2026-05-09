@@ -6,15 +6,15 @@
 
 ## 📋 Exercise Map
 
-| # | Type | When | Difficulty | Time |
-|---|---|---|---|---|
-| **EX-2.1** | In-class | Session 1, Block A end | ⭐ | 5 min |
-| **EX-2.2** | In-class | Session 1, Block C end | ⭐⭐ | 8 min |
-| **HW-2-pre** | Reading + practice | Between Session 1 and 2 | ⭐ | 2-3 hrs |
-| **EX-2.3** | In-class | Session 2, Block E end | ⭐⭐ | 5 min |
-| **EX-2.4** | In-class | Session 2, Block G | ⭐⭐⭐ | 10 min |
-| **HW-2-post** | Homework | After Session 2 | ⭐⭐ | 2-3 hrs |
-| **HW-2-stretch** | Optional | Anytime | ⭐⭐⭐⭐ | 2-4 hrs |
+| #                | Type               | When                    | Difficulty | Time    |
+| ---------------- | ------------------ | ----------------------- | ---------- | ------- |
+| **EX-2.1**       | In-class           | Session 1, Block A end  | ⭐         | 5 min   |
+| **EX-2.2**       | In-class           | Session 1, Block C end  | ⭐⭐       | 8 min   |
+| **HW-2-pre**     | Reading + practice | Between Session 1 and 2 | ⭐         | 2-3 hrs |
+| **EX-2.3**       | In-class           | Session 2, Block E end  | ⭐⭐       | 5 min   |
+| **EX-2.4**       | In-class           | Session 2, Block G      | ⭐⭐⭐     | 10 min  |
+| **HW-2-post**    | Homework           | After Session 2         | ⭐⭐       | 2-3 hrs |
+| **HW-2-stretch** | Optional           | Anytime                 | ⭐⭐⭐⭐   | 2-4 hrs |
 
 ---
 
@@ -26,13 +26,14 @@
 **Time**: 5 min
 
 ### Task
+
 > ดู NestJS code snippet ต่อไปนี้ — แต่ละบรรทัดอยู่ใน layer ไหน (Controller / Service / Module / Provider)?
 
 ```ts
 1.  @Controller('users')
 2.  export class UsersController {
 3.    constructor(private readonly users: UsersService) {}
-4.    
+4.
 5.    @Get()
 6.    async list() {
 7.      return this.users.findAll();
@@ -42,7 +43,7 @@
 11. @Injectable()
 12. export class UsersService {
 13.   constructor(private readonly prisma: PrismaService) {}
-14.   
+14.
 15.   async findAll() {
 16.     return this.prisma.user.findMany();
 17.   }
@@ -56,6 +57,7 @@
 ```
 
 ตอบ:
+
 - บรรทัด 1-9: layer ?
 - บรรทัด 11-18: layer ?
 - บรรทัด 20-24: layer ?
@@ -80,9 +82,11 @@
 **Time**: 8 min
 
 ### Task
+
 > เปิด `apps/api/prisma/migrations/<timestamp>_init/migration.sql` ที่ Prisma สร้างให้
 
 ตอบคำถาม:
+
 1. Prisma สร้าง SQL อะไรบ้างจาก schema?
 2. ทำไมมี `_prisma_migrations` table ใน DB?
 3. ถ้าผมแก้ schema (เช่น เพิ่ม field `name`) แล้วรัน `migrate dev` อีกครั้ง — เกิดอะไรขึ้น?
@@ -118,13 +122,13 @@
 
 Read + ตอบคำถาม "1 takeaway" ใน chat ก่อน Session 2:
 
-| Topic | Doc | What to grasp |
-|---|---|---|
-| NestJS Modules | [docs.nestjs.com/modules](https://docs.nestjs.com/modules) | When to create new module vs nest in existing |
-| NestJS Providers | [docs.nestjs.com/providers](https://docs.nestjs.com/providers) | DI scopes (singleton vs request) |
-| Prisma Data Model | [prisma.io/docs/orm/prisma-schema/data-model](https://www.prisma.io/docs/orm/prisma-schema/data-model/models) | Relations (1:1, 1:N, M:N) basics |
-| bcrypt primer | [Wikipedia: bcrypt](https://en.wikipedia.org/wiki/Bcrypt) | What "rounds" parameter does |
-| JWT primer | [jwt.io/introduction](https://jwt.io/introduction) | header.payload.signature structure |
+| Topic             | Doc                                                                                                           | What to grasp                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| NestJS Modules    | [docs.nestjs.com/modules](https://docs.nestjs.com/modules)                                                    | When to create new module vs nest in existing |
+| NestJS Providers  | [docs.nestjs.com/providers](https://docs.nestjs.com/providers)                                                | DI scopes (singleton vs request)              |
+| Prisma Data Model | [prisma.io/docs/orm/prisma-schema/data-model](https://www.prisma.io/docs/orm/prisma-schema/data-model/models) | Relations (1:1, 1:N, M:N) basics              |
+| bcrypt primer     | [Wikipedia: bcrypt](https://en.wikipedia.org/wiki/Bcrypt)                                                     | What "rounds" parameter does                  |
+| JWT primer        | [jwt.io/introduction](https://jwt.io/introduction)                                                            | header.payload.signature structure            |
 
 ### Practice Tasks
 
@@ -167,6 +171,7 @@ Read + ตอบคำถาม "1 takeaway" ใน chat ก่อน Session 2:
 4. ดู payload ที่ decode ออกมา
 
 ตอบคำถาม:
+
 1. ใน payload มี field อะไรบ้าง?
 2. `exp` คืออะไร? (hint: convert timestamp)
 3. ถ้าผม **เปลี่ยน role ใน payload** ที่ jwt.io แล้ว copy token ใหม่ → server จะรับไหม?
@@ -198,6 +203,7 @@ Read + ตอบคำถาม "1 takeaway" ใน chat ก่อน Session 2:
 หลังจาก instructor demo `/auth/me` + `/auth/admin-only` แล้ว ทุกคนเพิ่ม endpoint ใหม่ของตัวเอง:
 
 **Requirement:**
+
 - Endpoint: `GET /api/auth/profile`
 - Require **authenticated** user (any role)
 - Return:
@@ -229,12 +235,14 @@ async profile(@CurrentUser() user: AuthUser) {
 ```
 
 ### Acceptance criteria
+
 - [ ] Endpoint requires Bearer token (test: ไม่มี token → 401)
 - [ ] Returns user + permissions object
 - [ ] STAFF token → canManageMenu = false
 - [ ] ADMIN token → canManageMenu = true
 
 ### Common Mistakes (anticipate)
+
 - ลืม `@UseGuards(JwtAuthGuard)` → endpoint open
 - ไม่ใช้ `@CurrentUser()` → ใช้ `@Req()` ตรงๆ → type ไม่ tight
 - Logic ใส่ใน controller ลึก — ถ้ายาวกว่า 5 บรรทัด → move ไป service
@@ -269,36 +277,41 @@ async profile(@CurrentUser() user: AuthUser) {
 it('register hashes password before storing', async () => {
   prisma.user.findUnique.mockResolvedValue(null);
   prisma.user.create.mockImplementation(({ data }) => ({
-    id: '1', ...data,
+    id: '1',
+    ...data,
   }));
 
   await authService.register({ email: 'new@example.com', password: 'plain123' });
 
   const calledWith = prisma.user.create.mock.calls[0][0].data;
   expect(calledWith.password).not.toBe('plain123');
-  expect(calledWith.password).toMatch(/^\$2[aby]\$/);   // bcrypt format
+  expect(calledWith.password).toMatch(/^\$2[aby]\$/); // bcrypt format
 });
 
 it('login throws if password is empty string', async () => {
   prisma.user.findUnique.mockResolvedValue({
-    id: '1', email: 'e@e.com', password: 'hashed', role: 'STAFF',
+    id: '1',
+    email: 'e@e.com',
+    password: 'hashed',
+    role: 'STAFF',
   });
 
-  await expect(authService.login({ email: 'e@e.com', password: '' }))
-    .rejects.toThrow();
+  await expect(authService.login({ email: 'e@e.com', password: '' })).rejects.toThrow();
 });
 ```
 
 ### Acceptance Criteria
+
 - [ ] `pnpm --filter @coffee/api test` shows 7+ AuthService tests passing
 - [ ] PR opened, ยังไม่ merge
 
 ### Common Mistakes
-| Mistake | Fix |
-|---|---|
-| Test mock leaks ระหว่าง tests | ใส่ `vi.clearAllMocks()` ใน `beforeEach` |
+
+| Mistake                                   | Fix                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------ |
+| Test mock leaks ระหว่าง tests             | ใส่ `vi.clearAllMocks()` ใน `beforeEach`                                 |
 | Test fails เพราะ JWT module config ไม่ครบ | Make sure `JwtModule.register({ secret: 'test', ... })` ใน TestingModule |
-| `bcrypt format check` ใช้ regex ผิด | bcrypt prefix = `$2a$`, `$2b$`, `$2y$` |
+| `bcrypt format check` ใช้ regex ผิด       | bcrypt prefix = `$2a$`, `$2b$`, `$2y$`                                   |
 
 ---
 
@@ -309,6 +322,7 @@ it('login throws if password is empty string', async () => {
 **Difficulty**: ⭐⭐⭐⭐
 
 ### Stretch 1: Refresh Token Flow (3 hrs)
+
 - เพิ่ม `RefreshToken` model ใน Prisma
 - POST `/api/auth/refresh` รับ refresh token → ออก new accessToken
 - Store refresh token hash ใน DB (rotation pattern)
@@ -317,6 +331,7 @@ it('login throws if password is empty string', async () => {
 **Why valuable**: pattern จริงของ production auth
 
 ### Stretch 2: Rate Limiting on Login (1 hr)
+
 - ติดตั้ง `@nestjs/throttler`
 - จำกัด `/api/auth/login` ที่ 5 requests / minute / IP
 - Test: 6th request → 429 Too Many Requests
@@ -324,12 +339,14 @@ it('login throws if password is empty string', async () => {
 **Why valuable**: ป้องกัน brute force attack
 
 ### Stretch 3: Admin Promote Script (1 hr)
+
 - สร้าง `apps/api/scripts/promote-admin.ts`
 - Usage: `pnpm tsx scripts/promote-admin.ts admin@coffee.com`
 - ใช้ Prisma update role = ADMIN
 - Useful สำหรับ Week 4 ตอนต้องการ admin ทดสอบ
 
 ### Stretch 4: Seed Script (1 hr)
+
 - สร้าง `apps/api/prisma/seed.ts`
 - Configure ใน `package.json`: `"prisma": { "seed": "tsx prisma/seed.ts" }`
 - Seed: 1 admin + 2 staff + delete + re-create idempotent
@@ -342,6 +359,7 @@ it('login throws if password is empty string', async () => {
 ## 📤 Student-Facing Format
 
 **ก่อนแชร์ exercises ให้ student**:
+
 1. คัดลอกไฟล์นี้ → ลบ section "🟢 Solution" ทั้งหมด
 2. ลบ "Common Mistakes" จาก HW-2-Post (ให้ student ติดเอง)
 3. เก็บ HW-2-Stretch solutions ไว้ — student ใช้เป็น reference ตอนติด

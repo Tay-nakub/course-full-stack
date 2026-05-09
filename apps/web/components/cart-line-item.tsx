@@ -11,11 +11,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
     <div className="flex items-center gap-4 border-b py-4">
       {item.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={item.imageUrl}
-          alt={item.name}
-          className="h-16 w-16 rounded object-cover"
-        />
+        <img src={item.imageUrl} alt={item.name} className="h-16 w-16 rounded object-cover" />
       ) : (
         <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-2xl">
           ☕
@@ -28,26 +24,16 @@ export function CartLineItem({ item }: { item: CartItem }) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setQty(item.productId, item.qty - 1)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setQty(item.productId, item.qty - 1)}>
           −
         </Button>
         <span className="w-8 text-center font-medium">{item.qty}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setQty(item.productId, item.qty + 1)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setQty(item.productId, item.qty + 1)}>
           +
         </Button>
       </div>
 
-      <div className="w-20 text-right font-semibold">
-        ฿{item.qty * item.unitPrice}
-      </div>
+      <div className="w-20 text-right font-semibold">฿{item.qty * item.unitPrice}</div>
       <Button
         variant="ghost"
         size="sm"

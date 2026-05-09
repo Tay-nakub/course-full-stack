@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ Menu schemas (Category + Product) ใน `packages/shared`
 - ✅ Prisma schema เพิ่ม Category + Product models, migrate applied
 - ✅ NestJS Menu module (CRUD endpoints) — public reads, admin writes
@@ -34,19 +35,20 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Preview** | Quiz Week 2 + show today's outcome |
-| **10-50** | **Block A** | **Shared schemas + Category module + tests** |
-| **50-75** | **Block B** | **Product module** |
-| **75-110** | **Block C** | **Next.js rewrites + API client + TanStack Query** |
-| 110-120 | Wrap-up | Homework + Q&A |
+| Time       | Block               | Activity                                           |
+| ---------- | ------------------- | -------------------------------------------------- |
+| 0-10       | **Recap + Preview** | Quiz Week 2 + show today's outcome                 |
+| **10-50**  | **Block A**         | **Shared schemas + Category module + tests**       |
+| **50-75**  | **Block B**         | **Product module**                                 |
+| **75-110** | **Block C**         | **Next.js rewrites + API client + TanStack Query** |
+| 110-120    | Wrap-up             | Homework + Q&A                                     |
 
 ---
 
 ## 🟢 Recap + Preview (0-10 min)
 
 ### Recap Quiz (3 min)
+
 - "JwtAuthGuard ตรวจอะไร?"
 - "RolesGuard อ่าน metadata จากไหน?"
 - "Prisma migration `dev` vs `deploy`?"
@@ -54,6 +56,7 @@
 ### Today's Preview (7 min)
 
 **Show end-of-Session-2 state**:
+
 1. Login as admin → /admin/menu
 2. Add category "เครื่องดื่ม"
 3. Add product "Latte" 75 บาท
@@ -61,7 +64,9 @@
 5. DB inspect → categories + products tables มี data
 
 📢 **Big idea**:
+
 > "วันนี้เราสร้าง backbone ของ data flow:
+>
 > 1. **Schema** ใน `packages/shared` (1 schema)
 > 2. **Backend** validate กับ schema เดียวกัน
 > 3. **Frontend form** validate กับ schema เดียวกัน
@@ -73,6 +78,7 @@
 ## 📦 Block A: Shared Schemas + Category Module (10-50 min, 40 min)
 
 ### 🎯 Block Goals
+
 - Define Category schemas ที่ใช้ทั้ง FE + BE
 - Build NestJS CRUD service + controller pattern (template สำหรับ module ทุกตัว)
 - Unit test the service
@@ -82,6 +88,7 @@
 **1. The "1 schema, 2 sides" pattern** (5 min)
 
 วาดบนกระดาน:
+
 ```
                 packages/shared/schemas/menu.ts
                 ┌────────────────────────┐
@@ -142,6 +149,7 @@ no business        permission           transaction
 (พิมพ์ตาม Plan)
 
 📢 **เน้นจุดสำคัญ**:
+
 - `CreateCategorySchema` (input) แยกจาก `CategorySchema` (output)
 - Why? — input = user submission (no `id`, no timestamps). Output = DB record (มี id)
 - `UpdateCategorySchema = CreateCategorySchema.partial()` — Zod helper, all fields optional
@@ -151,6 +159,7 @@ no business        permission           transaction
 (พิมพ์ตาม Plan)
 
 📢 **อธิบาย**:
+
 - `Decimal(10, 2)` — แทน `Float` เพราะ exact precision (ไม่มี rounding error)
 - `onDelete: Restrict` — ห้ามลบ category ถ้ามี products → ดี for safety
 - `@@index([categoryId])` — explicit index → JOIN เร็ว
@@ -168,6 +177,7 @@ cd ../..
 (พิมพ์ทุกบรรทัด — student ตามใน VS Code ของตัวเอง)
 
 📢 **ต้องเน้น**:
+
 - `findOne` → `NotFoundException` (NestJS auto-mapped to 404)
 - `remove` → check `productCount` ก่อน → ถ้ามี product ต้อง `ConflictException` (409)
 - Why throw exception? → NestJS exception filter → HTTP status ที่ถูกต้องอัตโนมัติ
@@ -177,6 +187,7 @@ cd ../..
 (พิมพ์ตาม Plan)
 
 📢 **โครงสร้าง guards**:
+
 ```ts
 @Get()  // public — ใครก็เข้าได้
 list() { ... }
@@ -192,6 +203,7 @@ create() { ... }
 **5. Service unit tests** (Task 3.3 — 4 min)
 
 (พิมพ์ tests ตาม Plan — focus tests สำคัญ:
+
 - findOne throws NotFound
 - remove throws Conflict ถ้ามี products
 - remove สำเร็จถ้าไม่มี products)
@@ -212,24 +224,26 @@ cd apps/api && pnpm test
 - Login เป็น STAFF user → POST again → 403 ✓ (RolesGuard work)
 
 Commit:
+
 ```bash
 git commit -m "feat(api): add Category CRUD with admin guards and tests"
 ```
 
 ### ❓ Common Questions (Block A)
 
-| Q | A |
-|---|---|
-| ทำไมแยก Create vs Update schema? | Update fields ทุก optional. ถ้าใช้ schema เดียว → user ต้องส่งทุก field ทุกครั้ง = bad UX |
-| `Decimal` vs `Float` ทำไมต่าง? | `0.1 + 0.2 ≠ 0.3` ใน Float. Money calculations ห้าม Float — ใช้ Decimal precision |
-| Service inject อะไรอื่นได้บ้าง? | ทุก provider ที่ register ใน module. ตัวอย่าง: ConfigService, JwtService, อื่นๆ |
-| ทำไม return `{ success: true }` ใน remove? | NestJS default = 200 + JSON. ถ้า return `void` → ส่ง empty body. แค่เลือก convention |
+| Q                                          | A                                                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| ทำไมแยก Create vs Update schema?           | Update fields ทุก optional. ถ้าใช้ schema เดียว → user ต้องส่งทุก field ทุกครั้ง = bad UX |
+| `Decimal` vs `Float` ทำไมต่าง?             | `0.1 + 0.2 ≠ 0.3` ใน Float. Money calculations ห้าม Float — ใช้ Decimal precision         |
+| Service inject อะไรอื่นได้บ้าง?            | ทุก provider ที่ register ใน module. ตัวอย่าง: ConfigService, JwtService, อื่นๆ           |
+| ทำไม return `{ success: true }` ใน remove? | NestJS default = 200 + JSON. ถ้า return `void` → ส่ง empty body. แค่เลือก convention      |
 
 ---
 
 ## 📦 Block B: Product Module (50-75 min, 25 min)
 
 ### 🎯 Block Goals
+
 - Apply pattern จาก Block A กับ Product
 - เพิ่ม relation handling (Category FK validation)
 - Filter via query params (`?active=true`)
@@ -239,9 +253,11 @@ git commit -m "feat(api): add Category CRUD with admin guards and tests"
 **Pattern repetition** (5 min)
 
 📢 **Self-aware comment**:
+
 > "Product module = pattern เหมือน Category. Block นี้สั้น เพราะคุณเริ่มเห็น pattern แล้ว. ถ้าจำได้ — Week 4+ ทุก module จะตามนี้"
 
 วาด pattern:
+
 ```
 service.ts:
   findAll() / findOne(id)
@@ -261,6 +277,7 @@ controller.ts:
 (พิมพ์ตาม Plan)
 
 📢 **ต้องเน้น**:
+
 - `assertCategoryExists()` private method — pattern: validate FK ก่อน insert/update
 - `include: { category: true }` → JOIN, return product พร้อม category info
 - `orderBy: [{ category: { sortOrder: 'asc' } }, { name: 'asc' }]` → multi-key ordering
@@ -270,6 +287,7 @@ controller.ts:
 (พิมพ์ตาม Plan)
 
 📢 **เน้น query parameter**:
+
 ```ts
 @Get()
 list(@Query('active') active?: string) {
@@ -289,23 +307,25 @@ list(@Query('active') active?: string) {
 - Postman: POST product (need categoryId จาก step ก่อน), GET, GET with `?active=true`
 
 Commit:
+
 ```bash
 git commit -m "feat(api): add Product CRUD with category guard and tests"
 ```
 
 ### ❓ Common Questions (Block B)
 
-| Q | A |
-|---|---|
-| ทำไมต้อง `assertCategoryExists`? | กัน insert orphan product (categoryId ที่ไม่มี). Prisma จะ fail ที่ DB level อยู่แล้ว แต่ error message งง |
-| `include` vs `select` ใน Prisma? | `include` = relation เพิ่ม. `select` = pick specific fields. ใช้ `select` ถ้าต้อง optimize bandwidth |
-| `Decimal` ส่งกลับ FE เป็น string? | ใช่ — Prisma Decimal serialize เป็น string (กัน precision loss). FE ต้อง `Number(price)` ก่อน calculate |
+| Q                                 | A                                                                                                          |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| ทำไมต้อง `assertCategoryExists`?  | กัน insert orphan product (categoryId ที่ไม่มี). Prisma จะ fail ที่ DB level อยู่แล้ว แต่ error message งง |
+| `include` vs `select` ใน Prisma?  | `include` = relation เพิ่ม. `select` = pick specific fields. ใช้ `select` ถ้าต้อง optimize bandwidth       |
+| `Decimal` ส่งกลับ FE เป็น string? | ใช่ — Prisma Decimal serialize เป็น string (กัน precision loss). FE ต้อง `Number(price)` ก่อน calculate    |
 
 ---
 
 ## 🔌 Block C: Next.js Rewrites + API Client + TanStack Query (75-110 min, 35 min)
 
 ### 🎯 Block Goals
+
 - Setup proxy เพื่อให้ FE เรียก `/api/*` แล้วถึง NestJS (same-origin)
 - Build apiFetch wrapper ที่ส่ง cookie + handle errors
 - Setup TanStack Query Provider + DevTools
@@ -315,6 +335,7 @@ git commit -m "feat(api): add Product CRUD with category guard and tests"
 **1. Cross-origin problem in dev** (4 min)
 
 วาดบนกระดาน:
+
 ```
 Dev (separate origins):
   Browser at localhost:3000  ─?─►  NestJS at localhost:4000
@@ -326,7 +347,7 @@ Solution: Next.js proxy
   Browser at localhost:3000  ───►  /api/* (Next.js handler)
                                      │
                                      └─► proxies to localhost:4000
-                                     
+
   Same origin → cookie ส่งได้, ไม่มี CORS
 ```
 
@@ -335,6 +356,7 @@ Solution: Next.js proxy
 **2. apiFetch design decisions** (4 min)
 
 โชว์ Plan code:
+
 ```ts
 fetch(`/api${path}`, {
   credentials: 'include',     // ส่ง cookie
@@ -344,6 +366,7 @@ fetch(`/api${path}`, {
 ```
 
 📢 **Why each**:
+
 - `credentials: 'include'` → browser auto-sends httpOnly cookie
 - `'/api'` prefix → trigger Next.js proxy
 - `JSON.stringify` ไม่ default → empty body ก็ได้
@@ -351,6 +374,7 @@ fetch(`/api${path}`, {
 **3. TanStack Query mental model** (4 min)
 
 วาด:
+
 ```
 Component  ─useQuery('users', fetcher)─►  Cache
                                            ↓
@@ -381,6 +405,7 @@ useMutation ─►  call fetcher  ─►  Server  ─►  Response
 (พิมพ์ตาม Plan)
 
 ทดสอบ:
+
 ```bash
 pnpm dev    # restart
 curl http://localhost:3000/api/healthz
@@ -392,8 +417,9 @@ curl http://localhost:3000/api/healthz
 (พิมพ์ตาม Plan)
 
 ทดสอบใน browser console:
+
 ```js
-await fetch('/api/menu/categories').then(r => r.json())
+await fetch('/api/menu/categories').then((r) => r.json());
 // → array (or empty)
 ```
 
@@ -407,9 +433,11 @@ pnpm add @tanstack/react-query @tanstack/react-query-devtools
 (พิมพ์ Provider ตาม Plan)
 
 📢 **เน้น `useState`**:
+
 ```ts
 const [client] = useState(() => new QueryClient({ ... }));
 ```
+
 > "ห้าม `new QueryClient()` นอก useState — ทุก render สร้างใหม่ → cache loss. `useState` กับ initializer = create ครั้งเดียว"
 
 **4. Wrap root layout + verify DevTools** (Task 6.3-6.5 — 8 min)
@@ -419,29 +447,32 @@ const [client] = useState(() => new QueryClient({ ... }));
 รัน → เปิด `/menu` → เห็น React Query Devtools floating button (มุมซ้ายล่าง)
 
 📢 **โชว์ DevTools**:
+
 - คลิก expand → เห็น cache panel (empty)
 - ตอนนี้ยังไม่ใช้ `useQuery` ใน app
 - Session 2 จะใช้ — กลับมาดู cache fill
 
 Commit:
+
 ```bash
 git commit -m "feat(web): add Next.js API rewrites, apiFetch, TanStack Query setup"
 ```
 
 ### ❓ Common Questions (Block C)
 
-| Q | A |
-|---|---|
-| ทำไม Next.js rewrites แทน fetch ตรง? | Cross-origin = no cookie + CORS preflight. Same origin (proxy) = simpler |
-| `staleTime` กับ `cacheTime` ต่างกัน? | `staleTime` = data ถือว่าใหม่นานเท่าไร (ไม่ refetch). `cacheTime` (now `gcTime`) = ลบ cache หลังไม่ใช้นานเท่าไร |
-| QueryClient ทำไม singleton ต่อ tab ไม่ต่อ user? | Cache อยู่ใน memory ของ browser tab. ปิด tab → cache หาย. ต้อง persist → use persister plugin |
-| DevTools production จะมีไหม? | No — `process.env.NODE_ENV === 'development'` ใน Provider |
+| Q                                               | A                                                                                                               |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| ทำไม Next.js rewrites แทน fetch ตรง?            | Cross-origin = no cookie + CORS preflight. Same origin (proxy) = simpler                                        |
+| `staleTime` กับ `cacheTime` ต่างกัน?            | `staleTime` = data ถือว่าใหม่นานเท่าไร (ไม่ refetch). `cacheTime` (now `gcTime`) = ลบ cache หลังไม่ใช้นานเท่าไร |
+| QueryClient ทำไม singleton ต่อ tab ไม่ต่อ user? | Cache อยู่ใน memory ของ browser tab. ปิด tab → cache หาย. ต้อง persist → use persister plugin                   |
+| DevTools production จะมีไหม?                    | No — `process.env.NODE_ENV === 'development'` ใน Provider                                                       |
 
 ---
 
 ## 🏁 Wrap-up + Homework (110-120 min, 10 min)
 
 ### Recap (3 min)
+
 - "Schema เดียวสองฝั่ง — ตัวอย่างจริงที่ทำวันนี้?"
 - "Public read vs admin write — implement ยังไงใน NestJS?"
 - "ทำไมต้อง `useState(() => new QueryClient())` ห้ามใส่ตรงๆ?"
@@ -461,6 +492,7 @@ git commit -m "feat(web): add Next.js API rewrites, apiFetch, TanStack Query set
    - แสดง list (ยังไม่ต้อง CRUD form — แค่ display)
 
 📚 **Reading** (~30 min)
+
 - [TanStack Query — Mutations](https://tanstack.com/query/latest/docs/react/guides/mutations)
 - [TanStack Query — Query Invalidation](https://tanstack.com/query/latest/docs/react/guides/query-invalidation)
 
@@ -470,11 +502,11 @@ git commit -m "feat(web): add Next.js API rewrites, apiFetch, TanStack Query set
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| ทุกคนทำ Tasks 1-4 (BE) จบไหม? | ___ |
-| ทุกคน TanStack Query setup สำเร็จ? | ___ |
-| Block ไหน over-run? | ___ |
-| Concept ที่ติด — ต้อง follow up Session 2? | ___ |
-| Pre-Session 2: ใครยังไม่ promote admin user? | ___ |
-| Energy ห้องโดยรวม | low / medium / high |
+| Item                                         | Note                |
+| -------------------------------------------- | ------------------- |
+| ทุกคนทำ Tasks 1-4 (BE) จบไหม?                | \_\_\_              |
+| ทุกคน TanStack Query setup สำเร็จ?           | \_\_\_              |
+| Block ไหน over-run?                          | \_\_\_              |
+| Concept ที่ติด — ต้อง follow up Session 2?   | \_\_\_              |
+| Pre-Session 2: ใครยังไม่ promote admin user? | \_\_\_              |
+| Energy ห้องโดยรวม                            | low / medium / high |

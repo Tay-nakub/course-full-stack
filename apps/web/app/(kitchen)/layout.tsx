@@ -1,10 +1,6 @@
 import Link from 'next/link';
 
-export default function KitchenLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function KitchenLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-amber-50">
       <header className="bg-amber-700 text-white">

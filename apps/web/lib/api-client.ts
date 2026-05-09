@@ -13,10 +13,7 @@ interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
-export async function apiFetch<T = unknown>(
-  path: string,
-  options: FetchOptions = {},
-): Promise<T> {
+export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
   const { body, headers, ...rest } = options;
 
   const response = await fetch(`/api${path}`, {
@@ -36,11 +33,7 @@ export async function apiFetch<T = unknown>(
     } catch {
       // ignore
     }
-    throw new ApiError(
-      response.status,
-      `${response.status}: ${response.statusText}`,
-      details,
-    );
+    throw new ApiError(response.status, `${response.status}: ${response.statusText}`, details);
   }
 
   if (response.status === 204) return null as T;

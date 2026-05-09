@@ -20,13 +20,7 @@ import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 
-export function ProductForm({
-  product,
-  onSuccess,
-}: {
-  product?: Product;
-  onSuccess: () => void;
-}) {
+export function ProductForm({ product, onSuccess }: { product?: Product; onSuccess: () => void }) {
   const qc = useQueryClient();
   const isEdit = !!product;
 
@@ -54,13 +48,10 @@ export function ProductForm({
 
   const mutation = useMutation({
     mutationFn: (input: CreateProductInput) =>
-      apiFetch(
-        isEdit ? `/menu/products/${product!.id}` : '/menu/products',
-        {
-          method: isEdit ? 'PATCH' : 'POST',
-          body: input,
-        },
-      ),
+      apiFetch(isEdit ? `/menu/products/${product!.id}` : '/menu/products', {
+        method: isEdit ? 'PATCH' : 'POST',
+        body: input,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.products() });
       onSuccess();
@@ -68,16 +59,11 @@ export function ProductForm({
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((d) => mutation.mutate(d))}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อสินค้า</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -89,9 +75,7 @@ export function ProductForm({
             step="0.01"
             {...register('price', { valueAsNumber: true })}
           />
-          {errors.price && (
-            <p className="text-sm text-destructive">{errors.price.message}</p>
-          )}
+          {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
         </div>
 
         <div className="space-y-1">
@@ -99,7 +83,7 @@ export function ProductForm({
           <select
             id="categoryId"
             {...register('categoryId')}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
           >
             <option value="">-- เลือกหมวด --</option>
             {categories.map((c) => (
@@ -109,9 +93,7 @@ export function ProductForm({
             ))}
           </select>
           {errors.categoryId && (
-            <p className="text-sm text-destructive">
-              {errors.categoryId.message}
-            </p>
+            <p className="text-destructive text-sm">{errors.categoryId.message}</p>
           )}
         </div>
       </div>
@@ -119,9 +101,7 @@ export function ProductForm({
       <div className="space-y-1">
         <Label htmlFor="imageUrl">URL รูป (optional)</Label>
         <Input id="imageUrl" type="url" {...register('imageUrl')} />
-        {errors.imageUrl && (
-          <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
-        )}
+        {errors.imageUrl && <p className="text-destructive text-sm">{errors.imageUrl.message}</p>}
       </div>
 
       <div className="flex items-center gap-2">

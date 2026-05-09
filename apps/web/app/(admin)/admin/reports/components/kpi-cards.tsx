@@ -33,9 +33,7 @@ export function KpiCards() {
       label: 'อัตรากำไร',
       value: `${data.grossMarginPct.toFixed(1)}%`,
       color:
-        data.grossMarginPct >= 50
-          ? 'text-green-700 bg-green-50'
-          : 'text-yellow-700 bg-yellow-50',
+        data.grossMarginPct >= 50 ? 'text-green-700 bg-green-50' : 'text-yellow-700 bg-yellow-50',
     },
     {
       label: 'จำนวนออเดอร์',

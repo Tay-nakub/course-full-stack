@@ -18,13 +18,7 @@ interface RecipeRow {
   quantity: number;
 }
 
-export function RecipeEditor({
-  product,
-  onSuccess,
-}: {
-  product: Product;
-  onSuccess: () => void;
-}) {
+export function RecipeEditor({ product, onSuccess }: { product: Product; onSuccess: () => void }) {
   const qc = useQueryClient();
 
   const { data: ingredients = [] } = useQuery({
@@ -34,8 +28,7 @@ export function RecipeEditor({
 
   const { data: existing = [], isLoading } = useQuery({
     queryKey: ['recipe', product.id],
-    queryFn: () =>
-      apiFetch<RecipeItem[]>(`/inventory/recipes/product/${product.id}`),
+    queryFn: () => apiFetch<RecipeItem[]>(`/inventory/recipes/product/${product.id}`),
   });
 
   const [rows, setRows] = useState<RecipeRow[]>([]);
@@ -94,9 +87,7 @@ export function RecipeEditor({
                 const q = parseFloat(e.target.value);
                 setRows(
                   rows.map((r, i) =>
-                    i === idx
-                      ? { ...r, quantity: Number.isFinite(q) ? q : 0 }
-                      : r,
+                    i === idx ? { ...r, quantity: Number.isFinite(q) ? q : 0 } : r,
                   ),
                 );
               }}
@@ -125,10 +116,7 @@ export function RecipeEditor({
             value=""
             onChange={(e) => {
               if (!e.target.value) return;
-              setRows([
-                ...rows,
-                { ingredientId: e.target.value, quantity: 0 },
-              ]);
+              setRows([...rows, { ingredientId: e.target.value, quantity: 0 }]);
             }}
             className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
           >

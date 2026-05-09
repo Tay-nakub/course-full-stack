@@ -4,10 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import type {
-  CreateProductInput,
-  UpdateProductInput,
-} from '@coffee/shared';
+import type { CreateProductInput, UpdateProductInput } from '@coffee/shared';
 
 @Injectable()
 export class ProductService {

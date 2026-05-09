@@ -11,6 +11,7 @@
 **Spec Reference:** [course design spec § Week 3](../specs/2026-05-08-fullstack-coffee-shop-course-design.md)
 
 **Pre-requisites:**
+
 - Week 1 + 2 complete (Next.js + NestJS + Postgres + Auth working)
 - Admin user ที่ promote เป็น ADMIN role แล้ว (ทำใน Week 2 homework หรือผ่าน Studio: `UPDATE users SET role='ADMIN' WHERE email='...'`)
 
@@ -78,6 +79,7 @@ course-full-stack/
 ### Task 1: Menu Schemas in `packages/shared`
 
 **Files:**
+
 - Create: `packages/shared/src/schemas/menu.ts`
 - Modify: `packages/shared/src/index.ts`
 
@@ -133,6 +135,7 @@ export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
 - [ ] **Step 1.2: Export จาก index**
 
 แก้ `packages/shared/src/index.ts`:
+
 ```ts
 export * from './types/user';
 export * from './schemas/auth';
@@ -157,6 +160,7 @@ git commit -m "feat(shared): add Category and Product Zod schemas"
 ### Task 2: Update Prisma Schema + Migration
 
 **Files:**
+
 - Modify: `apps/api/prisma/schema.prisma`
 
 - [ ] **Step 2.1: เพิ่ม Category + Product models**
@@ -192,6 +196,7 @@ model Product {
 ```
 
 > 🎓 **Concept**:
+>
 > - `Decimal(10, 2)` = exact monetary precision (vs Float ที่ rounding error)
 > - `onDelete: Restrict` = ถ้า category มี products → ลบไม่ได้ (ป้องกัน orphan)
 > - `@@index([categoryId])` = explicit index สำหรับ JOIN performance
@@ -223,6 +228,7 @@ git commit -m "feat(api): add Category and Product Prisma models with relation"
 ### Task 3: NestJS Category Module
 
 **Files:**
+
 - Create: `apps/api/src/menu/menu.module.ts`
 - Create: `apps/api/src/menu/category.controller.ts`
 - Create: `apps/api/src/menu/category.service.ts`
@@ -258,7 +264,7 @@ export class CategoryService {
   }
 
   async update(id: string, input: UpdateCategoryInput) {
-    await this.findOne(id);  // ensure exists
+    await this.findOne(id); // ensure exists
     return this.prisma.category.update({ where: { id }, data: input });
   }
 
@@ -266,9 +272,7 @@ export class CategoryService {
     await this.findOne(id);
     const productCount = await this.prisma.product.count({ where: { categoryId: id } });
     if (productCount > 0) {
-      throw new ConflictException(
-        `ลบไม่ได้: หมวดนี้มี ${productCount} สินค้า — ย้ายสินค้าก่อน`,
-      );
+      throw new ConflictException(`ลบไม่ได้: หมวดนี้มี ${productCount} สินค้า — ย้ายสินค้าก่อน`);
     }
     await this.prisma.category.delete({ where: { id } });
     return { success: true };
@@ -282,12 +286,23 @@ Create file `apps/api/src/menu/category.controller.ts`:
 
 ```ts
 import {
-  Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, HttpCode, HttpStatus,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import {
-  CreateCategorySchema, UpdateCategorySchema,
-  type CreateCategoryInput, type UpdateCategoryInput,
+  CreateCategorySchema,
+  UpdateCategorySchema,
+  type CreateCategoryInput,
+  type UpdateCategoryInput,
 } from '@coffee/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -374,10 +389,7 @@ describe('CategoryService', () => {
     };
 
     const module = await Test.createTestingModule({
-      providers: [
-        CategoryService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [CategoryService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get(CategoryService);
@@ -446,6 +458,7 @@ pnpm --filter @coffee/api test
 ```
 
 ทดสอบ manual ใน Postman:
+
 ```bash
 # Login เป็น admin → get token
 # POST /api/menu/categories with Bearer token
@@ -468,6 +481,7 @@ git commit -m "feat(api): add Category CRUD with admin guards and tests"
 ### Task 4: NestJS Product Module
 
 **Files:**
+
 - Create: `apps/api/src/menu/product.controller.ts`
 - Create: `apps/api/src/menu/product.service.ts`
 - Create: `apps/api/src/menu/product.service.spec.ts`
@@ -540,13 +554,24 @@ Create file `apps/api/src/menu/product.controller.ts`:
 
 ```ts
 import {
-  Body, Controller, Delete, Get, Param, Patch, Post, Query,
-  UseGuards, HttpCode, HttpStatus,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import {
-  CreateProductSchema, UpdateProductSchema,
-  type CreateProductInput, type UpdateProductInput,
+  CreateProductSchema,
+  UpdateProductSchema,
+  type CreateProductInput,
+  type UpdateProductInput,
 } from '@coffee/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -632,9 +657,14 @@ describe('ProductService', () => {
 
   it('create throws BadRequest ถ้า category ไม่มีอยู่', async () => {
     prisma.category.findUnique.mockResolvedValue(null);
-    await expect(service.create({
-      name: 'Latte', price: 75, categoryId: 'missing', isActive: true,
-    } as any)).rejects.toThrow(BadRequestException);
+    await expect(
+      service.create({
+        name: 'Latte',
+        price: 75,
+        categoryId: 'missing',
+        isActive: true,
+      } as any),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('create สำเร็จเมื่อ category มี', async () => {
@@ -643,7 +673,10 @@ describe('ProductService', () => {
     prisma.product.create.mockResolvedValue(created);
 
     const result = await service.create({
-      name: 'Latte', price: 75, categoryId: 'c1', isActive: true,
+      name: 'Latte',
+      price: 75,
+      categoryId: 'c1',
+      isActive: true,
     } as any);
 
     expect(result).toEqual(created);
@@ -662,6 +695,7 @@ describe('ProductService', () => {
 - [ ] **Step 4.4: Register ProductController ใน MenuModule**
 
 แก้ `apps/api/src/menu/menu.module.ts`:
+
 ```ts
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
@@ -706,6 +740,7 @@ git commit -m "feat(api): add Product CRUD with category guard and tests"
 ### Task 5: Next.js API Rewrites + API Client
 
 **Files:**
+
 - Modify: `apps/web/next.config.ts`
 - Create: `apps/web/lib/api-client.ts`
 
@@ -740,7 +775,11 @@ Create file `apps/web/lib/api-client.ts`:
 
 ```ts
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public details?: unknown) {
+  constructor(
+    public status: number,
+    message: string,
+    public details?: unknown,
+  ) {
     super(message);
     this.name = 'ApiError';
   }
@@ -750,10 +789,7 @@ interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
-export async function apiFetch<T = unknown>(
-  path: string,
-  options: FetchOptions = {},
-): Promise<T> {
+export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
   const { body, headers, ...rest } = options;
 
   const response = await fetch(`/api${path}`, {
@@ -762,18 +798,16 @@ export async function apiFetch<T = unknown>(
       'Content-Type': 'application/json',
       ...headers,
     },
-    credentials: 'include',     // ส่ง cookie
+    credentials: 'include', // ส่ง cookie
     body: body ? JSON.stringify(body) : undefined,
   });
 
   if (!response.ok) {
     let details: unknown = null;
-    try { details = await response.json(); } catch {}
-    throw new ApiError(
-      response.status,
-      `${response.status}: ${response.statusText}`,
-      details,
-    );
+    try {
+      details = await response.json();
+    } catch {}
+    throw new ApiError(response.status, `${response.status}: ${response.statusText}`, details);
   }
 
   if (response.status === 204) return null as T;
@@ -782,6 +816,7 @@ export async function apiFetch<T = unknown>(
 ```
 
 > 🎓 **Concept**:
+>
 > - `credentials: 'include'` = browser ส่ง httpOnly cookie ไปด้วย
 > - Path เริ่มด้วย `/api` → Next.js rewrite proxy ไป NestJS
 > - `ApiError` class → controlled error handling ที่ component จับได้
@@ -793,8 +828,9 @@ pnpm dev
 ```
 
 ทดสอบใน browser console:
+
 ```js
-await fetch('/api/healthz').then(r => r.json())
+await fetch('/api/healthz').then((r) => r.json());
 // → { status: 'ok', database: 'connected', ... }
 ```
 
@@ -810,6 +846,7 @@ git commit -m "feat(web): add Next.js API rewrites and apiFetch wrapper"
 ### Task 6: TanStack Query Setup
 
 **Files:**
+
 - Create: `apps/web/components/providers/query-provider.tsx`
 - Create: `apps/web/lib/query-keys.ts`
 - Modify: `apps/web/app/layout.tsx`
@@ -839,7 +876,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,           // 1 min
+            staleTime: 60 * 1000, // 1 min
             refetchOnWindowFocus: false,
           },
         },
@@ -911,6 +948,7 @@ git commit -m "feat(web): add TanStack Query with provider, devtools, and key re
 ### Task 7: Login Flow with httpOnly Cookie
 
 **Files:**
+
 - Create: `apps/web/app/api/auth/login/route.ts`
 - Create: `apps/web/app/api/auth/logout/route.ts`
 - Create: `apps/web/app/login/page.tsx`
@@ -918,6 +956,7 @@ git commit -m "feat(web): add TanStack Query with provider, devtools, and key re
 - Create: `apps/web/lib/auth.ts`
 
 > 🎓 **Architecture**: ใช้ Next.js Route Handler เป็น proxy:
+>
 > 1. FE → POST `/api/auth/login` (Next.js Route Handler)
 > 2. Route Handler → POST `http://localhost:4000/api/auth/login` (NestJS)
 > 3. ได้ accessToken → ใส่ใน httpOnly cookie → return user info
@@ -977,7 +1016,7 @@ export async function POST(request: Request) {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7,    // 7 days
+    maxAge: 60 * 60 * 24 * 7, // 7 days
     secure: process.env.NODE_ENV === 'production',
   });
   return response;
@@ -1050,15 +1089,15 @@ export function LoginForm() {
       <div className="space-y-1">
         <Label htmlFor="email">อีเมล</Label>
         <Input id="email" type="email" {...register('email')} />
-        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
       </div>
       <div className="space-y-1">
         <Label htmlFor="password">รหัสผ่าน</Label>
         <Input id="password" type="password" {...register('password')} />
-        {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
       </div>
       {serverError && (
-        <p className="rounded border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+        <p className="border-destructive/50 bg-destructive/10 text-destructive rounded border p-2 text-sm">
           {serverError}
         </p>
       )}
@@ -1112,6 +1151,7 @@ git commit -m "feat(web): add login flow with httpOnly cookie via Route Handler"
 ### Task 8: Auth Middleware + Admin Layout
 
 **Files:**
+
 - Create: `apps/web/middleware.ts`
 - Create: `apps/web/app/(admin)/layout.tsx`
 - Create: `apps/web/app/(admin)/admin/page.tsx`
@@ -1206,6 +1246,7 @@ git commit -m "feat(web): add auth middleware and admin route group with sidebar
 ### Task 9: Admin Menu CRUD UI
 
 **Files:**
+
 - Create: `apps/web/app/(admin)/admin/menu/page.tsx`
 - Create: `apps/web/app/(admin)/admin/menu/components/category-list.tsx`
 - Create: `apps/web/app/(admin)/admin/menu/components/category-form.tsx`
@@ -1249,10 +1290,21 @@ Create file `apps/web/app/(admin)/admin/menu/components/category-list.tsx`:
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type { Category } from '@coffee/shared';
@@ -1283,7 +1335,9 @@ export function CategoryList() {
             <Button>+ เพิ่มหมวด</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>เพิ่มหมวดใหม่</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>เพิ่มหมวดใหม่</DialogTitle>
+            </DialogHeader>
             <CategoryForm onSuccess={() => setCreating(false)} />
           </DialogContent>
         </Dialog>
@@ -1306,9 +1360,12 @@ export function CategoryList() {
                 <TableCell>{c.name}</TableCell>
                 <TableCell>{c.sortOrder}</TableCell>
                 <TableCell className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(c)}>แก้ไข</Button>
+                  <Button variant="outline" size="sm" onClick={() => setEditing(c)}>
+                    แก้ไข
+                  </Button>
                   <Button
-                    variant="outline" size="sm"
+                    variant="outline"
+                    size="sm"
                     onClick={() => confirm(`ลบ "${c.name}"?`) && removeMutation.mutate(c.id)}
                   >
                     ลบ
@@ -1322,7 +1379,9 @@ export function CategoryList() {
 
       <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>แก้ไขหมวด</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>แก้ไขหมวด</DialogTitle>
+          </DialogHeader>
           {editing && <CategoryForm category={editing} onSuccess={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
@@ -1341,9 +1400,7 @@ Create file `apps/web/app/(admin)/admin/menu/components/category-form.tsx`:
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  CreateCategorySchema, type CreateCategoryInput, type Category,
-} from '@coffee/shared';
+import { CreateCategorySchema, type CreateCategoryInput, type Category } from '@coffee/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -1351,13 +1408,19 @@ import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 
 export function CategoryForm({
-  category, onSuccess,
-}: { category?: Category; onSuccess: () => void }) {
+  category,
+  onSuccess,
+}: {
+  category?: Category;
+  onSuccess: () => void;
+}) {
   const qc = useQueryClient();
   const isEdit = !!category;
 
   const {
-    register, handleSubmit, formState: { errors, isSubmitting },
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<CreateCategoryInput>({
     resolver: zodResolver(CreateCategorySchema),
     defaultValues: category ? { name: category.name, sortOrder: category.sortOrder } : undefined,
@@ -1380,12 +1443,12 @@ export function CategoryForm({
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อหมวด</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
       <div className="space-y-1">
         <Label htmlFor="sortOrder">ลำดับ</Label>
         <Input id="sortOrder" type="number" {...register('sortOrder', { valueAsNumber: true })} />
-        {errors.sortOrder && <p className="text-sm text-destructive">{errors.sortOrder.message}</p>}
+        {errors.sortOrder && <p className="text-destructive text-sm">{errors.sortOrder.message}</p>}
       </div>
       <Button type="submit" disabled={isSubmitting || mutation.isPending}>
         {isEdit ? 'บันทึก' : 'เพิ่ม'}
@@ -1407,10 +1470,21 @@ Create file `apps/web/app/(admin)/admin/menu/components/product-list.tsx`:
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type { Product } from '@coffee/shared';
@@ -1436,9 +1510,13 @@ export function ProductList() {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">สินค้า</h2>
         <Dialog open={creating} onOpenChange={setCreating}>
-          <DialogTrigger asChild><Button>+ เพิ่มสินค้า</Button></DialogTrigger>
+          <DialogTrigger asChild>
+            <Button>+ เพิ่มสินค้า</Button>
+          </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>เพิ่มสินค้าใหม่</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>เพิ่มสินค้าใหม่</DialogTitle>
+            </DialogHeader>
             <ProductForm onSuccess={() => setCreating(false)} />
           </DialogContent>
         </Dialog>
@@ -1465,11 +1543,16 @@ export function ProductList() {
                 <TableCell>{p.category?.name ?? '—'}</TableCell>
                 <TableCell>{p.isActive ? 'ขาย' : 'ปิด'}</TableCell>
                 <TableCell className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(p)}>แก้ไข</Button>
+                  <Button variant="outline" size="sm" onClick={() => setEditing(p)}>
+                    แก้ไข
+                  </Button>
                   <Button
-                    variant="outline" size="sm"
+                    variant="outline"
+                    size="sm"
                     onClick={() => confirm(`ลบ "${p.name}"?`) && removeMutation.mutate(p.id)}
-                  >ลบ</Button>
+                  >
+                    ลบ
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -1479,7 +1562,9 @@ export function ProductList() {
 
       <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>แก้ไขสินค้า</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>แก้ไขสินค้า</DialogTitle>
+          </DialogHeader>
           {editing && <ProductForm product={editing} onSuccess={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
@@ -1497,7 +1582,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  CreateProductSchema, type CreateProductInput, type Product, type Category,
+  CreateProductSchema,
+  type CreateProductInput,
+  type Product,
+  type Category,
 } from '@coffee/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1505,9 +1593,7 @@ import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 
-export function ProductForm({
-  product, onSuccess,
-}: { product?: Product; onSuccess: () => void }) {
+export function ProductForm({ product, onSuccess }: { product?: Product; onSuccess: () => void }) {
   const qc = useQueryClient();
   const isEdit = !!product;
 
@@ -1517,16 +1603,20 @@ export function ProductForm({
   });
 
   const {
-    register, handleSubmit, formState: { errors, isSubmitting },
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<CreateProductInput>({
     resolver: zodResolver(CreateProductSchema),
-    defaultValues: product ? {
-      name: product.name,
-      price: Number(product.price),
-      imageUrl: product.imageUrl ?? undefined,
-      isActive: product.isActive,
-      categoryId: product.categoryId,
-    } : { isActive: true },
+    defaultValues: product
+      ? {
+          name: product.name,
+          price: Number(product.price),
+          imageUrl: product.imageUrl ?? undefined,
+          isActive: product.isActive,
+          categoryId: product.categoryId,
+        }
+      : { isActive: true },
   });
 
   const mutation = useMutation({
@@ -1546,14 +1636,19 @@ export function ProductForm({
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อสินค้า</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <Label htmlFor="price">ราคา (บาท)</Label>
-          <Input id="price" type="number" step="0.01" {...register('price', { valueAsNumber: true })} />
-          {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            {...register('price', { valueAsNumber: true })}
+          />
+          {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
         </div>
 
         <div className="space-y-1">
@@ -1561,21 +1656,25 @@ export function ProductForm({
           <select
             id="categoryId"
             {...register('categoryId')}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
           >
             <option value="">-- เลือกหมวด --</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
-          {errors.categoryId && <p className="text-sm text-destructive">{errors.categoryId.message}</p>}
+          {errors.categoryId && (
+            <p className="text-destructive text-sm">{errors.categoryId.message}</p>
+          )}
         </div>
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="imageUrl">URL รูป (optional)</Label>
         <Input id="imageUrl" type="url" {...register('imageUrl')} />
-        {errors.imageUrl && <p className="text-sm text-destructive">{errors.imageUrl.message}</p>}
+        {errors.imageUrl && <p className="text-destructive text-sm">{errors.imageUrl.message}</p>}
       </div>
 
       <div className="flex items-center gap-2">
@@ -1612,6 +1711,7 @@ git commit -m "feat(web): add admin Menu CRUD UI for Categories and Products"
 ### Task 10: Wire Storefront to Live API
 
 **Files:**
+
 - Modify: `apps/web/app/(storefront)/menu/page.tsx`
 - Delete: `apps/web/lib/data/menu.ts` (or convert to types-only)
 
@@ -1630,7 +1730,7 @@ async function fetchProducts(): Promise<Product[]> {
   const token = await getServerToken();
   const res = await fetch(`${NESTJS_URL}/api/menu/products?active=true`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
-    cache: 'no-store',     // ตอนนี้ไม่ cache; Week 5 ค่อย optimize
+    cache: 'no-store', // ตอนนี้ไม่ cache; Week 5 ค่อย optimize
   });
   if (!res.ok) throw new Error('Failed to fetch products');
   return res.json();
@@ -1690,9 +1790,15 @@ export function MenuCard({ item }: { item: Product }) {
       <CardHeader>
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.imageUrl} alt={item.name} className="aspect-square w-full rounded object-cover" />
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="aspect-square w-full rounded object-cover"
+          />
         ) : (
-          <div className="flex aspect-square items-center justify-center rounded bg-gray-100 text-4xl">☕</div>
+          <div className="flex aspect-square items-center justify-center rounded bg-gray-100 text-4xl">
+            ☕
+          </div>
         )}
         <CardTitle>{item.name}</CardTitle>
       </CardHeader>
@@ -1750,12 +1856,14 @@ git commit -m "feat(web): wire storefront /menu to live NestJS API (replace mock
 ## Self-Review Notes
 
 **Spec coverage:**
+
 - ✅ Week 3 Day 1 (shared schemas): Task 1
 - ✅ Day 2-3 (NestJS Menu module): Tasks 2-4
 - ✅ Day 4-5 (TanStack Query setup): Tasks 5-6
 - ✅ Day 6-7 (Admin CRUD UI): Tasks 7-9, 10
 
 **Concepts taught:**
+
 - NestJS CRUD service pattern + service layer testing
 - Prisma relations (Category ← Product) + onDelete behavior
 - Same Zod schema in FE form + BE validation pipe
@@ -1764,6 +1872,7 @@ git commit -m "feat(web): wire storefront /menu to live NestJS API (replace mock
 - Server Component data fetching (Week 1+ refresh)
 
 **Out of Week 3 scope:**
+
 - ❌ Image file upload (Tier 1 self-study) — URL only
 - ❌ Search / pagination — small dataset, not needed
 - ❌ Bulk operations

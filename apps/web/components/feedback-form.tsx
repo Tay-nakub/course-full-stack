@@ -33,9 +33,7 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อ</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="space-y-1">
@@ -43,12 +41,10 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
         <textarea
           id="message"
           rows={4}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
           {...register('message')}
         />
-        {errors.message && (
-          <p className="text-sm text-destructive">{errors.message.message}</p>
-        )}
+        {errors.message && <p className="text-destructive text-sm">{errors.message.message}</p>}
       </div>
 
       <Button type="submit" disabled={isSubmitting}>

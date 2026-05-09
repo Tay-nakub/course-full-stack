@@ -51,6 +51,7 @@ pnpm install
 ```
 
 ครั้งแรก ~3-5 นาที. pnpm จะ:
+
 - สร้าง `node_modules/` แบบ symlink (เร็ว, ประหยัด disk)
 - Install ทุก workspace package พร้อมกัน (`apps/web`, `apps/api`, `packages/shared`)
 - Generate `pnpm-lock.yaml` (เก็บ lock — commit ด้วย)
@@ -146,6 +147,7 @@ pnpm --filter @coffee/api run db:seed
 ```
 
 จะสร้าง:
+
 - 1 admin user (`admin@coffee.test` / `password123`)
 - 2 categories + 4 products
 - 5 ingredients + recipes
@@ -177,14 +179,14 @@ web:         ► Next.js dev server on http://localhost:3000
 
 ### Verify (เปิด browser)
 
-| URL | Expected |
-|---|---|
-| http://localhost:3000 | redirect → /menu |
-| http://localhost:3000/menu | menu page (loaded จาก API) |
-| http://localhost:3000/feedback | feedback form |
-| http://localhost:3000/login | login form |
-| http://localhost:4000/api/menu/products | JSON array |
-| http://localhost:4000/api/auth/me | 401 (no token) |
+| URL                                     | Expected                   |
+| --------------------------------------- | -------------------------- |
+| http://localhost:3000                   | redirect → /menu           |
+| http://localhost:3000/menu              | menu page (loaded จาก API) |
+| http://localhost:3000/feedback          | feedback form              |
+| http://localhost:3000/login             | login form                 |
+| http://localhost:4000/api/menu/products | JSON array                 |
+| http://localhost:4000/api/auth/me       | 401 (no token)             |
 
 > ⏱ ครั้งแรก dev server compile ~10-30 sec. หน้าแรก slow OK; refresh ครั้งสองจะเร็ว.
 
@@ -292,42 +294,51 @@ course-full-stack/
 ## 🆘 Common Issues
 
 ### `pnpm: command not found`
+
 - เช็คว่า corepack เปิดแล้ว: `corepack enable`
 - เปิด terminal ใหม่
 
 ### `Cannot connect to the Docker daemon`
+
 - เปิด Docker Desktop จาก Windows Start menu
 - รอ icon เป็นสีเขียว (~30 sec)
 
 ### `pnpm db:up` — port 5433 already in use
+
 ```bash
 lsof -i :5433
 # kill process หรือเปลี่ยน port ใน infra/docker-compose.dev.yml
 ```
 
 ### `P1010: User was denied access`
+
 - DATABASE_URL ใน `.env` ผิด — copy จาก `.env.example` ใหม่
 - หรือ Postgres container ยังไม่ healthy: `docker compose -f infra/docker-compose.dev.yml logs postgres`
 
 ### `pnpm install` ช้ามาก
+
 - เปลี่ยน registry: `pnpm config set registry https://registry.npmmirror.com`
 - ลบ `node_modules` + `pnpm-lock.yaml` แล้ว install ใหม่ (last resort)
 
 ### TypeScript error `Cannot find module '@coffee/shared'`
+
 - Build shared package ก่อน: `pnpm --filter @coffee/shared build`
 - Turbo `dev` `dependsOn: ["^build"]` ทำให้นี่เป็น auto — ถ้ายัง error ลอง restart dev server
 
 ### Prisma `Property 'category' does not exist on type 'PrismaService'`
+
 - หลังแก้ `schema.prisma` ต้อง regenerate:
   ```bash
   cd apps/api && pnpm prisma generate
   ```
 
 ### `pnpm dev` รัน api แต่ web ไม่ขึ้น
+
 - เช็ค port 3000 ว่ามีอะไรค้าง: `lsof -i :3000`
 - เช็ค `apps/web/.next` — ถ้า corrupt ลบทิ้ง: `rm -rf apps/web/.next`
 
 ### Atomic stock deduct ไม่ทำงาน (Week 5)
+
 - ตรวจว่า migrate แล้ว: tables `ingredients`, `recipe_items`, `stock_movements` ต้องมี
 - ตรวจว่า seed แล้ว — recipe items ต้องโยง product → ingredient
 - ดู REFERENCE_NOTES.md §Week 5 สำหรับ verification queries

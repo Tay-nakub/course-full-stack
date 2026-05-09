@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ Inventory schemas + Prisma models (Ingredient, RecipeItem, StockMovement, cogsSnapshot)
 - ✅ Ingredients CRUD + stock movements (PURCHASE/WASTE/ADJUSTMENT)
 - ✅ Recipe module (whole-replace strategy)
@@ -32,19 +33,20 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Preview** | Quiz Wk 4 + show today's outcome |
-| **10-50** | **Block A** | **Schemas + Ingredients + Stock movements** |
-| **50-70** | **Block B** | **Recipe module** |
-| **70-110** | **Block C ⭐** | **Order COMPLETED → atomic stock deduct + COGS** |
-| 110-120 | Wrap-up | Homework + Q&A |
+| Time       | Block               | Activity                                         |
+| ---------- | ------------------- | ------------------------------------------------ |
+| 0-10       | **Recap + Preview** | Quiz Wk 4 + show today's outcome                 |
+| **10-50**  | **Block A**         | **Schemas + Ingredients + Stock movements**      |
+| **50-70**  | **Block B**         | **Recipe module**                                |
+| **70-110** | **Block C ⭐**      | **Order COMPLETED → atomic stock deduct + COGS** |
+| 110-120    | Wrap-up             | Homework + Q&A                                   |
 
 ---
 
 ## 🟢 Recap + Preview (0-10 min)
 
 ### Recap (3 min)
+
 - "Atomic transaction ใน Week 4 — ใช้ตอนไหน?"
 - "State machine ของ order — terminal states คืออะไร?"
 - "Snapshot pattern — productName + unitPrice ทำไม snapshot?"
@@ -52,16 +54,19 @@
 ### Today's Big Idea (7 min)
 
 📢 **Setup the moment**:
+
 > "Week 5 คือ **‘the point’** ของคอร์ส — ทำให้ร้านกาแฟ **วัดได้**.
 >
 > เจ้าของร้านอยากรู้: ‘วันนี้ขายได้เท่าไร?’ ‘ต้นทุนเท่าไร?’ ‘กำไรเท่าไร?’ ‘เมล็ดกาแฟเหลือเท่าไร?’"
 
 **Show end-state demo**:
+
 1. Customer place 2 Latte → Staff complete
 2. /admin/inventory → coffee stock ลด 36g, milk ลด 400ml
 3. /admin/reports → revenue ฿150, cogs ฿57.60, gross profit ฿92.40
 
 📢 **Key today**:
+
 > "หัวใจอยู่ที่ Block C — order COMPLETED → atomic transaction ที่แตะ 4 tables. Block A และ B = setup สำหรับ Block C"
 
 ---
@@ -69,6 +74,7 @@
 ## 📦 Block A: Schemas + Ingredients + Stock Movements (10-50 min, 40 min)
 
 ### 🎯 Block Goals
+
 - Inventory schemas + Prisma models
 - Ingredient CRUD (admin only)
 - Stock movements (PURCHASE/WASTE/ADJUSTMENT) with auto-update cache
@@ -78,6 +84,7 @@
 **1. Event-sourced inventory pattern** (5 min)
 
 วาดบนกระดาน:
+
 ```
         Source of Truth
         ┌─────────────────┐
@@ -101,6 +108,7 @@
 ```
 
 📢 **Why event-sourced**:
+
 - Audit trail — เห็นทุก change with timestamp + reason + cost
 - Recompute possible — cache ผิดพลาด? recompute จาก movements
 - Reporting easy — group by reason, period, etc.
@@ -110,7 +118,7 @@
 ```
 JS Float problem:
   0.1 + 0.2 = 0.30000000000000004
-  
+
 For money or stock:
   0.1g + 0.2g สะสม 1000 ครั้ง → drift
   ฿0.05 + ฿0.10 ในร้านกาแฟ × 1000 orders/วัน → คลาดเคลื่อน
@@ -143,6 +151,7 @@ UX rule: User กรอกเลขบวกเสมอ → server/form auto-si
 (พิมพ์ inventory.ts + reports.ts ตาม Plan)
 
 📢 **Highlights**:
+
 - `INGREDIENT_UNITS` const tuple → derive type
 - `INGREDIENT_UNIT_LABELS` Thai labels
 - `STOCK_MOVEMENT_REASONS` enum
@@ -153,6 +162,7 @@ UX rule: User กรอกเลขบวกเสมอ → server/form auto-si
 (พิมพ์ schema.prisma additions ตาม Plan)
 
 📢 **เน้น indexes**:
+
 - `@@index([refOrderId])` — query stock movements by order (audit)
 - `@@index([createdAt])` — time-series report queries
 
@@ -168,11 +178,13 @@ pnpm prisma migrate dev --name add_inventory_and_cogs
 (พิมพ์ตาม Plan)
 
 📢 **เน้น class-level decorators**:
+
 ```ts
 @Controller('inventory/ingredients')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 ```
+
 > "ใส่ที่ class — ทุก method admin only. ไม่ต้องใส่ method-level"
 
 **4. StockMovementsService** (Task 3.1 — 7 min)
@@ -180,6 +192,7 @@ pnpm prisma migrate dev --name add_inventory_and_cogs
 (พิมพ์ตาม Plan — focus atomic update)
 
 📢 **อธิบาย $transaction**:
+
 ```ts
 return this.prisma.$transaction(async (tx) => {
   // 1. Find ingredient
@@ -206,30 +219,33 @@ GET /api/inventory/ingredients/<id>
 ```
 
 DBeaver:
+
 ```sql
 SELECT * FROM stock_movements;  -- 1 row
 SELECT name, current_stock FROM ingredients;  -- 1000
 ```
 
 Commit:
+
 ```bash
 git commit -m "feat(api): Inventory module with stock movements"
 ```
 
 ### ❓ Common Questions (Block A)
 
-| Q | A |
-|---|---|
-| ทำไม `@@map("ingredients")`? | Postgres convention = lowercase + plural |
-| Decimal precision ตอนนี้พอไหม? | ใช่ — 12,4 = พอสำหรับ stock ที่อาจเป็น 50,000.0001g, 0.0500/g |
+| Q                                         | A                                                                                              |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| ทำไม `@@map("ingredients")`?              | Postgres convention = lowercase + plural                                                       |
+| Decimal precision ตอนนี้พอไหม?            | ใช่ — 12,4 = พอสำหรับ stock ที่อาจเป็น 50,000.0001g, 0.0500/g                                  |
 | Cache + source of truth — race condition? | ภายใน $transaction = atomic. Cross-transaction (เช่น report) อ่าน cache OK เพราะ atomic update |
-| Why @@unique on Ingredient.name? | กัน duplicate ingredient (admin error). Real-world: name คือ business key |
+| Why @@unique on Ingredient.name?          | กัน duplicate ingredient (admin error). Real-world: name คือ business key                      |
 
 ---
 
 ## 🍵 Block B: Recipe Module (50-70 min, 20 min)
 
 ### 🎯 Block Goals
+
 - RecipeItem links Product ↔ Ingredient with quantity
 - Whole-replace strategy (idempotent set, not diff)
 
@@ -253,7 +269,7 @@ Trade-off:
   + Simple to implement + reason about
   + Idempotent (run twice = same state)
   - No granular audit (which items changed)
-  
+
   Course choice: simple wins for MVP
 ```
 
@@ -266,6 +282,7 @@ Trade-off:
 (พิมพ์ตาม Plan)
 
 📢 **Walkthrough**:
+
 ```ts
 return this.prisma.$transaction(async (tx) => {
   // 1. Verify product exists
@@ -283,6 +300,7 @@ return this.prisma.$transaction(async (tx) => {
 (พิมพ์ตาม Plan)
 
 📢 **เน้น PUT semantics**:
+
 ```ts
 @Put('product/:productId')
 set(@Param('productId') productId: string, @Body() items) {
@@ -307,21 +325,23 @@ GET /api/inventory/recipes/product/<latte-id>
 ```
 
 DBeaver:
+
 ```sql
 SELECT * FROM recipe_items;  -- 2 rows
 ```
 
 Commit:
+
 ```bash
 git commit -m "feat(api): Recipe module with whole-replace"
 ```
 
 ### ❓ Common Questions (Block B)
 
-| Q | A |
-|---|---|
-| Recipe versioning? | Course skip. Stretch: add `version` field, immutable history |
-| ลบ ingredient ที่อยู่ใน recipe? | onDelete: Restrict — fail. Need delete recipe items first (course = manual) |
+| Q                                                  | A                                                                               |
+| -------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Recipe versioning?                                 | Course skip. Stretch: add `version` field, immutable history                    |
+| ลบ ingredient ที่อยู่ใน recipe?                    | onDelete: Restrict — fail. Need delete recipe items first (course = manual)     |
 | สูตรซ้ำ (latte กับ ice latte ใช้ recipe เดียวกัน)? | Whole-replace each separately. Or share via "recipe template" pattern (stretch) |
 
 ---
@@ -329,6 +349,7 @@ git commit -m "feat(api): Recipe module with whole-replace"
 ## ⭐ Block C: Order COMPLETED → Atomic Stock Deduct + COGS (70-110 min, 40 min)
 
 ### 🎯 Block Goals (THE WEEK 5 CENTERPIECE)
+
 - เข้าใจ atomic transaction ที่แตะ 4 tables
 - Decimal arithmetic for COGS calculation
 - Handle missing recipe gracefully (warn but don't break)
@@ -368,6 +389,7 @@ Order status: READY → COMPLETED
 ```
 
 📢 **Concrete example**:
+
 ```
 Order: 2 Latte
 Latte recipe: 18g coffee + 200ml milk
@@ -395,17 +417,17 @@ After transaction:
 ```
 Scenarios:
   ✅ Happy path: 4 tables update, COMMIT
-  
+
   ❌ Recipe missing:
      - log warning
      - cogsSnapshot = 0
      - skip stock deduct
      - DON'T throw (let order complete)
-  
+
   ❌ Insufficient stock?
      - Course default: allow negative (just log, alert via lowStock)
      - Stretch: throw + reject COMPLETED transition
-  
+
   ❌ DB error mid-transaction:
      - $transaction rolls back ALL writes
      - Order stays at READY (not COMPLETED)
@@ -415,6 +437,7 @@ Scenarios:
 ```
 
 **3. Why log warning instead of throw?** (3 min)
+
 ```
 "Recipe missing" scenarios:
   - Admin forgot to set recipe
@@ -435,6 +458,7 @@ If we log warning:
 ```
 
 **4. Decimal precision detail** (2 min)
+
 ```ts
 // In code:
 const totalAmount = Number(r.quantity) * item.qty;
@@ -461,12 +485,12 @@ async updateStatus(id: string, input: UpdateOrderStatusInput) {
       include: { items: true },   // need items[] for stock deduct
     });
     // ... validation
-    
+
     if (input.status === 'COMPLETED') {
       data.completedAt = new Date();
       await this.deductStockAndSnapshotCogs(tx, order);  // ⭐
     }
-    
+
     return tx.order.update({ ... });
   });
 }
@@ -479,6 +503,7 @@ async updateStatus(id: string, input: UpdateOrderStatusInput) {
 📢 **Walk through each step**:
 
 1. **Fetch all recipes**:
+
 ```ts
 const productIds = order.items.map((i) => i.productId);
 const recipes = await tx.recipeItem.findMany({
@@ -486,9 +511,11 @@ const recipes = await tx.recipeItem.findMany({
   include: { ingredient: true },
 });
 ```
+
 > "1 query รวมทุก product ใน order. ดีกว่า N queries"
 
 2. **Group by productId** (for fast lookup):
+
 ```ts
 const recipesByProduct = new Map();
 for (const r of recipes) {
@@ -498,9 +525,11 @@ for (const r of recipes) {
   recipesByProduct.get(r.productId)!.push(r);
 }
 ```
+
 > "Map = O(1) lookup. แทนที่ scan ทุก recipe สำหรับแต่ละ orderItem"
 
 3. **Loop through OrderItems**:
+
 ```ts
 for (const item of order.items) {
   const recipe = recipesByProduct.get(item.productId) ?? [];
@@ -512,14 +541,14 @@ for (const item of order.items) {
     });
     continue;   // skip to next item
   }
-  
+
   let cogsTotal = 0;
-  
+
   for (const r of recipe) {
     const totalAmount = Number(r.quantity) * item.qty;
     const ingredientCost = Number(r.ingredient.costPerUnit) * totalAmount;
     cogsTotal += ingredientCost;
-    
+
     // 4. Insert stock movement (SALE)
     await tx.stockMovement.create({
       data: {
@@ -531,14 +560,14 @@ for (const item of order.items) {
         note: `Order ${order.id}`,
       },
     });
-    
+
     // 5. Update cached currentStock
     await tx.ingredient.update({
       where: { id: r.ingredientId },
       data: { currentStock: { decrement: totalAmount } },
     });
   }
-  
+
   // 6. Snapshot COGS
   await tx.orderItem.update({
     where: { id: item.id },
@@ -552,6 +581,7 @@ for (const item of order.items) {
 **2. Tests** (Task 5.2 — 6 min)
 
 (พิมพ์ tests ตาม Plan — focus 2 tests สำคัญ:
+
 - คำนวณ COGS ถูก + stock movements
 - Recipe ไม่มี → warn + cogsSnapshot=0)
 
@@ -576,24 +606,26 @@ DBeaver windows: orders, order_items, ingredients, stock_movements
 📢 **"Magic moment"**: ทุกอย่าง update พร้อมกันใน 1 transaction
 
 Commit:
+
 ```bash
 git commit -m "feat(api): order COMPLETED → atomic stock deduct + COGS"
 ```
 
 ### ❓ Common Questions (Block C)
 
-| Q | A |
-|---|---|
-| ทำไม `decrement: totalAmount` แทน `set:`? | atomic — หลาย transactions อาจชนกัน. `decrement` = "ลด N" ที่ DB level (atomic ใน Postgres) |
-| ทำไม insert stock_movement หลัง update ingredient? | ลำดับใน $transaction ไม่สำคัญ — atomic ทั้งหมด. ที่สำคัญ: ใช้ `tx` consistent |
-| ถ้า stock เหลือ 10g แต่ order ใช้ 36g? | Course default: allow negative (currentStock = -26). Stretch: throw + cancel order |
-| Decimal precision drift over thousand orders? | Course = OK with JS number. Real prod = decimal.js |
+| Q                                                  | A                                                                                           |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ทำไม `decrement: totalAmount` แทน `set:`?          | atomic — หลาย transactions อาจชนกัน. `decrement` = "ลด N" ที่ DB level (atomic ใน Postgres) |
+| ทำไม insert stock_movement หลัง update ingredient? | ลำดับใน $transaction ไม่สำคัญ — atomic ทั้งหมด. ที่สำคัญ: ใช้ `tx` consistent               |
+| ถ้า stock เหลือ 10g แต่ order ใช้ 36g?             | Course default: allow negative (currentStock = -26). Stretch: throw + cancel order          |
+| Decimal precision drift over thousand orders?      | Course = OK with JS number. Real prod = decimal.js                                          |
 
 ---
 
 ## 🏁 Wrap-up + Homework (110-120 min, 10 min)
 
 ### Recap (3 min)
+
 - "Atomic transaction in COMPLETED — กี่ tables?"
 - "Recipe missing — handle ยังไง?"
 - "currentStock = source of truth?"
@@ -617,6 +649,7 @@ git commit -m "feat(api): order COMPLETED → atomic stock deduct + COGS"
    - Display ingredients in table (no CRUD form yet)
 
 📚 **Reading** (~30 min)
+
 - [Recharts docs — LineChart](https://recharts.org/en-US/api/LineChart)
 - [Prisma docs — groupBy](https://www.prisma.io/docs/orm/reference/prisma-client-reference#groupby)
 
@@ -626,10 +659,10 @@ git commit -m "feat(api): order COMPLETED → atomic stock deduct + COGS"
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| Atomic transaction concept ติดที่ใคร? | ___ |
-| ใครยังไม่ดู DBeaver ตอน demo? | ___ |
-| Decimal precision concept clear? | ___ |
-| Block C ใช้เวลามากกว่า 40 นาทีไหม? | ___ |
-| Energy ห้องโดยรวม | low / medium / high |
+| Item                                  | Note                |
+| ------------------------------------- | ------------------- |
+| Atomic transaction concept ติดที่ใคร? | \_\_\_              |
+| ใครยังไม่ดู DBeaver ตอน demo?         | \_\_\_              |
+| Decimal precision concept clear?      | \_\_\_              |
+| Block C ใช้เวลามากกว่า 40 นาทีไหม?    | \_\_\_              |
+| Energy ห้องโดยรวม                     | low / medium / high |

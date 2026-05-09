@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ GitHub Actions CI workflow (PR validation)
 - ✅ GitHub Actions Deploy workflow (push main → live)
 - ✅ pg_dump backup cron + retention
@@ -31,14 +32,14 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Verify Live** | Everyone live? |
-| **10-35** | **Block F** | **GitHub Actions CI** |
-| **35-75** | **Block G** | **GitHub Actions Deploy** |
-| **75-100** | **Block H** | **Backup + Runbook** |
+| Time        | Block                    | Activity                             |
+| ----------- | ------------------------ | ------------------------------------ |
+| 0-10        | **Recap + Verify Live**  | Everyone live?                       |
+| **10-35**   | **Block F**              | **GitHub Actions CI**                |
+| **35-75**   | **Block G**              | **GitHub Actions Deploy**            |
+| **75-100**  | **Block H**              | **Backup + Runbook**                 |
 | **100-115** | **Course Recap + Final** | What we built, learning path forward |
-| 115-120 | Closing | Q&A + celebration |
+| 115-120     | Closing                  | Q&A + celebration                    |
 
 ---
 
@@ -47,6 +48,7 @@
 ### Verify (5 min)
 
 ขอทุกคน:
+
 1. Share live URL ใน chat
 2. Open class — verify each student's URL works
 3. Click around — login, view menu, place order
@@ -56,7 +58,9 @@
 ### Today's End State (5 min)
 
 📢 **Big closing**:
+
 > "ตอน Session ก่อน — ทุกคน manual deploy. วันนี้:
+>
 > 1. Push to main
 > 2. รอ 3 นาที
 > 3. Site update โดยอัตโนมัติ
@@ -70,6 +74,7 @@ Show instructor's deploy.yml run live → push small change → ดู Actions t
 ## 🤖 Block F: GitHub Actions CI (10-35 min, 25 min)
 
 ### 🎯 Block Goals
+
 - CI workflow runs on every PR + main push
 - Checks: lint + typecheck + tests
 - Postgres service for tests
@@ -129,6 +134,7 @@ on:
   push:
     branches: [main]
 ```
+
 > "Run on PR + push to main. PR = pre-merge check. main = post-merge sanity"
 
 ```yaml
@@ -137,10 +143,11 @@ services:
     image: postgres:16-alpine
     env: { POSTGRES_DB: coffee_test, ... }
     ports: ['5432:5432']
-    options: >- 
+    options: >-
       --health-cmd pg_isready
       --health-interval 10s
 ```
+
 > "Real Postgres for tests. Could mock — but real DB tests catch more issues"
 
 ```yaml
@@ -149,6 +156,7 @@ services:
 - uses: actions/setup-node@v4
   with: { node-version: 20, cache: 'pnpm' }
 ```
+
 > "Cache pnpm store → faster builds. Re-uses across runs"
 
 ```yaml
@@ -159,6 +167,7 @@ services:
 - name: Test
   run: pnpm test
 ```
+
 > "Generate Prisma BEFORE typecheck (types depend on it)"
 
 **2. Push + verify** (Task 9.2 — 3 min)
@@ -176,25 +185,28 @@ GitHub → Actions tab → ดู run live
 **3. Demo a failure** (3 min)
 
 instructor introduces typecheck error:
+
 ```ts
-const x: number = "string";  // intentional
+const x: number = 'string'; // intentional
 ```
+
 push → CI fails → red X
 fix → green check
 
 📢 **Teaching moment**: "Red CI = blocked merge. Quality gate"
 
 Commit (revert):
+
 ```bash
 git push origin main
 ```
 
 ### ❓ Common Questions (Block F)
 
-| Q | A |
-|---|---|
-| Workflow timeout? | Default 6 hours. Max. Course tests ~3 min |
-| Run on PR เฉพาะ specific branches? | `paths-ignore` filter — change docs ไม่ต้อง CI |
+| Q                                      | A                                              |
+| -------------------------------------- | ---------------------------------------------- |
+| Workflow timeout?                      | Default 6 hours. Max. Course tests ~3 min      |
+| Run on PR เฉพาะ specific branches?     | `paths-ignore` filter — change docs ไม่ต้อง CI |
 | Matrix tests (multiple Node versions)? | Stretch — `strategy.matrix.node: [18, 20, 22]` |
 
 ---
@@ -202,6 +214,7 @@ git push origin main
 ## 🚀 Block G: GitHub Actions Deploy (35-75 min, 40 min)
 
 ### 🎯 Block Goals
+
 - Build images via Actions → push to GHCR
 - SSH to VPS → docker compose pull + up
 - Tag images with git SHA + latest
@@ -209,6 +222,7 @@ git push origin main
 ### 💬 Lecture (~10 min)
 
 **1. Why GHCR (vs Docker Hub)?** (3 min)
+
 - Free unlimited (public images, ทำ private ก็ได้)
 - Auto-authenticated via `GITHUB_TOKEN`
 - Same org as repo (clean separation)
@@ -247,6 +261,7 @@ git push origin main
 ```
 
 📢 **Security**:
+
 - SSH key in GitHub Secrets (encrypted at rest)
 - known_hosts prevents MITM
 - No password ever leaves GitHub
@@ -256,6 +271,7 @@ git push origin main
 **1. Add GitHub Secrets** (Task 10.1 — 5 min)
 
 GitHub → Settings → Secrets:
+
 - `SSH_PRIVATE_KEY` (paste `~/.ssh/id_ed25519` content)
 - `VPS_HOST` = your IP
 - `VPS_USER` = `deploy`
@@ -269,16 +285,18 @@ GitHub → Settings → Secrets:
 📢 **Walk through 2 jobs**:
 
 **Job 1: build-push**
+
 ```yaml
 permissions:
   contents: read
-  packages: write   # critical for GHCR push
+  packages: write # critical for GHCR push
 ```
 
 ```yaml
 outputs:
   sha: ${{ steps.sha.outputs.sha_short }}
 ```
+
 > "Output = pass to next job"
 
 ```yaml
@@ -289,6 +307,7 @@ outputs:
     username: ${{ github.actor }}
     password: ${{ secrets.GITHUB_TOKEN }}
 ```
+
 > "GITHUB_TOKEN auto-issued. No manual setup"
 
 ```yaml
@@ -304,9 +323,11 @@ outputs:
     cache-from: type=gha
     cache-to: type=gha,mode=max
 ```
+
 > "Multi-tag: latest + SHA. SHA = rollback target. cache-from/to = reuse layers across runs"
 
 **Job 2: deploy**
+
 ```yaml
 - uses: webfactory/ssh-agent@v0.9.0
   with: { ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }} }
@@ -320,6 +341,7 @@ outputs:
       docker image prune -f
     '
 ```
+
 > "5 commands chained. `--remove-orphans` clean stale containers. `image prune` cleanup old images"
 
 **3. Test by pushing** (5 min)
@@ -338,10 +360,12 @@ git push origin main
 GitHub Actions tab → see "Deploy" run
 
 📢 **Watch live**:
+
 - Job 1 builds (~3-5 min) — student sees layers caching
 - Job 2 deploys (~30 sec) — SSH + pull + up
 
 After done:
+
 ```bash
 curl https://your-coffee-shop.com/menu
 # See new footer
@@ -366,9 +390,11 @@ TAG=<previous-sha> docker compose up -d
 ```
 
 📢 **Pattern**:
+
 > "Tag everything with SHA → easy rollback. Latest is just convenience"
 
 Commit:
+
 ```bash
 git commit -m "ci: deploy workflow"
 git push origin main
@@ -376,18 +402,19 @@ git push origin main
 
 ### ❓ Common Questions (Block G)
 
-| Q | A |
-|---|---|
-| Deploy ล้มกลางคัน? | docker compose up partial — some new, some old. Re-run workflow |
-| Migration runs ทุกครั้ง deploy? | ใช่ — entrypoint `prisma migrate deploy`. Idempotent (safe re-run) |
-| Zero-downtime? | Course = restart-based (~3 sec downtime). Stretch: blue-green |
-| Notify success/failure ใน Slack/LINE? | Add step: `slackapi/slack-github-action@v1` — Tier 1 stretch |
+| Q                                     | A                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| Deploy ล้มกลางคัน?                    | docker compose up partial — some new, some old. Re-run workflow    |
+| Migration runs ทุกครั้ง deploy?       | ใช่ — entrypoint `prisma migrate deploy`. Idempotent (safe re-run) |
+| Zero-downtime?                        | Course = restart-based (~3 sec downtime). Stretch: blue-green      |
+| Notify success/failure ใน Slack/LINE? | Add step: `slackapi/slack-github-action@v1` — Tier 1 stretch       |
 
 ---
 
 ## 💾 Block H: Backup + Runbook (75-100 min, 25 min)
 
 ### 🎯 Block Goals
+
 - pg_dump cron daily at 03:00
 - 7-day retention
 - DEPLOY.md runbook complete
@@ -395,6 +422,7 @@ git push origin main
 ### 💬 Lecture (~5 min)
 
 **Backup strategy**:
+
 ```
 Tier 1 (course): Local file backup
   - pg_dump → gzip → /var/backups
@@ -412,6 +440,7 @@ Tier 3 (regulated): Point-in-time recovery
 ```
 
 📢 **Restore = critical**:
+
 > "Untested backup = no backup. Course homework: do a restore drill"
 
 ### 🖥️ Live Demo (~15 min)
@@ -421,20 +450,24 @@ Tier 3 (regulated): Point-in-time recovery
 (พิมพ์ตาม Plan)
 
 📢 **Highlights**:
+
 ```bash
 docker exec coffee-postgres pg_dump -U coffee coffee \
   | gzip > "$BACKUP_DIR/coffee-$DATE.sql.gz"
 ```
+
 > "Stream from container → gzip on host. ~50% smaller than uncompressed"
 
 ```bash
 find "$BACKUP_DIR" -name 'coffee-*.sql.gz' -mtime +$RETENTION_DAYS -delete
 ```
+
 > "Auto-cleanup old. mtime +7 = older than 7 days"
 
 **2. Deploy + cron** (Task 10.4 — 5 min)
 
 ใน VPS:
+
 ```bash
 sudo mkdir -p /var/backups/coffee
 sudo chown deploy:deploy /var/backups/coffee
@@ -464,6 +497,7 @@ docker compose exec postgres dropdb -U coffee coffee_restore_test
 ```
 
 📢 **Critical**:
+
 > "ทดสอบ restore เดือนละครั้ง. Backup ที่ restore ไม่ได้ = no backup"
 
 ### 🖥️ Runbook Creation (5 min)
@@ -473,6 +507,7 @@ docker compose exec postgres dropdb -U coffee coffee_restore_test
 (พิมพ์/copy ตาม Plan — runbook for ops)
 
 📢 **Sections**:
+
 - Live URL
 - Architecture
 - Deploy
@@ -485,6 +520,7 @@ docker compose exec postgres dropdb -U coffee coffee_restore_test
 > "When server is down at 2 AM, this is what you read. Document NOW while still fresh"
 
 Commit:
+
 ```bash
 git add scripts/backup.sh docs/DEPLOY.md
 git commit -m "feat: backup automation + deployment runbook"
@@ -546,9 +582,11 @@ Week 6: Deploy 🚀
 ### Final Project (5 min)
 
 แชร์ link:
+
 - [Final Project Rubric](../master/final-project-rubric.md)
 
 📢 **3 tiers**:
+
 - **Functional Baseline** — passes course
 - **Professional Quality** — portfolio-ready
 - **Production Ready** (Distinction) — live on VPS + GitOps
@@ -560,24 +598,19 @@ Week 6: Deploy 🚀
 > [ดู spec § 7.2](../../superpowers/specs/2026-05-08-fullstack-coffee-shop-course-design.md)
 
 **Tier 1** (เรียนต่อทันที):
+
 1. Auth deep dive (NextAuth.js, OAuth, refresh)
 2. Real Payment (Stripe / Omise + webhooks)
 3. Observability (Sentry, OpenTelemetry)
 
-**Tier 2** (engineering depth):
-4. E2E Testing (Playwright)
-5. Performance (Redis, indexing)
-6. Background Jobs (BullMQ)
+**Tier 2** (engineering depth): 4. E2E Testing (Playwright) 5. Performance (Redis, indexing) 6. Background Jobs (BullMQ)
 
-**Tier 3** (system scale):
-7. Multi-tenant (RLS)
-8. Mobile (React Native + Expo, reuse API)
-9. Container Orchestration (k3s/k8s)
-10. Real-time (Socket.io)
+**Tier 3** (system scale): 7. Multi-tenant (RLS) 8. Mobile (React Native + Expo, reuse API) 9. Container Orchestration (k3s/k8s) 10. Real-time (Socket.io)
 
 ### Mindset Takeaways (2 min)
 
 🎓 **6 ideas to remember**:
+
 1. **Schema-first** — define data shape, code follows
 2. **Snapshot pattern** — historical accuracy via captured values
 3. **Event-sourced** — log everything, derive state
@@ -592,8 +625,9 @@ Week 6: Deploy 🚀
 ### Q&A + Celebration
 
 📢 **Speech**:
+
 > "5 สัปดาห์ที่ผ่านมา + วันนี้ = คุณได้:
-> 
+>
 > 🌐 ระบบ live ที่ทำงานจริง
 > 📚 Skills ที่ industry ใช้
 > 💼 Portfolio piece ที่ recruiter ดู
@@ -609,14 +643,14 @@ Week 6: Deploy 🚀
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| Everyone live with GitOps? | ___ |
-| CI/Deploy workflows running? | ___ |
-| Backup cron set? | ___ |
-| Final project clear? | ___ |
-| Course energy: closing? | ___ |
-| Things to improve next batch | ___ |
+| Item                         | Note   |
+| ---------------------------- | ------ |
+| Everyone live with GitOps?   | \_\_\_ |
+| CI/Deploy workflows running? | \_\_\_ |
+| Backup cron set?             | \_\_\_ |
+| Final project clear?         | \_\_\_ |
+| Course energy: closing?      | \_\_\_ |
+| Things to improve next batch | \_\_\_ |
 
 ## 📋 Post-Course Follow-up (instructor)
 

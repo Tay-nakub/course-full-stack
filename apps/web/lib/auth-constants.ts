@@ -1,1 +1,1 @@
-export const AUTH_COOKIE_NAME = 'coffee_token';
+export { AUTH_COOKIE_NAME } from '@coffee/shared';

@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ Hetzner VPS provisioned + accessible via SSH (deploy user, no root)
 - ✅ Server hardened (ufw + fail2ban + SSH password disabled)
 - ✅ Docker + Docker Compose installed on VPS
@@ -34,15 +35,15 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Preview** | Course arc + today's outcome |
-| **10-35** | **Block A** | **Provision VPS + SSH** |
-| **35-55** | **Block B** | **Hardening (ufw + fail2ban + SSH)** |
-| **55-65** | **Block C** | **Install Docker** |
-| **65-100** | **Block D** | **Multi-stage Dockerfiles** |
-| **100-115** | **Block E** | **Compose + Caddyfile** |
-| 115-120 | Wrap-up | Homework + Q&A |
+| Time        | Block               | Activity                             |
+| ----------- | ------------------- | ------------------------------------ |
+| 0-10        | **Recap + Preview** | Course arc + today's outcome         |
+| **10-35**   | **Block A**         | **Provision VPS + SSH**              |
+| **35-55**   | **Block B**         | **Hardening (ufw + fail2ban + SSH)** |
+| **55-65**   | **Block C**         | **Install Docker**                   |
+| **65-100**  | **Block D**         | **Multi-stage Dockerfiles**          |
+| **100-115** | **Block E**         | **Compose + Caddyfile**              |
+| 115-120     | Wrap-up             | Homework + Q&A                       |
 
 ---
 
@@ -51,6 +52,7 @@
 ### Course Arc Recap (3 min)
 
 แสดง slide:
+
 ```
 Week 1: FE foundation         ✅ static UI
 Week 2: BE foundation         ✅ API + auth
@@ -63,18 +65,21 @@ Week 6: DEPLOY 🚀              ⬅ today
 ### Today's End State (7 min)
 
 📢 **Setup the moment**:
+
 > "วันนี้ student แต่ละคน → ของจริง LIVE บน internet ของตัวเอง.
 > https://your-name-coffee.com → app ที่สร้างมา 5 สัปดาห์
-> 
+>
 > Session ที่ 2: git push → 3 minutes → deployed"
 
 Show instructor's live demo URL → ทำงานจริง
 
 📢 **Cost reality check**:
+
 > "Hetzner = ~€4.5/mo (~165 บาท). Cancel ได้ทุกเมื่อ. Domain = ~30 บาท/เดือน.
 > รวม ~200 บาท/เดือน เพื่อ live portfolio. คุ้ม"
 
 📢 **Cognitive load warning**:
+
 > "Week 6 = many small pieces. ต้อง patient. Verify ทุก checkpoint ก่อนไป block ต่อ"
 
 ---
@@ -82,6 +87,7 @@ Show instructor's live demo URL → ทำงานจริง
 ## 🖥️ Block A: Provision VPS + SSH (10-35 min, 25 min)
 
 ### 🎯 Block Goals
+
 - Hetzner account + CX22 server running
 - SSH key authentication (no password)
 - Non-root deploy user
@@ -106,6 +112,7 @@ Course choice: VPS
 ```
 
 **2. Hetzner CX22 specs** (2 min)
+
 - 2 vCPU (Intel)
 - 4 GB RAM
 - 40 GB SSD
@@ -154,11 +161,13 @@ ssh root@<ip>
 (พิมพ์ตาม Plan)
 
 📢 **เน้น**:
+
 - `usermod -aG sudo deploy` — grants sudo
 - Copy `authorized_keys` → SSH key works for deploy too
 - chmod 700/600 — important for SSH security
 
 Test:
+
 ```bash
 exit
 ssh deploy@<ip>
@@ -169,18 +178,19 @@ ssh deploy@<ip>
 
 ### ❓ Common Questions (Block A)
 
-| Q | A |
-|---|---|
-| ใช้ AWS/DigitalOcean ได้ไหม? | ได้ — same concepts. Hetzner = cheapest with good performance |
-| Free tier ที่ไหน? | AWS free tier (t2.micro 750hr/mo) แต่ complex setup. Railway $5 credit. Course = pragmatic Hetzner |
-| ssh-copy-id ทำงานไหม? | Default: ไม่ — Hetzner คาดหวัง paste key ใน UI. Manual copy ที่เราใช้ = explicit |
-| 2 user — admin + staff ต่างกันยังไง? | root = god mode. deploy = limited (need sudo for system changes). Best practice |
+| Q                                    | A                                                                                                  |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| ใช้ AWS/DigitalOcean ได้ไหม?         | ได้ — same concepts. Hetzner = cheapest with good performance                                      |
+| Free tier ที่ไหน?                    | AWS free tier (t2.micro 750hr/mo) แต่ complex setup. Railway $5 credit. Course = pragmatic Hetzner |
+| ssh-copy-id ทำงานไหม?                | Default: ไม่ — Hetzner คาดหวัง paste key ใน UI. Manual copy ที่เราใช้ = explicit                   |
+| 2 user — admin + staff ต่างกันยังไง? | root = god mode. deploy = limited (need sudo for system changes). Best practice                    |
 
 ---
 
 ## 🛡️ Block B: Hardening (35-55 min, 20 min)
 
 ### 🎯 Block Goals
+
 - ufw firewall (allow 22/80/443 only)
 - fail2ban SSH brute force
 - Disable root SSH + password auth
@@ -202,6 +212,7 @@ Without hardening:
 ```
 
 **Defense in depth** (2 min):
+
 1. Firewall (block at network level)
 2. fail2ban (lockout after failed attempts)
 3. SSH key only (no password auth)
@@ -215,6 +226,7 @@ Without hardening:
 (พิมพ์ตาม Plan)
 
 📢 **เน้น order**:
+
 - Set defaults FIRST (deny incoming, allow outgoing)
 - Allow 22 BEFORE enable ← critical (don't lock yourself out)
 - Then 80, 443
@@ -244,6 +256,7 @@ sudo nano /etc/ssh/sshd_config
 ```
 
 Find + modify:
+
 ```
 PermitRootLogin no
 PasswordAuthentication no
@@ -254,7 +267,8 @@ PubkeyAuthentication yes
 sudo systemctl reload ssh
 ```
 
-📢 **CRITICAL**: 
+📢 **CRITICAL**:
+
 > "**ห้าม logout จาก current session**. เปิด terminal ใหม่ → test ก่อน. ถ้า lock ตัวเอง → ต้องใช้ Hetzner web console (ปวดหัว)"
 
 ```bash
@@ -277,17 +291,18 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 
 ### ❓ Common Questions (Block B)
 
-| Q | A |
-|---|---|
+| Q                                          | A                                                           |
+| ------------------------------------------ | ----------------------------------------------------------- |
 | ลืม disable root ก่อน reload — locked out? | ใช่ — Hetzner web console (rescue mode) → re-enable. ระวัง! |
-| fail2ban ล้ม คือ? | systemctl status — check logs. Mostly: bad config syntax |
-| ufw block Docker bridge? | จะแก้ใน Block C — Docker bypasses ufw, ต้อง config |
+| fail2ban ล้ม คือ?                          | systemctl status — check logs. Mostly: bad config syntax    |
+| ufw block Docker bridge?                   | จะแก้ใน Block C — Docker bypasses ufw, ต้อง config          |
 
 ---
 
 ## 🐳 Block C: Install Docker (55-65 min, 10 min)
 
 ### 🎯 Block Goals
+
 - Docker installed via official script
 - deploy user in docker group
 - Disable Docker iptables conflict with ufw
@@ -325,26 +340,28 @@ sudo systemctl restart docker
 ```
 
 📢 **อธิบาย**:
-> "Docker default = manage iptables เอง → bypass ufw. 
-> Set false → docker ใช้ ufw rules. 
-> Trade-off: containers ที่ port 0.0.0.0 จะไม่ accessible publicly. 
+
+> "Docker default = manage iptables เอง → bypass ufw.
+> Set false → docker ใช้ ufw rules.
+> Trade-off: containers ที่ port 0.0.0.0 จะไม่ accessible publicly.
 > ใน prod เรา expose แค่ Caddy → safe"
 
 ✅ **Checkpoint**: Docker works + UFW respect
 
 ### ❓ Common Questions (Block C)
 
-| Q | A |
-|---|---|
-| ต้องลง Docker Desktop GUI? | ไม่ — VPS = headless server. CLI เพียงพอ |
-| Docker hub rate limit? | Anonymous: 100 pulls/6hr/IP. Course OK. Stretch: GHCR (unlimited) |
-| Compose v1 vs v2? | v1 deprecated. ใช้ `docker compose` (no hyphen) — v2 |
+| Q                          | A                                                                 |
+| -------------------------- | ----------------------------------------------------------------- |
+| ต้องลง Docker Desktop GUI? | ไม่ — VPS = headless server. CLI เพียงพอ                          |
+| Docker hub rate limit?     | Anonymous: 100 pulls/6hr/IP. Course OK. Stretch: GHCR (unlimited) |
+| Compose v1 vs v2?          | v1 deprecated. ใช้ `docker compose` (no hyphen) — v2              |
 
 ---
 
 ## 📦 Block D: Multi-stage Dockerfiles (65-100 min, 35 min)
 
 ### 🎯 Block Goals
+
 - Dockerfile.api (multi-stage, < 250 MB)
 - Dockerfile.web (Next.js standalone, < 300 MB)
 - Test build locally + smoke test
@@ -360,7 +377,7 @@ Single-stage Dockerfile:
   RUN pnpm install (with dev deps)
   RUN build
   CMD start
-  
+
   Result: 1.5+ GB image
   - includes git history
   - includes dev deps
@@ -373,7 +390,7 @@ Multi-stage:
   Stage 2 (runtime):
     copy ONLY built artifacts
     + production deps
-  
+
   Result: 200-300 MB image
   - smaller pull on deploy (faster)
   - smaller attack surface
@@ -414,6 +431,7 @@ const nextConfig = {
 (พิมพ์ตาม Plan, อธิบาย stage by stage)
 
 📢 **Walk through**:
+
 - Builder: install full deps → copy source → prisma generate → build → prune dev deps
 - Runtime: alpine base → non-root user → copy only dist + node_modules + prisma → CMD with migrate deploy
 
@@ -444,6 +462,7 @@ curl http://localhost:4001/api/healthz
 (พิมพ์ตาม Plan)
 
 📢 **เน้น**:
+
 ```ts
 async rewrites() {
   if (process.env.NODE_ENV === 'production') {
@@ -474,24 +493,26 @@ docker run --rm -p 3001:3000 coffee-web:test
 ```
 
 Commit:
+
 ```bash
 git commit -m "feat(infra): multi-stage Dockerfiles for api + web"
 ```
 
 ### ❓ Common Questions (Block D)
 
-| Q | A |
-|---|---|
-| Build slow ครั้งแรก — 5 นาที? | First build = no cache. Subsequent = cached layers, < 1 min |
-| Image ใหญ่กว่า 300 MB? | ตรวจ: ลืม `--prod` deps prune? .dockerignore exclude .git, node_modules? |
-| Why alpine? | Glibc-free Linux, ~5 MB base. Smaller than ubuntu (~80 MB) |
-| Health check ใน Dockerfile? | `HEALTHCHECK CMD curl ...` — course ใช้ Compose healthcheck แทน (cleaner separation) |
+| Q                             | A                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------ |
+| Build slow ครั้งแรก — 5 นาที? | First build = no cache. Subsequent = cached layers, < 1 min                          |
+| Image ใหญ่กว่า 300 MB?        | ตรวจ: ลืม `--prod` deps prune? .dockerignore exclude .git, node_modules?             |
+| Why alpine?                   | Glibc-free Linux, ~5 MB base. Smaller than ubuntu (~80 MB)                           |
+| Health check ใน Dockerfile?   | `HEALTHCHECK CMD curl ...` — course ใช้ Compose healthcheck แทน (cleaner separation) |
 
 ---
 
 ## 🔌 Block E: Compose + Caddyfile (100-115 min, 15 min)
 
 ### 🎯 Block Goals
+
 - docker-compose.prod.yml (4 services)
 - Caddyfile (auto-HTTPS reverse proxy)
 
@@ -502,6 +523,7 @@ git commit -m "feat(infra): multi-stage Dockerfiles for api + web"
 (พิมพ์ตาม Plan)
 
 📢 **เน้น 3 patterns**:
+
 - `expose:` (internal only) vs `ports:` (public bind)
 - `depends_on: { condition: service_healthy }` — wait for postgres ready
 - `${VAR}` for env substitution
@@ -511,6 +533,7 @@ git commit -m "feat(infra): multi-stage Dockerfiles for api + web"
 (พิมพ์ตาม Plan)
 
 📢 **อธิบาย Caddy magic**:
+
 - `{$DOMAIN}` matches host header
 - Auto-HTTPS = ดู domain → request Let's Encrypt cert → renew before expire
 - `handle /api/*` matches first (specific to general)
@@ -524,23 +547,25 @@ docker run --rm -v $(pwd)/infra/caddy/Caddyfile:/etc/caddy/Caddyfile caddy:2-alp
 ```
 
 Commit:
+
 ```bash
 git commit -m "feat(infra): production compose + Caddyfile"
 ```
 
 ### ❓ Common Questions (Block E)
 
-| Q | A |
-|---|---|
-| Caddy vs nginx? | nginx more common, more features. Caddy = auto-HTTPS built-in (huge), simpler config. Course = pragmatic |
-| Docker DNS — "api" resolves? | Compose creates network, services reachable by name |
-| HTTPS work without Caddy? | Manual certbot setup ใช้ได้. Caddy = automate that |
+| Q                            | A                                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Caddy vs nginx?              | nginx more common, more features. Caddy = auto-HTTPS built-in (huge), simpler config. Course = pragmatic |
+| Docker DNS — "api" resolves? | Compose creates network, services reachable by name                                                      |
+| HTTPS work without Caddy?    | Manual certbot setup ใช้ได้. Caddy = automate that                                                       |
 
 ---
 
 ## 🏁 Wrap-up + Homework (115-120 min, 5 min)
 
 ### Recap (2 min)
+
 - "Multi-stage = ลด อะไร?"
 - "Caddy auto-HTTPS = ผ่านอะไร?"
 - "Compose `expose` vs `ports` ต่างไง?"
@@ -561,24 +586,27 @@ git commit -m "feat(infra): production compose + Caddyfile"
    - Run seed inside container
 
 📢 **Important**:
+
 > "ถ้าตรงไหนติด — post Slack ทันที. ห้าม stuck คนเดียวเพราะตอน Session 2 จะ assume site live แล้ว"
 
-📢 **Key milestone**: 
+📢 **Key milestone**:
+
 > "Session 2 ที่ทุกคนมี live URL = unlock GitOps automation"
 
 ### Q&A
+
 รับคำถาม
 
 ---
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| ทุกคน VPS provisioned + SSH? | ___ |
-| Hardening (ufw/fail2ban) ทุกคน? | ___ |
-| Docker installed everyone? | ___ |
-| Dockerfiles built locally? | ___ |
-| Block ไหน over-run? | ___ |
-| Cost concerns ใครยังกังวล? | ___ |
-| Pre-Session 2: ใครยังไม่ deploy live? | ___ |
+| Item                                  | Note   |
+| ------------------------------------- | ------ |
+| ทุกคน VPS provisioned + SSH?          | \_\_\_ |
+| Hardening (ufw/fail2ban) ทุกคน?       | \_\_\_ |
+| Docker installed everyone?            | \_\_\_ |
+| Dockerfiles built locally?            | \_\_\_ |
+| Block ไหน over-run?                   | \_\_\_ |
+| Cost concerns ใครยังกังวล?            | \_\_\_ |
+| Pre-Session 2: ใครยังไม่ deploy live? | \_\_\_ |

@@ -6,9 +6,7 @@ import { apiFetch } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { OrderStatusBadge } from '@/components/order-status-badge';
 
-const NEXT_STATUS: Partial<
-  Record<OrderStatus, { next: OrderStatus; label: string }>
-> = {
+const NEXT_STATUS: Partial<Record<OrderStatus, { next: OrderStatus; label: string }>> = {
   PENDING: { next: 'PREPARING', label: 'รับออเดอร์' },
   PREPARING: { next: 'READY', label: 'ทำเสร็จ' },
   READY: { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },

@@ -47,12 +47,10 @@ export function IngredientForm({
 
   const mutation = useMutation({
     mutationFn: (input: CreateIngredientInput) =>
-      apiFetch(
-        isEdit
-          ? `/inventory/ingredients/${ingredient!.id}`
-          : '/inventory/ingredients',
-        { method: isEdit ? 'PATCH' : 'POST', body: input },
-      ),
+      apiFetch(isEdit ? `/inventory/ingredients/${ingredient!.id}` : '/inventory/ingredients', {
+        method: isEdit ? 'PATCH' : 'POST',
+        body: input,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ingredients'] });
       onSuccess();
@@ -60,16 +58,11 @@ export function IngredientForm({
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((d) => mutation.mutate(d))}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อ</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -97,9 +90,7 @@ export function IngredientForm({
             {...register('costPerUnit', { valueAsNumber: true })}
           />
           {errors.costPerUnit && (
-            <p className="text-sm text-destructive">
-              {errors.costPerUnit.message}
-            </p>
+            <p className="text-destructive text-sm">{errors.costPerUnit.message}</p>
           )}
         </div>
       </div>

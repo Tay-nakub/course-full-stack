@@ -62,8 +62,7 @@ export default function CheckoutPage() {
 
   const errorDetails =
     placeOrder.error instanceof ApiError
-      ? ((placeOrder.error.details as { message?: string } | null)?.message ??
-        'สั่งซื้อไม่สำเร็จ')
+      ? ((placeOrder.error.details as { message?: string } | null)?.message ?? 'สั่งซื้อไม่สำเร็จ')
       : null;
 
   return (
@@ -71,26 +70,19 @@ export default function CheckoutPage() {
       {/* Customer info form */}
       <div>
         <h1 className="mb-6 text-2xl font-bold">ชำระเงิน</h1>
-        <form
-          onSubmit={handleSubmit((d) => placeOrder.mutate(d))}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit((d) => placeOrder.mutate(d))} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="customerName">ชื่อ</Label>
             <Input id="customerName" {...register('customerName')} />
             {errors.customerName && (
-              <p className="text-destructive text-sm">
-                {errors.customerName.message}
-              </p>
+              <p className="text-destructive text-sm">{errors.customerName.message}</p>
             )}
           </div>
           <div className="space-y-1">
             <Label htmlFor="customerPhone">เบอร์โทร</Label>
             <Input id="customerPhone" {...register('customerPhone')} />
             {errors.customerPhone && (
-              <p className="text-destructive text-sm">
-                {errors.customerPhone.message}
-              </p>
+              <p className="text-destructive text-sm">{errors.customerPhone.message}</p>
             )}
           </div>
 
@@ -100,11 +92,7 @@ export default function CheckoutPage() {
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={placeOrder.isPending}
-            className="w-full"
-          >
+          <Button type="submit" disabled={placeOrder.isPending} className="w-full">
             {placeOrder.isPending ? 'กำลังสั่ง...' : `ยืนยันสั่ง ฿${subtotal}`}
           </Button>
         </form>

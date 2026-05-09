@@ -42,19 +42,15 @@ export function LoginForm() {
       <div className="space-y-1">
         <Label htmlFor="email">อีเมล</Label>
         <Input id="email" type="email" {...register('email')} />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
+        {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
       </div>
       <div className="space-y-1">
         <Label htmlFor="password">รหัสผ่าน</Label>
         <Input id="password" type="password" {...register('password')} />
-        {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
-        )}
+        {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
       </div>
       {serverError && (
-        <p className="rounded border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+        <p className="border-destructive/50 bg-destructive/10 text-destructive rounded border p-2 text-sm">
           {serverError}
         </p>
       )}

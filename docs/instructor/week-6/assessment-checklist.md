@@ -7,6 +7,7 @@
 ## 🎯 Pass Criteria (Course Complete)
 
 Student "จบคอร์สสำเร็จ" ถ้า:
+
 - ✅ Live URL with HTTPS accessible
 - ✅ All Week 1-5 features work in production
 - ✅ Verbal Q ≥ 7/10 (Week 6 specific)
@@ -21,51 +22,61 @@ Student "จบคอร์สสำเร็จ" ถ้า:
 ## 🗣️ Verbal Checkpoint Questions (10 ข้อ)
 
 ### Q1 — VPS hardening
+
 > "ทำไม disable root SSH + password auth?"
 
 **Acceptable**: Reduce attack surface — bots scan SSH 24/7. Key auth = harder to brute force. No root login = no easy target name
 
 ### Q2 — UFW + fail2ban
+
 > "บอกบทบาทของ ufw vs fail2ban"
 
 **Acceptable**: ufw = network firewall (allow/block ports). fail2ban = application-level (lockout IP after failed attempts). Layered defense
 
 ### Q3 — Multi-stage Dockerfile
+
 > "ทำไม multi-stage? size + อะไรอีก?"
 
 **Acceptable**: Size (smaller image = faster pull). + Security (no source/dev deps in final). + Layer caching efficiency
 
 ### Q4 — Caddy auto-HTTPS
+
 > "Caddy ออก cert ยังไง? ใช้ cron renew ไหม?"
 
 **Acceptable**: Let's Encrypt HTTP-01 challenge (port 80 must be open). Auto-renew internally — no cron needed
 
 ### Q5 — Compose expose vs ports
+
 > "expose: '3000' vs ports: '3000:3000' ต่างกันยังไง?"
 
 **Acceptable**: ports = bind to host (publicly accessible). expose = internal only (other containers can reach). Caddy gets ports, web/api/postgres get expose
 
 ### Q6 — GitOps definition
+
 > "GitOps คืออะไร?"
 
 **Acceptable**: Git = source of truth for production. Push to main → automated deploy. No manual server changes — all via git history
 
 ### Q7 — Image tagging
+
 > "ทำไม tag ด้วย latest + git SHA?"
 
 **Acceptable**: latest = convenience (current). SHA = immutable, used for rollback. ย้อนกลับ = `TAG=<sha> docker compose up`
 
 ### Q8 — Migration on container start
+
 > "Prisma migrate deploy ใน entrypoint — idempotent ไหม? ทำไม OK รัน wrong?"
 
 **Acceptable**: Idempotent — only runs pending migrations. Already applied = skip. Safe even with multiple containers via advisory lock
 
 ### Q9 — Backup + restore
+
 > "ทำไมต้องทดสอบ restore?"
 
 **Acceptable**: Untested backup = no backup. ระหว่างเหตุการณ์จริง = ไม่ใช่เวลาเรียน restore. ทดสอบเดือนละครั้ง
 
 ### Q10 — Layered network architecture
+
 > "Caddy public, web/api/postgres internal — ทำไม?"
 
 **Acceptable**: Reduce attack surface. Only Caddy exposes to internet. Postgres + apps = inside Docker network. Defense in depth
@@ -79,11 +90,13 @@ Use [Final Rubric](../master/final-project-rubric.md) for full assessment.
 ### Quick Review Checklist (15 min per student)
 
 #### Setup verification
+
 - [ ] `git clone` + `docker compose up` works in instructor's env
 - [ ] DEPLOY.md sufficient to deploy from scratch
 - [ ] `.env.example` has all required vars
 
 #### Live deployment
+
 - [ ] HTTPS accessible at provided URL
 - [ ] Lock icon (valid cert)
 - [ ] All pages respond (no 500s)
@@ -91,6 +104,7 @@ Use [Final Rubric](../master/final-project-rubric.md) for full assessment.
 - [ ] Place order → kitchen → reports update
 
 #### Code quality
+
 - [ ] `pnpm typecheck` passes
 - [ ] Tests pass
 - [ ] Linting OK
@@ -98,11 +112,13 @@ Use [Final Rubric](../master/final-project-rubric.md) for full assessment.
 - [ ] Atomic commits with clear messages
 
 #### Documentation
+
 - [ ] README has: tech stack, setup, demo URL
 - [ ] DEPLOY.md exists
 - [ ] At least 1 ADR (recommended for Distinction)
 
 #### Stretch feature (for Distinction)
+
 - [ ] Functional + integrated
 - [ ] Documented in README
 - [ ] Tests if applicable
@@ -112,30 +128,36 @@ Use [Final Rubric](../master/final-project-rubric.md) for full assessment.
 ## 🧪 Live Build Checkpoints
 
 ### Session 1 — Block A (VPS provision)
+
 - [ ] Hetzner CX22 running
 - [ ] SSH as deploy works (no password)
 - [ ] root SSH still works (revoked in Block B)
 
 ### Session 1 — Block B (hardening)
+
 - [ ] `sudo ufw status` shows active + 22/80/443
 - [ ] `systemctl status fail2ban` running
 - [ ] root SSH denied (`Permission denied`)
 - [ ] new terminal: deploy SSH still works
 
 ### Session 1 — Block C (Docker)
+
 - [ ] `docker run hello-world` succeeds
 - [ ] `docker compose version` shows v2
 
 ### Session 1 — Block D (Dockerfiles)
+
 - [ ] `docker images` shows coffee-api < 250 MB
 - [ ] `docker images` shows coffee-web < 300 MB
 - [ ] Smoke test container responds
 
 ### Session 1 — Block E (compose + Caddyfile)
+
 - [ ] Caddyfile validates
 - [ ] Compose file references env vars correctly
 
 ### Session 1 — Homework
+
 - [ ] DNS A record → VPS IP
 - [ ] `docker compose up -d` runs all 4 containers
 - [ ] HTTPS valid at custom domain
@@ -143,11 +165,13 @@ Use [Final Rubric](../master/final-project-rubric.md) for full assessment.
 - [ ] Seed prod DB succeeded
 
 ### Session 2 — Block F (CI)
+
 - [ ] `.github/workflows/ci.yml` committed
 - [ ] CI workflow runs on push (green)
 - [ ] Tests run on real Postgres service container
 
 ### Session 2 — Block G (Deploy)
+
 - [ ] GitHub Secrets set: SSH_PRIVATE_KEY, VPS_HOST, VPS_USER
 - [ ] `.github/workflows/deploy.yml` committed
 - [ ] Push main → see Deploy run
@@ -155,6 +179,7 @@ Use [Final Rubric](../master/final-project-rubric.md) for full assessment.
 - [ ] Rollback tested (TAG=<old-sha> docker compose up)
 
 ### Session 2 — Block H (backup + runbook)
+
 - [ ] backup.sh runs successfully
 - [ ] Cron entry installed
 - [ ] DEPLOY.md committed
@@ -217,26 +242,28 @@ ___________________________________________
 
 ## 📈 Tracking Sheet — Final
 
-| Student | Live URL | Tier | Q1-10 | Notes |
-|---|---|---|---|---|
-| Student A | _________ | __ | __/10 | _________ |
-| Student B | _________ | __ | __/10 | _________ |
-| Student C | _________ | __ | __/10 | _________ |
-| Student D | _________ | __ | __/10 | _________ |
-| Student E | _________ | __ | __/10 | _________ |
-| Student F | _________ | __ | __/10 | _________ |
+| Student   | Live URL   | Tier | Q1-10   | Notes      |
+| --------- | ---------- | ---- | ------- | ---------- |
+| Student A | ****\_**** | \_\_ | \_\_/10 | ****\_**** |
+| Student B | ****\_**** | \_\_ | \_\_/10 | ****\_**** |
+| Student C | ****\_**** | \_\_ | \_\_/10 | ****\_**** |
+| Student D | ****\_**** | \_\_ | \_\_/10 | ****\_**** |
+| Student E | ****\_**** | \_\_ | \_\_/10 | ****\_**** |
+| Student F | ****\_**** | \_\_ | \_\_/10 | ****\_**** |
 
 ---
 
 ## 🎓 Course Completion Certificate Criteria
 
 Award certificate if student:
+
 - ✅ Live deployment working
 - ✅ All Week 1-5 features functional in prod
 - ✅ Final project at least "Functional Baseline" tier
 - ✅ Attendance ≥ 70%
 
 Award **with Distinction** if also:
+
 - ✅ Production Ready tier
 - ✅ Stretch feature implemented
 - ✅ ADRs documented
@@ -247,15 +274,18 @@ Award **with Distinction** if also:
 ## 🔁 Catch-up Plans
 
 ### Live URL Not Working
+
 - Schedule 1-2 hr 1-on-1 within 1 week
 - Bisect: VPS → Docker → DNS → Cert → Compose
 - Provide working reference repo
 
 ### CI/CD Not Setup
+
 - Lower priority — local deploy is enough for "Complete"
 - Stretch goal for those who want Distinction
 
 ### Backup Not Setup
+
 - Critical for production but not for course completion
 - Document in DEPLOY.md as "to do" if not done
 
@@ -316,6 +346,7 @@ ROI assessment:
 ## 🎉 Course Complete
 
 **Student deliverables**:
+
 - 🌐 Live coffee shop with HTTPS
 - 📦 GitHub repo (production-ready code)
 - 🔄 GitOps workflow (push = deploy)
@@ -324,6 +355,7 @@ ROI assessment:
 - 🎓 Skills: TS, React/Next.js, NestJS, Prisma, Docker, GitOps
 
 **Total course delivery**:
+
 - 12 sessions × 120 min = 24 hours of class time
 - 10 weeks × 5 hours homework = 50 hours self-paced
 - Total: ~74 hours over 6 weeks

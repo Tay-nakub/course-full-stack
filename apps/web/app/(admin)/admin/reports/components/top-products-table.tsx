@@ -1,15 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  BarChart,
-  Bar,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiFetch } from '@/lib/api-client';
 import {
   Table,
@@ -24,8 +16,7 @@ import type { TopProduct } from '@coffee/shared';
 export function TopProductsTable() {
   const { data = [], isLoading } = useQuery({
     queryKey: ['reports', 'top-products', 7],
-    queryFn: () =>
-      apiFetch<TopProduct[]>('/reports/top-products?days=7&limit=5'),
+    queryFn: () => apiFetch<TopProduct[]>('/reports/top-products?days=7&limit=5'),
     refetchInterval: 60_000,
   });
 

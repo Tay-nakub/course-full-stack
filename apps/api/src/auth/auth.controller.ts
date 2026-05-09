@@ -44,14 +44,14 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async me(@CurrentUser() user: AuthUser) {
+  me(@CurrentUser() user: AuthUser) {
     return user;
   }
 
   @Get('admin-only')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async adminOnly(@CurrentUser() user: AuthUser) {
+  adminOnly(@CurrentUser() user: AuthUser) {
     return { message: 'Welcome admin', user };
   }
 }

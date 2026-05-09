@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ มี `/api/auth/register` ทำงาน — bcrypt hash + JWT issue
 - ✅ มี `/api/auth/login` ทำงาน — verify password + return token
 - ✅ มี `/api/auth/me` ที่ require Bearer token (JwtAuthGuard)
@@ -33,20 +34,21 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Homework Review** | Verify Session 1 + reading recap |
-| **10-40** | **Block E** | **Auth schemas + register endpoint** (lecture 10 + demo 20) |
-| **40-70** | **Block F** | **JWT + login endpoint** (lecture 12 + demo 18) |
-| **70-100** | **Block G** | **Guards + custom decorators** (lecture 12 + demo 18) |
-| **100-115** | **Block H** | **Healthcheck + env + tests** (live build) |
-| 115-120 | Wrap-up | Week 3 preview + Q&A |
+| Time        | Block                       | Activity                                                    |
+| ----------- | --------------------------- | ----------------------------------------------------------- |
+| 0-10        | **Recap + Homework Review** | Verify Session 1 + reading recap                            |
+| **10-40**   | **Block E**                 | **Auth schemas + register endpoint** (lecture 10 + demo 20) |
+| **40-70**   | **Block F**                 | **JWT + login endpoint** (lecture 12 + demo 18)             |
+| **70-100**  | **Block G**                 | **Guards + custom decorators** (lecture 12 + demo 18)       |
+| **100-115** | **Block H**                 | **Healthcheck + env + tests** (live build)                  |
+| 115-120     | Wrap-up                     | Week 3 preview + Q&A                                        |
 
 ---
 
 ## 🟢 Recap + Homework Review (0-10 min)
 
 ### Recap Quiz (3 min)
+
 - "Prisma `migrate dev` ทำกี่ขั้นตอน?" (3: gen SQL → apply → gen client)
 - "PrismaService extends อะไร?" (PrismaClient)
 - "`@Global()` ใช้เมื่อไหร่?" (singleton infrastructure)
@@ -56,10 +58,12 @@
 > "ใครอ่าน NestJS Modules docs จบบ้าง?" (raise hand)
 
 ถ้า ≥ 50% อ่าน → discuss:
+
 - "อะไรที่ surprise คุณใน Modules docs?"
 - "Provider pattern ที่อ่าน — เห็น pattern ที่จะใช้ใน auth ไหม?"
 
 ถ้า < 50% → quick crash course (3 min):
+
 - Module = grouping
 - Provider = injectable (typically Service)
 - Controller = HTTP layer
@@ -67,7 +71,9 @@
 - Module providers → register อะไรที่ inject ได้
 
 ### Quick start verify (2 min)
+
 ทุกคนรัน:
+
 ```bash
 pnpm db:up
 pnpm --filter @coffee/api dev
@@ -79,6 +85,7 @@ curl http://localhost:4000/api    # Hello World
 ## 🔐 Block E: Auth Schemas + Register Endpoint (10-40 min, 30 min)
 
 ### 🎯 Block Goals
+
 - "เพิ่ม Zod schemas ใน `packages/shared` → reuse FE"
 - "Implement register: bcrypt hash + create user + issue JWT"
 - "Wire ZodValidationPipe เพื่อ validate request body"
@@ -86,25 +93,29 @@ curl http://localhost:4000/api    # Hello World
 ### 💬 Lecture (~10 min)
 
 **1. Why bcrypt?** (3 min)
+
 - ห้าม store plain password — leak ใน DB = ลูกค้าเสียหาย
 - MD5/SHA = fast = brute force ง่าย
 - bcrypt = slow on purpose (rounds parameter), salt built-in
 - 10 rounds = ~100ms / hash = good for user-facing (not bottleneck), expensive for attacker
 
 โชว์:
+
 ```ts
 const hash = await bcrypt.hash('password123', 10);
 // $2b$10$N9qo8uLOickgx2ZMRZoMye...
-//  ↑   ↑                          
+//  ↑   ↑
 //  algo rounds + salt + hash
 ```
 
 **2. Why JWT?** (3 min)
+
 - Stateless auth — server ไม่ต้อง store session
 - Self-contained — payload + signature
 - HMAC signed กับ secret → server verify ได้
 
 โชว์ใน jwt.io:
+
 ```
 Header:    { "alg": "HS256", "typ": "JWT" }
 Payload:   { "sub": "user-id", "role": "STAFF", "exp": ... }
@@ -123,6 +134,7 @@ Request body  ──► Pipe(validation)  ──► Controller method
 ```
 
 `ZodValidationPipe(Schema)` ทำงานยังไง:
+
 1. Take Schema in constructor
 2. ใน `transform()`: schema.parse(body)
 3. ถ้า throw → NestJS catch → 400
@@ -145,12 +157,14 @@ cd ../..
 ```
 
 **3. Add `@coffee/shared` to api package.json** (1 min)
+
 ```json
 "dependencies": {
   ...,
   "@coffee/shared": "workspace:*"
 }
 ```
+
 รัน `pnpm install`
 
 **4. AuthService — register method** (Task 7.2 — 6 min)
@@ -158,6 +172,7 @@ cd ../..
 (พิมพ์ตาม Plan, อธิบายแต่ละ method)
 
 📢 **Highlight**:
+
 - `findUnique` ดู email มีไหม → throw `ConflictException` (409)
 - `bcrypt.hash(plain, 10)` → hashed
 - `prisma.user.create` → INSERT
@@ -182,17 +197,20 @@ async register(@Body(new ZodValidationPipe(RegisterSchema)) input: RegisterInput
 **7. Test register** (1 min)
 
 Postman:
+
 - POST http://localhost:4000/api/auth/register
 - Body (JSON): `{ "email": "admin@coffee.com", "password": "password123" }`
 - Response: 201 + `accessToken` + `user`
 
 ลอง send invalid:
+
 - `{ "email": "not-email", "password": "short" }`
 - Response: 400 + Zod errors (ภาษาไทย!)
 
 📢 **โชว์ใน jwt.io**: paste `accessToken` → decode payload, see `sub`, `email`, `role`, `exp`
 
 Commit:
+
 ```bash
 git add apps/api/src apps/api/package.json packages/shared pnpm-lock.yaml
 git commit -m "feat(api): add /api/auth/register with bcrypt+JWT and Zod validation"
@@ -200,18 +218,19 @@ git commit -m "feat(api): add /api/auth/register with bcrypt+JWT and Zod validat
 
 ### ❓ Common Questions (Block E)
 
-| Q | A |
-|---|---|
-| 10 rounds พอไหม? | ปี 2024+: 10-12 rounds reasonable. มากเกิน → user wait นาน. มาตรฐาน update ตาม Moore's law |
-| bcrypt vs argon2? | argon2 = newer, win password hashing competition. แต่ bcrypt = battle-tested, library mature ใน Node ecosystem |
-| JWT secret ต้องยาวแค่ไหน? | HS256 → ≥32 chars random. เราจะ enforce ใน Task 10 ผ่าน Zod env validation |
-| Why `@HttpCode(201)`? | NestJS default POST = 201 จริงๆ (explicit เพื่อชัดเจนใน code review) |
+| Q                         | A                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 10 rounds พอไหม?          | ปี 2024+: 10-12 rounds reasonable. มากเกิน → user wait นาน. มาตรฐาน update ตาม Moore's law                     |
+| bcrypt vs argon2?         | argon2 = newer, win password hashing competition. แต่ bcrypt = battle-tested, library mature ใน Node ecosystem |
+| JWT secret ต้องยาวแค่ไหน? | HS256 → ≥32 chars random. เราจะ enforce ใน Task 10 ผ่าน Zod env validation                                     |
+| Why `@HttpCode(201)`?     | NestJS default POST = 201 จริงๆ (explicit เพื่อชัดเจนใน code review)                                           |
 
 ---
 
 ## 🔑 Block F: JWT Login Endpoint (40-70 min, 30 min)
 
 ### 🎯 Block Goals
+
 - "Implement login: verify password + issue JWT"
 - "เข้าใจ user enumeration attack + ป้องกัน"
 - "Wire login endpoint + test"
@@ -235,6 +254,7 @@ Client → POST /auth/login { email, password }
 ```
 
 **2. Why same error message?** (3 min)
+
 - ถ้าตอบ "user not found" vs "wrong password" → attacker enumerate emails
 - ใส่ message เดียวกัน → leak น้อยลง
 - Trade-off: UX แย่ลง (user งง)
@@ -260,6 +280,7 @@ Client → GET /auth/me (Authorization: Bearer eyJ...)
 ```
 
 **4. Why httpOnly cookie vs Authorization header?** (2 min)
+
 - Header: client (JS) ต้องเก็บ token + ส่ง manually → vulnerable to XSS theft
 - httpOnly cookie: browser ส่งอัตโนมัติ + JS อ่านไม่ได้ → XSS-safe, CSRF risk increase
 - Course นี้ใช้ **Authorization header** (simple, common) — Week 3+ FE เก็บใน httpOnly cookie
@@ -271,6 +292,7 @@ Client → GET /auth/me (Authorization: Bearer eyJ...)
 (พิมพ์ตาม Plan)
 
 📢 **Highlight**:
+
 - `bcrypt.compare(plain, hashed)` → boolean
 - ทั้ง 2 fail case → same `UnauthorizedException` message
 
@@ -281,16 +303,19 @@ Client → GET /auth/me (Authorization: Bearer eyJ...)
 **3. Test login** (5 min)
 
 Postman:
+
 - Login: POST `/api/auth/login` ด้วย email + password ที่ register แล้ว → 200 + accessToken
 - Try wrong password → 401 + "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
 - Try non-existent email → 401 + same message
 
 📢 **Demo subtle attack**:
+
 > "ถ้า server ตอบ 'อีเมลไม่พบ' vs 'รหัสผ่านผิด' — attacker iterate emails จนเจอ valid → enumerate. เราป้องกันด้วย same message"
 
 **4. Time check** (5 min) — ถ้าทันให้ student ลอง postman ของตัวเอง
 
 Commit:
+
 ```bash
 git add apps/api/src/auth
 git commit -m "feat(api): add /api/auth/login endpoint"
@@ -298,18 +323,19 @@ git commit -m "feat(api): add /api/auth/login endpoint"
 
 ### ❓ Common Questions (Block F)
 
-| Q | A |
-|---|---|
-| ลืม password reset ทำยังไง? | Tier 1 self-study — flow: email reset link with short-lived token, click → reset form |
-| Refresh token? | คอร์สนี้ไม่ทำ. JWT 7-day expiry, force re-login. Refresh token = Tier 1 |
-| Logout server-side? | JWT stateless = no logout. ใช้ short expiry + rotate. ถ้าต้อง revoke → blacklist (Redis) |
-| Multiple device login? | OK by default — JWT ไม่ผูก device. Restrict ต้องเก็บ session table |
+| Q                           | A                                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------------- |
+| ลืม password reset ทำยังไง? | Tier 1 self-study — flow: email reset link with short-lived token, click → reset form    |
+| Refresh token?              | คอร์สนี้ไม่ทำ. JWT 7-day expiry, force re-login. Refresh token = Tier 1                  |
+| Logout server-side?         | JWT stateless = no logout. ใช้ short expiry + rotate. ถ้าต้อง revoke → blacklist (Redis) |
+| Multiple device login?      | OK by default — JWT ไม่ผูก device. Restrict ต้องเก็บ session table                       |
 
 ---
 
 ## 🛡️ Block G: Guards + Custom Decorators (70-100 min, 30 min)
 
 ### 🎯 Block Goals
+
 - "Implement JwtAuthGuard ที่ verify Bearer token"
 - "Implement RolesGuard ที่ check role"
 - "สร้าง `@Roles()` + `@CurrentUser()` decorators"
@@ -348,12 +374,14 @@ attached to req.user
 **3. Reflector pattern** (5 min)
 
 `@Roles('ADMIN')` = metadata on method
+
 ```
 @Roles('ADMIN')        ← decorator → SetMetadata('roles', ['ADMIN'])
-adminOnly() {}         
+adminOnly() {}
 ```
 
 `RolesGuard.canActivate()`:
+
 ```ts
 const roles = reflector.get('roles', context.getHandler());
 // → ['ADMIN'] หรือ undefined
@@ -376,6 +404,7 @@ const roles = reflector.get('roles', context.getHandler());
 (พิมพ์ตาม Plan)
 
 📢 **อธิบาย**:
+
 - `getAllAndOverride` = method-level decorator override class-level
 - ถ้าไม่มี `@Roles()` → guard pass (open)
 - ถ้ามี → check `user.role` ใน list
@@ -391,6 +420,7 @@ const roles = reflector.get('roles', context.getHandler());
 เพิ่ม `JwtStrategy` ใน AuthModule providers
 
 เพิ่ม endpoints:
+
 ```ts
 @Get('me')
 @UseGuards(JwtAuthGuard)
@@ -407,18 +437,22 @@ async adminOnly() {
 ```
 
 Test ใน Postman:
+
 1. Login → copy accessToken
 2. Set Authorization: `Bearer <token>` ใน collection variable
 3. GET `/api/auth/me` → 200 + user
 4. GET `/api/auth/admin-only` → 403 (เพราะ STAFF)
 
 📢 **Promote user เป็น ADMIN** (5 sec) — ผ่าน DBeaver/Studio:
+
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE email = 'admin@coffee.com';
 ```
+
 Login ใหม่ → token ใหม่ → admin-only → 200
 
 Commit:
+
 ```bash
 git add apps/api/src/auth
 git commit -m "feat(api): add JWT strategy, JwtAuthGuard, RolesGuard, decorators"
@@ -426,18 +460,19 @@ git commit -m "feat(api): add JWT strategy, JwtAuthGuard, RolesGuard, decorators
 
 ### ❓ Common Questions (Block G)
 
-| Q | A |
-|---|---|
-| `@UseGuards(GuardA, GuardB)` order matter? | ใช่ — รันตามลำดับ. JwtAuthGuard ต้องมาก่อน RolesGuard (RolesGuard อ่าน req.user) |
-| Customize 401 response message? | สร้าง custom AuthGuard, override `handleRequest()` |
-| ทำไมไม่ใช่ `@Public()` decorator + global JwtAuthGuard? | ก็ดี — flip default. Course เลือก opt-in ที่ controller method |
-| `Reflector.getAllAndOverride` vs `get`? | `getAllAndOverride` = method overrides class. `get` = แค่ method-level |
+| Q                                                       | A                                                                                |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `@UseGuards(GuardA, GuardB)` order matter?              | ใช่ — รันตามลำดับ. JwtAuthGuard ต้องมาก่อน RolesGuard (RolesGuard อ่าน req.user) |
+| Customize 401 response message?                         | สร้าง custom AuthGuard, override `handleRequest()`                               |
+| ทำไมไม่ใช่ `@Public()` decorator + global JwtAuthGuard? | ก็ดี — flip default. Course เลือก opt-in ที่ controller method                   |
+| `Reflector.getAllAndOverride` vs `get`?                 | `getAllAndOverride` = method overrides class. `get` = แค่ method-level           |
 
 ---
 
 ## 🩺 Block H: Healthcheck + Env + Tests (100-115 min, 15 min)
 
 ### 🎯 Block Goals
+
 - "Validate env vars ตอน app start (fail-fast)"
 - "Add `/api/healthz` endpoint"
 - "Write unit tests for AuthService"
@@ -457,6 +492,7 @@ git commit -m "feat(api): add JWT strategy, JwtAuthGuard, RolesGuard, decorators
 (พิมพ์ตาม Plan)
 
 ทดสอบ:
+
 ```bash
 curl http://localhost:4000/api/healthz
 # {"status":"ok","database":"connected","timestamp":"..."}
@@ -467,10 +503,12 @@ curl http://localhost:4000/api/healthz
 ลบ Jest config + install Vitest + create config
 
 ใส่ tests file (จาก Plan):
+
 - 2 tests for register (email exists / new user)
 - 3 tests for login (no user / wrong pw / valid)
 
 รัน:
+
 ```bash
 pnpm --filter @coffee/api test
 # 5 passing
@@ -487,18 +525,20 @@ git commit -m "feat(api): add env validation, healthcheck, AuthService tests"
 
 ### ❓ Common Questions (Block H)
 
-| Q | A |
-|---|---|
-| ทำไม Vitest ใน api ต้อง alias `@coffee/shared`? | NestJS ใช้ tsc compile, Vitest ใช้ Vite — ต้องช่วย Vite ให้รู้ workspace path |
-| `Test.createTestingModule` ทำอะไร? | สร้าง NestJS DI container test — mock providers + get instance |
-| Mock Prisma vs in-memory DB? | Mock = fast, simple. In-memory (e.g., pg-mem) = real SQL. Course เลือก mock — sufficient |
+| Q                                               | A                                                                                        |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ทำไม Vitest ใน api ต้อง alias `@coffee/shared`? | NestJS ใช้ tsc compile, Vitest ใช้ Vite — ต้องช่วย Vite ให้รู้ workspace path            |
+| `Test.createTestingModule` ทำอะไร?              | สร้าง NestJS DI container test — mock providers + get instance                           |
+| Mock Prisma vs in-memory DB?                    | Mock = fast, simple. In-memory (e.g., pg-mem) = real SQL. Course เลือก mock — sufficient |
 
 ---
 
 ## 🏁 Wrap-up + Week 3 Preview (115-120 min, 5 min)
 
 ### Recap (2 min)
+
 ถาม:
+
 - "JWT contains อะไรบ้าง?"
 - "RolesGuard อ่าน metadata จากไหน?"
 - "ทำไม env validation ที่ app start?"
@@ -508,6 +548,7 @@ git commit -m "feat(api): add env validation, healthcheck, AuthService tests"
 **Goal**: เชื่อม FE + BE — first end-to-end CRUD slice (Menu)
 
 จะใช้:
+
 - ✅ NestJS + Prisma + Auth (Week 2)
 - 🆕 NestJS Menu module (Category + Product CRUD)
 - 🆕 TanStack Query (FE data fetching)
@@ -515,31 +556,34 @@ git commit -m "feat(api): add env validation, healthcheck, AuthService tests"
 - 🆕 Admin Menu CRUD UI
 
 **Pre-Week 3 homework** (light):
+
 - เพิ่ม unit tests AuthService ให้ครบ 5 tests (ตาม Plan)
 - Practice: register 3 users via Postman, login each, test `/auth/me`
 - ถ้ามีเวลา — read [Prisma queries](https://www.prisma.io/docs/orm/prisma-client/queries/crud)
 
 ### Final Q&A (1 min)
+
 รับคำถามเปิด
 
 ---
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| Auth flow ติดที่ใคร? (register / login / guards) | ___ |
-| JWT mental model ใครยัง confused? | ___ |
-| RolesGuard + Reflector ใครยังไม่เข้าใจ? | ___ |
-| Tests ใครยังไม่ได้ทำ? | ___ |
-| Block ไหน over-run? | ___ |
-| Pre-Week 3 readiness — มี student คนไหน need 1-on-1? | ___ |
+| Item                                                 | Note   |
+| ---------------------------------------------------- | ------ |
+| Auth flow ติดที่ใคร? (register / login / guards)     | \_\_\_ |
+| JWT mental model ใครยัง confused?                    | \_\_\_ |
+| RolesGuard + Reflector ใครยังไม่เข้าใจ?              | \_\_\_ |
+| Tests ใครยังไม่ได้ทำ?                                | \_\_\_ |
+| Block ไหน over-run?                                  | \_\_\_ |
+| Pre-Week 3 readiness — มี student คนไหน need 1-on-1? | \_\_\_ |
 
 ---
 
 ## 🔗 Connection to Week 3
 
 Week 3 จะใช้:
+
 - ✅ AuthService + JwtAuthGuard (Week 2) — protect Menu CRUD endpoints
 - ✅ PrismaService (Week 2) — query Product/Category
 - ✅ `@coffee/shared` (Week 2) — เพิ่ม Product/Category schemas

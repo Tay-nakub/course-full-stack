@@ -27,8 +27,7 @@ export function IngredientList() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Ingredient | null>(null);
   const [creating, setCreating] = useState(false);
-  const [recordingMovement, setRecordingMovement] =
-    useState<Ingredient | null>(null);
+  const [recordingMovement, setRecordingMovement] = useState<Ingredient | null>(null);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['ingredients'],
@@ -36,8 +35,7 @@ export function IngredientList() {
   });
 
   const removeMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/inventory/ingredients/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => apiFetch(`/inventory/ingredients/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ingredients'] }),
     onError: (e: Error) => alert(`ลบไม่ได้: ${e.message}`),
   });
@@ -46,8 +44,8 @@ export function IngredientList() {
     <section>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          จำนวน {items.length} รายการ — Stock เปลี่ยนผ่าน Stock Movement
-          (PURCHASE / SALE / WASTE / ADJUSTMENT)
+          จำนวน {items.length} รายการ — Stock เปลี่ยนผ่าน Stock Movement (PURCHASE / SALE / WASTE /
+          ADJUSTMENT)
         </p>
         <Dialog open={creating} onOpenChange={setCreating}>
           <DialogTrigger asChild>
@@ -84,34 +82,21 @@ export function IngredientList() {
                   <TableCell>{i.name}</TableCell>
                   <TableCell>{INGREDIENT_UNIT_LABELS[i.unit]}</TableCell>
                   <TableCell>฿{Number(i.costPerUnit)}</TableCell>
-                  <TableCell
-                    className={isLow ? 'font-bold text-red-700' : ''}
-                  >
+                  <TableCell className={isLow ? 'font-bold text-red-700' : ''}>
                     {Number(i.currentStock)}
                   </TableCell>
                   <TableCell>{Number(i.minStock)}</TableCell>
                   <TableCell className="space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRecordingMovement(i)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setRecordingMovement(i)}>
                       ปรับ Stock
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditing(i)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setEditing(i)}>
                       แก้ไข
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        confirm(`ลบ "${i.name}"?`) &&
-                        removeMutation.mutate(i.id)
-                      }
+                      onClick={() => confirm(`ลบ "${i.name}"?`) && removeMutation.mutate(i.id)}
                     >
                       ลบ
                     </Button>
@@ -128,24 +113,14 @@ export function IngredientList() {
           <DialogHeader>
             <DialogTitle>แก้ไขวัตถุดิบ</DialogTitle>
           </DialogHeader>
-          {editing && (
-            <IngredientForm
-              ingredient={editing}
-              onSuccess={() => setEditing(null)}
-            />
-          )}
+          {editing && <IngredientForm ingredient={editing} onSuccess={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={!!recordingMovement}
-        onOpenChange={() => setRecordingMovement(null)}
-      >
+      <Dialog open={!!recordingMovement} onOpenChange={() => setRecordingMovement(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              ปรับ Stock: {recordingMovement?.name}
-            </DialogTitle>
+            <DialogTitle>ปรับ Stock: {recordingMovement?.name}</DialogTitle>
           </DialogHeader>
           {recordingMovement && (
             <StockMovementForm

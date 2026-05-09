@@ -16,10 +16,7 @@ export class ReportsController {
   }
 
   @Get('top-products')
-  topProducts(
-    @Query('days') days?: string,
-    @Query('limit') limit?: string,
-  ) {
+  topProducts(@Query('days') days?: string, @Query('limit') limit?: string) {
     return this.service.topProducts(
       days ? parseInt(days, 10) : 7,
       limit ? parseInt(limit, 10) : 5,

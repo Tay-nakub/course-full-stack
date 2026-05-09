@@ -24,15 +24,11 @@ export const useCart = create<CartStore>()(
     (set, get) => ({
       items: [],
       add: (product, qty = 1) => {
-        const existing = get().items.find(
-          (i) => i.productId === product.productId,
-        );
+        const existing = get().items.find((i) => i.productId === product.productId);
         if (existing) {
           set({
             items: get().items.map((i) =>
-              i.productId === product.productId
-                ? { ...i, qty: i.qty + qty }
-                : i,
+              i.productId === product.productId ? { ...i, qty: i.qty + qty } : i,
             ),
           });
         } else {
@@ -45,13 +41,10 @@ export const useCart = create<CartStore>()(
           return;
         }
         set({
-          items: get().items.map((i) =>
-            i.productId === productId ? { ...i, qty } : i,
-          ),
+          items: get().items.map((i) => (i.productId === productId ? { ...i, qty } : i)),
         });
       },
-      remove: (productId) =>
-        set({ items: get().items.filter((i) => i.productId !== productId) }),
+      remove: (productId) => set({ items: get().items.filter((i) => i.productId !== productId) }),
       clear: () => set({ items: [] }),
       totalQty: () => get().items.reduce((s, i) => s + i.qty, 0),
       subtotal: () => get().items.reduce((s, i) => s + i.qty * i.unitPrice, 0),

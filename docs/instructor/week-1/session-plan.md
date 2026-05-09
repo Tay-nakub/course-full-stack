@@ -8,11 +8,11 @@
 
 ## 📅 Cadence
 
-| Session | When | Duration | Covers (Plan tasks) |
-|---|---|---|---|
-| **1** | Day 1 (เช่น เสาร์) | 120 min | Tasks 1-4: monorepo + Next.js + App Router + Layouts |
-| _Homework_ | Day 2-6 | 3-5 hrs self | Tasks 5-8: shadcn install + static menu + Cart Client |
-| **2** | Day 7 (เสาร์ถัดไป) | 120 min | Tasks 9-10: Vitest + RHF/Zod TDD form + recap |
+| Session    | When               | Duration     | Covers (Plan tasks)                                   |
+| ---------- | ------------------ | ------------ | ----------------------------------------------------- |
+| **1**      | Day 1 (เช่น เสาร์) | 120 min      | Tasks 1-4: monorepo + Next.js + App Router + Layouts  |
+| _Homework_ | Day 2-6            | 3-5 hrs self | Tasks 5-8: shadcn install + static menu + Cart Client |
+| **2**      | Day 7 (เสาร์ถัดไป) | 120 min      | Tasks 9-10: Vitest + RHF/Zod TDD form + recap         |
 
 > **1-on-1 mentor mode**: ใช้ session plan เดียวกันแต่ student พิมพ์เองทุก step. Instructor ดูข้างๆ + interrupt เมื่อ debug. Pace ปรับตาม student — โดยเฉลี่ย 1.5x ของ live class เวลา (ละเอียดกว่า)
 
@@ -22,15 +22,15 @@
 
 จบ Week 1 student สามารถ:
 
-| Skill | ทดสอบโดย |
-|---|---|
-| ตั้ง pnpm monorepo + Turborepo จาก scratch | Live exercise Session 1 + homework |
-| อธิบาย App Router file conventions | Checkpoint Q (Session 1 + 2) |
-| แยก Server vs Client Component (เลือกถูกตัว) | Cart icon homework + Q&A |
-| ใช้ shadcn/ui workflow (init + add components) | Homework Task 6 |
-| เขียน form ด้วย React Hook Form + Zod ผูกกัน | Session 2 in-class build |
-| เขียน Vitest test สำหรับ form behavior (TDD) | Session 2 in-class TDD |
-| Commit ที่ atomic + meaningful message | ทุก task ต้อง commit |
+| Skill                                          | ทดสอบโดย                           |
+| ---------------------------------------------- | ---------------------------------- |
+| ตั้ง pnpm monorepo + Turborepo จาก scratch     | Live exercise Session 1 + homework |
+| อธิบาย App Router file conventions             | Checkpoint Q (Session 1 + 2)       |
+| แยก Server vs Client Component (เลือกถูกตัว)   | Cart icon homework + Q&A           |
+| ใช้ shadcn/ui workflow (init + add components) | Homework Task 6                    |
+| เขียน form ด้วย React Hook Form + Zod ผูกกัน   | Session 2 in-class build           |
+| เขียน Vitest test สำหรับ form behavior (TDD)   | Session 2 in-class TDD             |
+| Commit ที่ atomic + meaningful message         | ทุก task ต้อง commit               |
 
 ---
 

@@ -11,6 +11,7 @@
 **Spec Reference:** [course design spec § Week 2](../specs/2026-05-08-fullstack-coffee-shop-course-design.md)
 
 **Pre-requisites:**
+
 - Week 1 complete (monorepo + apps/web)
 - Docker Desktop installed (`docker --version`, `docker compose version`)
 
@@ -80,6 +81,7 @@ course-full-stack/
 ### Task 1: Add `packages/shared` for FE/BE Schema Sharing
 
 **Files:**
+
 - Create: `packages/shared/package.json`
 - Create: `packages/shared/tsconfig.json`
 - Create: `packages/shared/src/index.ts`
@@ -150,6 +152,7 @@ export * from './types/user';
 pnpm install
 pnpm --filter @coffee/shared typecheck
 ```
+
 Expected: ทั้งสอง command pass
 
 - [ ] **Step 1.6: Commit**
@@ -164,6 +167,7 @@ git commit -m "feat(shared): add @coffee/shared package with Role type"
 ### Task 2: Scaffold NestJS API in `apps/api`
 
 **Files:**
+
 - Create: `apps/api/` (entire NestJS scaffold)
 
 - [ ] **Step 2.1: Install Nest CLI globally (one-time)**
@@ -214,6 +218,7 @@ cd ..
 ```
 
 > 🎓 **Why these overrides**:
+>
 > - `CommonJS` + `experimentalDecorators` + `emitDecoratorMetadata` = NestJS requirements
 > - `verbatimModuleSyntax: false` = NestJS ใช้ runtime metadata จาก types
 > - `strictPropertyInitialization: false` = injected dependencies (e.g. `@Inject()`) ไม่ต้อง initial value
@@ -221,6 +226,7 @@ cd ..
 - [ ] **Step 2.4: ปรับ `apps/api/package.json` scripts ให้ Turbo รู้จัก**
 
 แก้ section `"scripts"`:
+
 ```json
 "scripts": {
   "dev": "nest start --watch",
@@ -243,7 +249,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');     // ทุก route จะ prefix /api
+  app.setGlobalPrefix('api'); // ทุก route จะ prefix /api
   app.enableCors();
   await app.listen(4000);
   console.log(`🚀 API ready on http://localhost:4000/api`);
@@ -262,6 +268,7 @@ pnpm --filter @coffee/api dev
 ```
 
 ใน browser/curl:
+
 ```bash
 curl http://localhost:4000/api
 # Expected: "Hello World!" (NestJS default)
@@ -279,6 +286,7 @@ git commit -m "feat(api): scaffold NestJS app with /api prefix on port 4000"
 ### Task 3: Postgres in Docker Compose
 
 **Files:**
+
 - Create: `infra/docker-compose.dev.yml`
 - Modify: `.env.example` (root)
 - Modify: `apps/api/.env.example`
@@ -310,6 +318,7 @@ volumes:
 ```
 
 > 🎓 **Concept**:
+>
 > - `postgres:16-alpine` = lightweight image (~80 MB)
 > - `volumes:` named volume → data persist หลัง container restart
 > - `healthcheck` → ใช้ใน Prisma migration container ภายหลัง
@@ -337,6 +346,7 @@ pnpm db:up
 Expected: Container `coffee-postgres-dev` running
 
 Verify:
+
 ```bash
 docker ps | grep coffee-postgres
 docker exec coffee-postgres-dev pg_isready -U coffee
@@ -372,6 +382,7 @@ git commit -m "feat(infra): add Postgres dev docker-compose with healthcheck"
 ### Task 4: Install Prisma + Define User Schema
 
 **Files:**
+
 - Create: `apps/api/prisma/schema.prisma`
 - Modify: `apps/api/package.json`
 
@@ -426,6 +437,7 @@ enum Role {
 ```
 
 > 🎓 **Concepts**:
+>
 > - `cuid()` = collision-resistant unique ID (URL-safe, sortable-ish)
 > - `@@map("users")` = table name lowercase (Postgres convention)
 > - `Role` enum sync กับ TS enum ใน `@coffee/shared`
@@ -433,6 +445,7 @@ enum Role {
 - [ ] **Step 4.4: เพิ่ม script สำหรับ Prisma**
 
 แก้ `apps/api/package.json`:
+
 ```json
 "scripts": {
   ...,
@@ -455,11 +468,13 @@ cd ../..
 ตอบชื่อ migration: `init` → enter
 
 Expected:
+
 - โฟลเดอร์ `prisma/migrations/<timestamp>_init/` ถูกสร้าง
 - ตาราง `users` ใน Postgres
 - Prisma Client generate ที่ `node_modules/@prisma/client`
 
 Verify ใน Postgres:
+
 ```bash
 docker exec -it coffee-postgres-dev psql -U coffee -d coffee -c "\dt"
 # Expected: users + _prisma_migrations
@@ -477,6 +492,7 @@ git commit -m "feat(api): add Prisma with User+Role schema and initial migration
 ### Task 5: PrismaService NestJS Module
 
 **Files:**
+
 - Create: `apps/api/src/prisma/prisma.service.ts`
 - Create: `apps/api/src/prisma/prisma.module.ts`
 - Modify: `apps/api/src/app.module.ts`
@@ -533,10 +549,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    PrismaModule,
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule],
   controllers: [AppController],
   providers: [AppService],
 })
@@ -556,6 +569,7 @@ cd ../..
 ```bash
 pnpm --filter @coffee/api dev
 ```
+
 Expected: NestJS เริ่ม → log "🚀 API ready" — Prisma connect สำเร็จ (ถ้า disconnect → จะ error)
 
 - [ ] **Step 5.6: Commit**
@@ -570,6 +584,7 @@ git commit -m "feat(api): add global PrismaModule with lifecycle-managed service
 ### Task 6: Auth Module — Schemas + DTOs in `packages/shared`
 
 **Files:**
+
 - Create: `packages/shared/src/schemas/auth.ts`
 - Modify: `packages/shared/src/index.ts`
 
@@ -606,6 +621,7 @@ export type AuthTokenResponse = z.infer<typeof AuthTokenSchema>;
 - [ ] **Step 6.2: Export จาก index**
 
 แก้ `packages/shared/src/index.ts`:
+
 ```ts
 export * from './types/user';
 export * from './schemas/auth';
@@ -616,6 +632,7 @@ export * from './schemas/auth';
 ```bash
 pnpm --filter @coffee/shared typecheck
 ```
+
 Expected: pass
 
 - [ ] **Step 6.4: Commit**
@@ -630,6 +647,7 @@ git commit -m "feat(shared): add auth schemas (Register/Login/AuthToken)"
 ### Task 7: Auth Module — Register Endpoint
 
 **Files:**
+
 - Create: `apps/api/src/auth/auth.module.ts`
 - Create: `apps/api/src/auth/auth.controller.ts`
 - Create: `apps/api/src/auth/auth.service.ts`
@@ -646,6 +664,7 @@ cd ../..
 อย่าลืม install `@coffee/shared` ใน apps/api workspace:
 
 แก้ `apps/api/package.json`, เพิ่ม dependency:
+
 ```json
 "dependencies": {
   ...,
@@ -654,6 +673,7 @@ cd ../..
 ```
 
 แล้วรัน:
+
 ```bash
 pnpm install
 ```
@@ -687,7 +707,7 @@ export class AuthService {
       data: {
         email: input.email,
         password: hashedPassword,
-        role: 'STAFF',  // default — admin promote ทีหลังด้วย script
+        role: 'STAFF', // default — admin promote ทีหลังด้วย script
       },
     });
 
@@ -714,6 +734,7 @@ export class AuthService {
 ```
 
 > 🎓 **Concept**:
+>
 > - `bcrypt.hash(plain, 10)` — 10 rounds = good default (security vs perf)
 > - `ConflictException` = HTTP 409 (NestJS exception filter handle ให้)
 > - JWT payload: `sub` (subject) ใส่ user ID — JWT standard
@@ -741,6 +762,7 @@ export class AuthController {
 ```
 
 > 🎓 **Concept**:
+>
 > - `@Controller('auth')` + global prefix `'api'` → URL = `/api/auth/register`
 > - `ZodValidationPipe(Schema)` = validate body, throw 400 ถ้าไม่ผ่าน
 > - `@HttpCode(201)` = override default 201 (already default for POST in NestJS — explicit เพื่อชัดเจน)
@@ -794,11 +816,13 @@ import { AuthModule } from './auth/auth.module';
 - [ ] **Step 7.6: ทดสอบ register**
 
 รัน api:
+
 ```bash
 pnpm --filter @coffee/api dev
 ```
 
 ใช้ curl หรือ Postman:
+
 ```bash
 curl -X POST http://localhost:4000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -806,6 +830,7 @@ curl -X POST http://localhost:4000/api/auth/register \
 ```
 
 Expected response (201):
+
 ```json
 {
   "accessToken": "eyJhbGciOiJ...",
@@ -818,11 +843,13 @@ Expected response (201):
 ```
 
 ลองส่งข้อมูลผิด:
+
 ```bash
 curl -X POST http://localhost:4000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"not-an-email","password":"short"}'
 ```
+
 Expected: 400 Bad Request + Zod error messages
 
 - [ ] **Step 7.7: Commit**
@@ -837,6 +864,7 @@ git commit -m "feat(api): add /api/auth/register with bcrypt+JWT and Zod validat
 ### Task 8: Auth Module — Login Endpoint
 
 **Files:**
+
 - Modify: `apps/api/src/auth/auth.service.ts`
 - Modify: `apps/api/src/auth/auth.controller.ts`
 
@@ -897,14 +925,17 @@ curl -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@coffee.com","password":"password123"}'
 ```
+
 Expected: 200 OK + accessToken
 
 Test invalid:
+
 ```bash
 curl -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@coffee.com","password":"wrong"}'
 ```
+
 Expected: 401 Unauthorized + error message
 
 - [ ] **Step 8.4: Commit**
@@ -919,6 +950,7 @@ git commit -m "feat(api): add /api/auth/login endpoint with secure error message
 ### Task 9: JWT Auth Guard + Roles Guard + Decorators
 
 **Files:**
+
 - Create: `apps/api/src/auth/jwt.strategy.ts`
 - Create: `apps/api/src/auth/jwt-auth.guard.ts`
 - Create: `apps/api/src/auth/roles.guard.ts`
@@ -1003,7 +1035,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
     if (!requiredRoles || requiredRoles.length === 0) {
-      return true;     // no @Roles() = open
+      return true; // no @Roles() = open
     }
 
     const { user } = context.switchToHttp().getRequest<{ user?: { role: Role } }>();
@@ -1085,6 +1117,7 @@ async adminOnly(@CurrentUser() user: AuthUser) {
 - [ ] **Step 9.8: ทดสอบ guards**
 
 Login → ดึง accessToken:
+
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -1094,17 +1127,21 @@ echo $TOKEN
 ```
 
 ทดสอบ `/auth/me`:
+
 ```bash
 curl http://localhost:4000/api/auth/me \
   -H "Authorization: Bearer $TOKEN"
 ```
+
 Expected: 200 + user info
 
 ทดสอบ `/auth/admin-only`:
+
 ```bash
 curl http://localhost:4000/api/auth/admin-only \
   -H "Authorization: Bearer $TOKEN"
 ```
+
 Expected: 403 Forbidden (เพราะ user role = STAFF, ไม่ใช่ ADMIN)
 
 > 📝 **Note**: ปลายๆ Week 2 จะมี script promote user เป็น ADMIN — ตอนนี้ test forbidden behavior OK
@@ -1121,6 +1158,7 @@ git commit -m "feat(api): add JWT strategy, JwtAuthGuard, RolesGuard, decorators
 ### Task 10: Healthcheck + Env Validation + Tests
 
 **Files:**
+
 - Create: `apps/api/src/config/env.ts`
 - Create: `apps/api/src/health/health.module.ts`
 - Create: `apps/api/src/health/health.controller.ts`
@@ -1218,6 +1256,7 @@ export class HealthModule {}
 ```
 
 ทดสอบ:
+
 ```bash
 curl http://localhost:4000/api/healthz
 # Expected: { "status": "ok", "database": "connected", "timestamp": "..." }
@@ -1228,6 +1267,7 @@ curl http://localhost:4000/api/healthz
 ลบ Jest config ที่ NestJS scaffold ใส่ — ใน `apps/api/package.json` ลบ section `"jest": { ... }`
 
 Install Vitest:
+
 ```bash
 cd apps/api
 pnpm add -D vitest @vitest/ui @nestjs/testing
@@ -1291,11 +1331,13 @@ describe('AuthService', () => {
     };
 
     const module = await Test.createTestingModule({
-      imports: [JwtModule.register({ secret: 'test-secret-min-32-chars-required-here', signOptions: { expiresIn: '1h' } })],
-      providers: [
-        AuthService,
-        { provide: PrismaService, useValue: prisma },
+      imports: [
+        JwtModule.register({
+          secret: 'test-secret-min-32-chars-required-here',
+          signOptions: { expiresIn: '1h' },
+        }),
       ],
+      providers: [AuthService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     authService = module.get(AuthService);
@@ -1305,8 +1347,9 @@ describe('AuthService', () => {
     it('throws ConflictException ถ้า email มีอยู่แล้ว', async () => {
       prisma.user.findUnique.mockResolvedValue({ id: '1', email: 'existing@example.com' });
 
-      await expect(authService.register({ email: 'existing@example.com', password: 'password123' }))
-        .rejects.toThrow(ConflictException);
+      await expect(
+        authService.register({ email: 'existing@example.com', password: 'password123' }),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('สร้าง user ใหม่และคืน accessToken', async () => {
@@ -1314,13 +1357,18 @@ describe('AuthService', () => {
       const created = { id: 'cuid1', email: 'new@example.com', password: 'hashed', role: 'STAFF' };
       prisma.user.create.mockResolvedValue(created);
 
-      const result = await authService.register({ email: 'new@example.com', password: 'password123' });
+      const result = await authService.register({
+        email: 'new@example.com',
+        password: 'password123',
+      });
 
       expect(result.accessToken).toBeDefined();
       expect(result.user).toEqual({ id: 'cuid1', email: 'new@example.com', role: 'STAFF' });
-      expect(prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({ email: 'new@example.com', role: 'STAFF' }),
-      }));
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ email: 'new@example.com', role: 'STAFF' }),
+        }),
+      );
     });
   });
 
@@ -1328,24 +1376,32 @@ describe('AuthService', () => {
     it('throws UnauthorizedException ถ้า user ไม่พบ', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(authService.login({ email: 'noone@example.com', password: 'whatever' }))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(
+        authService.login({ email: 'noone@example.com', password: 'whatever' }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException ถ้า password ผิด', async () => {
       const hashed = await bcrypt.hash('correct-password', 10);
       prisma.user.findUnique.mockResolvedValue({
-        id: '1', email: 'e@e.com', password: hashed, role: 'STAFF',
+        id: '1',
+        email: 'e@e.com',
+        password: hashed,
+        role: 'STAFF',
       });
 
-      await expect(authService.login({ email: 'e@e.com', password: 'wrong-password' }))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(
+        authService.login({ email: 'e@e.com', password: 'wrong-password' }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('คืน accessToken ถ้า credentials ถูก', async () => {
       const hashed = await bcrypt.hash('correct-password', 10);
       prisma.user.findUnique.mockResolvedValue({
-        id: '1', email: 'e@e.com', password: hashed, role: 'STAFF',
+        id: '1',
+        email: 'e@e.com',
+        password: hashed,
+        role: 'STAFF',
       });
 
       const result = await authService.login({ email: 'e@e.com', password: 'correct-password' });
@@ -1362,6 +1418,7 @@ describe('AuthService', () => {
 ```bash
 pnpm --filter @coffee/api test
 ```
+
 Expected: 5 tests pass
 
 - [ ] **Step 10.9: Commit**
@@ -1390,6 +1447,7 @@ git commit -m "feat(api): add env validation, healthcheck, and AuthService tests
 ## Self-Review Notes
 
 **Spec coverage:**
+
 - ✅ Week 2 Day 1 (Postgres Docker): Task 3
 - ✅ Week 2 Day 2-3 (NestJS basics): Tasks 2, 5
 - ✅ Week 2 Day 4-5 (Prisma): Tasks 4, 5
@@ -1397,6 +1455,7 @@ git commit -m "feat(api): add env validation, healthcheck, and AuthService tests
 - ✅ Bonus: env validation + healthcheck + tests (Task 10)
 
 **Concepts taught:**
+
 - Docker Compose, Postgres setup, named volumes, healthchecks
 - NestJS modules/controllers/providers/DI, lifecycle hooks
 - Prisma schema, migrations, client generation
@@ -1405,6 +1464,7 @@ git commit -m "feat(api): add env validation, healthcheck, and AuthService tests
 - Zod env validation, ZodValidationPipe
 
 **Out of Week 2 scope:**
+
 - ❌ Refresh token rotation (Tier 1 self-study)
 - ❌ Email verification (out of scope)
 - ❌ E2E tests for HTTP endpoints (Vitest unit only — saves time)

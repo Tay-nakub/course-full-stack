@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ Login flow ทำงาน — fill form → cookie set → redirect
 - ✅ Auth middleware ป้องกัน `/admin/*`
 - ✅ Admin layout + sidebar
@@ -33,20 +34,21 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Homework Review** | Show student PRs of CategoryList |
-| **10-45** | **Block D** | **Login flow with httpOnly cookie** |
-| **45-60** | **Block E** | **Auth middleware + Admin layout** |
-| **60-105** | **Block F** | **Admin Menu CRUD UI (live build)** |
-| **105-115** | **Block G** | **Wire storefront** |
-| 115-120 | Wrap-up | Week 4 preview |
+| Time        | Block                       | Activity                            |
+| ----------- | --------------------------- | ----------------------------------- |
+| 0-10        | **Recap + Homework Review** | Show student PRs of CategoryList    |
+| **10-45**   | **Block D**                 | **Login flow with httpOnly cookie** |
+| **45-60**   | **Block E**                 | **Auth middleware + Admin layout**  |
+| **60-105**  | **Block F**                 | **Admin Menu CRUD UI (live build)** |
+| **105-115** | **Block G**                 | **Wire storefront**                 |
+| 115-120     | Wrap-up                     | Week 4 preview                      |
 
 ---
 
 ## 🟢 Recap + Homework Review (0-10 min)
 
 ### Recap Quiz (3 min)
+
 - "TanStack Query `useQuery` คืน fields อะไร?"
 - "`useMutation` ตอน success ต้องทำอะไร เพื่อ refresh list?"
 - "Why `credentials: 'include'`?"
@@ -54,11 +56,13 @@
 ### Homework Showcase (7 min)
 
 **Format**: 1-2 student PR — focus หาก problem จริง:
+
 - ที่ติด: typo ใน queryKey → cache miss
 - ที่ดี: แยก ApiError handling สวย
 - Common: ใช้ `await fetch()` ตรงๆ แทน apiFetch — discuss tradeoff
 
 📢 **Common student question**: "ถ้าทำ `useQuery` กับ `useState` ต่างกันยังไง?"
+
 - `useState` = client state local
 - `useQuery` = server state (fetch + cache + refetch + invalidate)
 - Different concerns
@@ -68,6 +72,7 @@
 ## 🔐 Block D: Login Flow with httpOnly Cookie (10-45 min, 35 min)
 
 ### 🎯 Block Goals
+
 - เข้าใจ proxy pattern ของ Next.js Route Handler
 - Implement login: form → Route Handler → NestJS → cookie
 - เข้าใจ httpOnly cookie security tradeoffs
@@ -77,28 +82,29 @@
 **1. Why proxy pattern (not direct call to NestJS)?** (4 min)
 
 วาดบนกระดาน:
+
 ```
-❌ Bad approach:                
-  Browser ─POST─► NestJS                
-       ↑                                
-  accessToken stored in localStorage    
-  (XSS = steal token)                   
+❌ Bad approach:
+  Browser ─POST─► NestJS
+       ↑
+  accessToken stored in localStorage
+  (XSS = steal token)
 
 
-✅ Course approach:                                
+✅ Course approach:
   Browser ─POST /api/auth/login─►  Next.js Route Handler
-                                          │             
-                                          │ proxy       
-                                          ▼             
-                                       NestJS           
-                                          │             
-                                          ▼             
-                          accessToken in response       
-                                          │             
-                          ┌───────────────┘             
-                          ▼                             
-              Set httpOnly cookie ─────► Browser        
-              (JS can't read = XSS-safe)               
+                                          │
+                                          │ proxy
+                                          ▼
+                                       NestJS
+                                          │
+                                          ▼
+                          accessToken in response
+                                          │
+                          ┌───────────────┘
+                          ▼
+              Set httpOnly cookie ─────► Browser
+              (JS can't read = XSS-safe)
 ```
 
 📢 **Key insight**: "JWT token never seen by FE JavaScript. Browser carries it via cookie. XSS can't steal what JS can't read"
@@ -109,27 +115,28 @@
 response.cookies.set({
   name: 'coffee_token',
   value: data.accessToken,
-  httpOnly: true,         // JS read = ❌ → XSS-safe
-  sameSite: 'lax',        // CSRF protection
-  path: '/',              // available everywhere
-  maxAge: 7 * 24 * 60 * 60,  // 7 days
-  secure: true in prod,   // HTTPS only
+  httpOnly: true, // JS read = ❌ → XSS-safe
+  sameSite: 'lax', // CSRF protection
+  path: '/', // available everywhere
+  maxAge: 7 * 24 * 60 * 60, // 7 days
+  secure: true in prod, // HTTPS only
 });
 ```
 
 📢 **อธิบายแต่ละตัว**:
+
 - `httpOnly: true` — JS access ไม่ได้ → XSS ขโมยไม่ได้
 - `sameSite: 'lax'` — แค่ส่ง cookie ใน same-site requests + safe top-level navigations
 - `secure: true` ใน prod — HTTPS only (กัน sniffer ใน Wi-Fi)
 
 **3. Trade-off vs Authorization header** (4 min)
 
-| | localStorage + Bearer | httpOnly Cookie |
-|---|---|---|
-| XSS | ❌ vulnerable | ✅ safe |
-| CSRF | ✅ safe | ❌ vulnerable (mitigate via sameSite) |
-| Mobile / native client | ✅ easy | ⚠️ ต้องจัดการ cookie jar |
-| Fan-out APIs | ✅ trivial | ❌ same domain only |
+|                        | localStorage + Bearer | httpOnly Cookie                       |
+| ---------------------- | --------------------- | ------------------------------------- |
+| XSS                    | ❌ vulnerable         | ✅ safe                               |
+| CSRF                   | ✅ safe               | ❌ vulnerable (mitigate via sameSite) |
+| Mobile / native client | ✅ easy               | ⚠️ ต้องจัดการ cookie jar              |
+| Fan-out APIs           | ✅ trivial            | ❌ same domain only                   |
 
 📢 **เลือก cookie สำหรับ web app นี้** — XSS เกิดบ่อยกว่า CSRF, course เน้น web
 
@@ -140,6 +147,7 @@ response.cookies.set({
 (พิมพ์ตาม Plan)
 
 📢 **เน้น Next.js 15 change**:
+
 > "`cookies()` คืน Promise — เปลี่ยนจาก v14. ต้อง `await`"
 
 **2. Login Route Handler** (Task 7.2 — 8 min)
@@ -147,6 +155,7 @@ response.cookies.set({
 (พิมพ์ตาม Plan — focus Critical pieces)
 
 📢 **อธิบายแต่ละ step**:
+
 1. Validate input ด้วย `LoginSchema.safeParse` (server-side defense)
 2. Forward ไป NestJS internal URL (env var)
 3. ถ้า fail → return upstream error ตรงๆ
@@ -164,6 +173,7 @@ response.cookies.set({
 (พิมพ์ตาม Plan)
 
 📢 **เน้น**:
+
 - ใช้ `useForm({ resolver: zodResolver(LoginSchema) })` — same schema as BE
 - `serverError` state สำหรับ 401 จาก server (ต่างกับ Zod field errors)
 - `router.push('/admin/menu')` + `router.refresh()` หลัง success — refresh server-side state
@@ -182,17 +192,18 @@ response.cookies.set({
 6. ตรวจ cookie attributes: httpOnly ✓, secure (depends on prod), sameSite=Lax
 
 Commit:
+
 ```bash
 git commit -m "feat(web): add login flow with httpOnly cookie"
 ```
 
 ### ❓ Common Questions (Block D)
 
-| Q | A |
-|---|---|
-| ถ้าใช้ Server Action แทน Route Handler? | ใช่ — ทำได้ใน Next.js 15. Route Handler = pattern ที่ portable มากกว่า, transparent flow |
-| Token expire — user งง redirect แปลกๆ? | ใส่ middleware logic verify token + redirect to login on expire (Tier 1 self-study) |
-| Refresh token? | Tier 1 self-study — เพิ่ม `/api/auth/refresh` route + refresh cookie |
+| Q                                       | A                                                                                             |
+| --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| ถ้าใช้ Server Action แทน Route Handler? | ใช่ — ทำได้ใน Next.js 15. Route Handler = pattern ที่ portable มากกว่า, transparent flow      |
+| Token expire — user งง redirect แปลกๆ?  | ใส่ middleware logic verify token + redirect to login on expire (Tier 1 self-study)           |
+| Refresh token?                          | Tier 1 self-study — เพิ่ม `/api/auth/refresh` route + refresh cookie                          |
 | ทำไมต้อง `router.refresh()` หลัง login? | Server Component ที่ depend `getServerToken()` (เช่น storefront) จะ re-render ด้วย state ใหม่ |
 
 ---
@@ -200,6 +211,7 @@ git commit -m "feat(web): add login flow with httpOnly cookie"
 ## 🛡️ Block E: Auth Middleware + Admin Layout (45-60 min, 15 min)
 
 ### 🎯 Block Goals
+
 - ใช้ Next.js middleware ป้องกัน routes
 - เข้าใจ Edge runtime constraints
 - Build admin layout
@@ -217,6 +229,7 @@ Request ──► middleware.ts ──► Route handler / page
 ```
 
 📢 **Constraints**:
+
 - Edge runtime = NO Node APIs (`fs`, `crypto.createHash`, etc)
 - Cookie reading OK
 - เร็วมาก (compiled to V8 isolates)
@@ -224,6 +237,7 @@ Request ──► middleware.ts ──► Route handler / page
 **2. Strategy: short-circuit, no JWT verify** (2 min)
 
 โค้ด middleware:
+
 ```ts
 const token = cookies.get(TOKEN_NAME);
 if (!token) redirect('/login');
@@ -239,9 +253,11 @@ return NextResponse.next();
 (พิมพ์ตาม Plan)
 
 📢 **เน้น matcher**:
+
 ```ts
 export const config = { matcher: ['/admin/:path*'] };
 ```
+
 > "เฉพาะ `/admin/*` รัน middleware. ป้องกัน API routes / public pages เข้าใจไม่จำเป็น"
 
 **2. Admin layout + redirect** (Task 8.2-8.3 — 5 min)
@@ -249,11 +265,13 @@ export const config = { matcher: ['/admin/:path*'] };
 (พิมพ์ตาม Plan — Sidebar + main panel)
 
 📢 **เน้น logout button**:
+
 ```html
 <form action="/api/auth/logout" method="POST">
   <button>ออกจากระบบ</button>
 </form>
 ```
+
 > "Plain HTML form → POST → Route Handler → cookie clear → redirect handled by client. ไม่ต้อง JS"
 
 **3. ทดสอบ** (2 min)
@@ -263,6 +281,7 @@ export const config = { matcher: ['/admin/:path*'] };
 3. Sidebar visible
 
 Commit:
+
 ```bash
 git commit -m "feat(web): add auth middleware and admin route group"
 ```
@@ -272,12 +291,14 @@ git commit -m "feat(web): add auth middleware and admin route group"
 ## 🎨 Block F: Admin Menu CRUD UI (60-105 min, 45 min)
 
 ### 🎯 Block Goals
+
 - Build CategoryList ด้วย `useQuery` + `useMutation`
 - Build CategoryForm ด้วย RHF + Zod + mutation
 - Apply pattern เดียวกันสำหรับ ProductList + ProductForm
 - เห็น cache invalidation flow ทำงาน
 
 ### Format: Live build together
+
 ทุก student พิมพ์ตามใน VS Code ของตัวเอง. ผมพิมพ์ Categories — Products = exercise
 
 ### 💬 Lecture (~7 min)
@@ -290,7 +311,7 @@ Page (Server Component)
 List (Client Component)
   ↓ useQuery → fetch list
   ↓ useMutation → DELETE
-  
+
   + Dialog wrapper for Create/Edit
        ↓ render
        Form (Client Component)
@@ -345,6 +366,7 @@ const { data: categories = [], isLoading } = useQuery({
   queryFn: () => apiFetch<Category[]>('/menu/categories'),
 });
 ```
+
 > "queryKey = identity of cache. queryFn = fetcher. data, isLoading, error คือ output"
 
 ```ts
@@ -354,19 +376,24 @@ const removeMutation = useMutation({
   onError: (error) => alert(`ลบไม่ได้: ${error.message}`),
 });
 ```
+
 > "Mutation = write. onSuccess: invalidate → list refetch อัตโนมัติ"
 
 ```tsx
-{categories.map((c) => (
-  <TableRow key={c.id}>
-    ...
-    <Button onClick={() => removeMutation.mutate(c.id)}>ลบ</Button>
-  </TableRow>
-))}
+{
+  categories.map((c) => (
+    <TableRow key={c.id}>
+      ...
+      <Button onClick={() => removeMutation.mutate(c.id)}>ลบ</Button>
+    </TableRow>
+  ));
+}
 ```
+
 > "Click → mutation.mutate(id) → fetch DELETE → onSuccess → cache invalidate → useQuery refetch → list update"
 
 โชว์ใน DevTools:
+
 - Network tab → DELETE request
 - React Query Devtools → cache update
 
@@ -390,6 +417,7 @@ const mutation = useMutation({
   },
 });
 ```
+
 > "Same form for create + edit. Pass `category` prop ถ้า edit. POST vs PATCH ตาม mode"
 
 ```ts
@@ -397,6 +425,7 @@ defaultValues: category ? {
   name: category.name, sortOrder: category.sortOrder,
 } : undefined,
 ```
+
 > "RHF defaultValues — pre-fill ถ้า edit"
 
 **5. ทดสอบ Categories CRUD** (3 min)
@@ -409,9 +438,11 @@ defaultValues: category ? {
 **6. ProductList + ProductForm — students build (in-class exercise)** (Task 9.5 — 11 min)
 
 📢 **บอก class**:
+
 > "Pattern เหมือน Category — copy + ปรับ fields. **คุณพิมพ์ผมดู** — 11 นาที. ติดอะไรยกมือ"
 
 ระหว่างที่ student พิมพ์:
+
 - Walk around ดูใครติด
 - Common issues:
   - Field type ผิด (price: string vs number) → use `valueAsNumber: true`
@@ -423,24 +454,26 @@ defaultValues: category ? {
 **ถ้าหมดเวลา** → instructor พิมพ์ฟinish + commit ให้ดู, ทุกคน copy reference
 
 Commit:
+
 ```bash
 git commit -m "feat(web): add admin Menu CRUD UI"
 ```
 
 ### ❓ Common Questions (Block F)
 
-| Q | A |
-|---|---|
+| Q                                                       | A                                                                               |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `qc.invalidateQueries` กับ `qc.refetchQueries` ต่างกัน? | invalidate = mark stale → refetch ตาม trigger ปกติ. refetch = force refetch now |
-| Optimistic updates ทำยังไง? | `onMutate: () => set cache directly` + rollback ใน `onError`. Stretch — ดู docs |
-| Multiple mutations parallel — race condition? | TanStack จัดการให้: invalidate after success → next refetch รวมทุก writes |
-| `mutation.isPending` UX | disable button + show spinner — ตัวอย่าง: `disabled={mutation.isPending}` |
+| Optimistic updates ทำยังไง?                             | `onMutate: () => set cache directly` + rollback ใน `onError`. Stretch — ดู docs |
+| Multiple mutations parallel — race condition?           | TanStack จัดการให้: invalidate after success → next refetch รวมทุก writes       |
+| `mutation.isPending` UX                                 | disable button + show spinner — ตัวอย่าง: `disabled={mutation.isPending}`       |
 
 ---
 
 ## 🌐 Block G: Wire Storefront to Live API (105-115 min, 10 min)
 
 ### 🎯 Block Goals
+
 - Server Component fetch จริง (ไม่ใช่ mock)
 - เห็นผล: เพิ่ม product ใน admin → storefront เห็นทันที
 
@@ -451,6 +484,7 @@ git commit -m "feat(web): add admin Menu CRUD UI"
 (พิมพ์ตาม Plan)
 
 📢 **เน้นจุดสำคัญ**:
+
 - `async function MenuPage()` — Server Component fetch ตรง
 - `getServerToken()` → ใส่ Bearer ถ้ามี (admin browse menu ก็ดี)
 - `cache: 'no-store'` — Course ไม่ cache (Week 5 ค่อย optimize ด้วย ISR)
@@ -471,17 +505,20 @@ rm apps/web/lib/data/menu.ts
 ```
 
 ทดสอบ:
+
 1. Logout (storefront ไม่ต้อง auth)
 2. ไป `/menu` → เห็น products จริงจาก DB ✓
 3. Login admin → เพิ่ม product ใหม่
 4. กลับ `/menu` → refresh → เห็น product ใหม่
 
 Commit:
+
 ```bash
 git commit -m "feat(web): wire storefront /menu to live NestJS API"
 ```
 
 📢 **Big moment**:
+
 > "🎉 First end-to-end slice complete. Schema เปลี่ยนใน `packages/shared` ตัวเดียว → BE validate + FE form + storefront ทุกที่ใช้ตามอัตโนมัติ"
 
 ---
@@ -489,6 +526,7 @@ git commit -m "feat(web): wire storefront /menu to live NestJS API"
 ## 🏁 Wrap-up + Week 4 Preview (115-120 min, 5 min)
 
 ### Recap (2 min)
+
 - "httpOnly cookie ปลอดภัยจาก XSS เพราะอะไร?"
 - "useMutation + invalidateQueries ทำงานยังไง?"
 - "Server Component fetch ใช้ pattern อะไรพิเศษ?"
@@ -498,6 +536,7 @@ git commit -m "feat(web): wire storefront /menu to live NestJS API"
 Goal: Order flow — ลูกค้าสั่งของ + Kitchen UI
 
 จะใช้:
+
 - ✅ Zod schemas (Wk1) — เพิ่ม OrderSchema
 - ✅ Prisma transactions (Wk2)
 - ✅ NestJS modules + Guards (Wk2-3)
@@ -505,6 +544,7 @@ Goal: Order flow — ลูกค้าสั่งของ + Kitchen UI
 - ✅ Auth + middleware (Wk3) — protect /kitchen
 
 🆕
+
 - Zustand (cart state)
 - Order tracking page (polling)
 - Kitchen UI (STAFF role)
@@ -513,26 +553,28 @@ Goal: Order flow — ลูกค้าสั่งของ + Kitchen UI
 Pre-Week 4: light — make sure Week 3 commit pushed + DB has menu data
 
 ### Final Q&A
+
 รับคำถามเปิด
 
 ---
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| ทุกคน Login + admin CRUD ทำงานครบ? | ___ |
-| ProductList exercise — ใครยังไม่จบ? | ___ |
-| Storefront wire — ทุกคนเห็น real data? | ___ |
-| Concept ที่ติด: cookies / mutations / invalidation | ___ |
-| Block ไหน over-run มากสุด? | ___ |
-| Week 4 readiness — มีคนไหนต้อง 1-on-1? | ___ |
+| Item                                               | Note   |
+| -------------------------------------------------- | ------ |
+| ทุกคน Login + admin CRUD ทำงานครบ?                 | \_\_\_ |
+| ProductList exercise — ใครยังไม่จบ?                | \_\_\_ |
+| Storefront wire — ทุกคนเห็น real data?             | \_\_\_ |
+| Concept ที่ติด: cookies / mutations / invalidation | \_\_\_ |
+| Block ไหน over-run มากสุด?                         | \_\_\_ |
+| Week 4 readiness — มีคนไหนต้อง 1-on-1?             | \_\_\_ |
 
 ---
 
 ## 🔗 Connection to Week 4
 
 Week 4 = "Order Flow" — build บน Week 3 ทุกอย่าง:
+
 - Same monorepo + schemas pattern
 - Same NestJS module pattern
 - Same admin layout (เพิ่ม Orders tab)

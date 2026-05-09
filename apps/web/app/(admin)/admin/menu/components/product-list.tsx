@@ -36,8 +36,7 @@ export function ProductList() {
   });
 
   const removeMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/menu/products/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => apiFetch(`/menu/products/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.products() }),
     onError: (error) => alert(`ลบไม่ได้: ${error.message}`),
   });
@@ -80,26 +79,16 @@ export function ProductList() {
                 <TableCell>{p.category?.name ?? '—'}</TableCell>
                 <TableCell>{p.isActive ? 'ขาย' : 'ปิด'}</TableCell>
                 <TableCell className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setRecipeFor(p)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setRecipeFor(p)}>
                     สูตร
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditing(p)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setEditing(p)}>
                     แก้ไข
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      confirm(`ลบ "${p.name}"?`) && removeMutation.mutate(p.id)
-                    }
+                    onClick={() => confirm(`ลบ "${p.name}"?`) && removeMutation.mutate(p.id)}
                   >
                     ลบ
                   </Button>
@@ -115,12 +104,7 @@ export function ProductList() {
           <DialogHeader>
             <DialogTitle>แก้ไขสินค้า</DialogTitle>
           </DialogHeader>
-          {editing && (
-            <ProductForm
-              product={editing}
-              onSuccess={() => setEditing(null)}
-            />
-          )}
+          {editing && <ProductForm product={editing} onSuccess={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
 
@@ -129,12 +113,7 @@ export function ProductList() {
           <DialogHeader>
             <DialogTitle>สูตร: {recipeFor?.name}</DialogTitle>
           </DialogHeader>
-          {recipeFor && (
-            <RecipeEditor
-              product={recipeFor}
-              onSuccess={() => setRecipeFor(null)}
-            />
-          )}
+          {recipeFor && <RecipeEditor product={recipeFor} onSuccess={() => setRecipeFor(null)} />}
         </DialogContent>
       </Dialog>
     </section>

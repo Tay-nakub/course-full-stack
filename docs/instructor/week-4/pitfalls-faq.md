@@ -11,16 +11,18 @@
 **Symptom**: Transaction ดูทำงาน แต่ partial state เกิดถ้า error ตอนกลาง
 
 **Cause**:
+
 ```ts
 return this.prisma.$transaction(async (tx) => {
   const products = await tx.product.findMany(...);
-  
+
   const order = await this.prisma.order.create(...);  // ❌ ใช้ this.prisma
   // ↑ query นี้ไม่อยู่ใน transaction
 });
 ```
 
 **Fix**: ใช้ `tx` consistently ภายใน callback:
+
 ```ts
 const order = await tx.order.create(...);  // ✅
 ```
@@ -36,6 +38,7 @@ const order = await tx.order.create(...);  // ✅
 **Cause**: Random generation + check ไม่ atomic, หรือ sequential count + insert ไม่ atomic
 
 **Fix options**:
+
 1. **Random + retry** (simple):
    ```ts
    for (let attempt = 0; attempt < 5; attempt++) {
@@ -66,11 +69,13 @@ const order = await tx.order.create(...);  // ✅
 **Symptom**: Add to cart → refresh → cart empty
 
 **Common causes**:
+
 1. ลืม `persist` middleware
 2. SSR mismatch — cart hydrated เปล่าก่อนล่ะ load จาก localStorage
 3. localStorage disabled (incognito strict mode)
 
 **Fix**:
+
 ```ts
 import { persist } from 'zustand/middleware';
 
@@ -83,11 +88,13 @@ export const useCart = create<CartStore>()(
 ```
 
 **Debug**:
+
 - DevTools → Application → Local Storage → check key `coffee-cart`
 - ถ้าไม่มี → persist ไม่ทำงาน
 - ถ้ามี แต่ refresh เป็น empty → hydration issue
 
 **SSR mismatch fix** (rare):
+
 ```tsx
 const [hydrated, setHydrated] = useState(false);
 useEffect(() => setHydrated(true), []);
@@ -103,6 +110,7 @@ if (!hydrated) return null;
 **Cause**: ใช้ static `refetchInterval: 5000` แทน function form
 
 **Fix**:
+
 ```ts
 refetchInterval: (query) => {
   const status = query.state.data?.status;
@@ -118,12 +126,14 @@ refetchInterval: (query) => {
 **Symptom**: User กรอกจำนวน + display total ฿180. กดสั่ง — server return total ฿200
 
 **Cause**:
+
 - Admin เปลี่ยน price ตอน user กำลัง shop (cart store has stale price)
 - FE display ใช้ stale price; server recalculates
 
 **Course behavior**: Server total = source of truth. UX issue — user might be surprised
 
 **Better UX (stretch)**:
+
 1. After cart load: re-fetch products → update cart prices if changed
 2. Show toast "ราคามีการเปลี่ยนแปลง — โปรดตรวจสอบ"
 3. Ask user to confirm new price
@@ -135,11 +145,13 @@ refetchInterval: (query) => {
 **Symptom**: After place order, cart empty + spinning forever (no redirect)
 
 **Cause**:
+
 1. `router.push` ไม่ทำงาน เพราะ Server Component
 2. mutation.onSuccess ก่อนส่ง response complete
 3. Order ID undefined ใน response
 
 **Debug**:
+
 ```ts
 onSuccess: (order) => {
   console.log('order:', order);  // verify shape
@@ -159,10 +171,12 @@ onSuccess: (order) => {
 **Symptom**: Click "รับออเดอร์" → 200 response แต่ card ไม่ย้ายคอลัมน์
 
 **Causes**:
+
 1. ลืม `qc.invalidateQueries({ queryKey: ['orders'] })` ใน onSuccess
 2. queryKey mismatch (query uses `['orders', { activeOnly: true }]` แต่ invalidate `['orders']`)
 
 **Fix**: Invalidate root key:
+
 ```ts
 qc.invalidateQueries({ queryKey: ['orders'] });
 // ↑ matches all variants: ['orders'], ['orders', filter], etc.
@@ -177,18 +191,21 @@ qc.invalidateQueries({ queryKey: ['orders'] });
 **Symptom**: 2 staff click "ทำเสร็จ" → both 200 (race condition? Or guaranteed?)
 
 **Actual behavior**: NestJS state machine catches second one:
+
 - Staff A: PENDING → PREPARING (success)
 - Staff B (clicks 1ms later): tries PENDING → PREPARING but order is already PREPARING → throws ConflictException
 
 **UX**: Staff B sees error alert. Acceptable for course.
 
 **Better (stretch)**: Optimistic lock with version field:
+
 ```prisma
 model Order {
   version Int @default(0)
   // ...
 }
 ```
+
 Update only if version matches; increment on each update.
 
 ---
@@ -200,11 +217,15 @@ Update only if version matches; increment on each update.
 **Cause**: Prisma `Decimal` serializes to JSON as string. `Number(p.price)` not done
 
 **Fix** ทุกที่ที่ใช้ price:
+
 ```tsx
-{`฿${Number(item.unitPrice) * item.qty}`}
+{
+  `฿${Number(item.unitPrice) * item.qty}`;
+}
 ```
 
 หรือ convert ตอน fetch:
+
 ```ts
 const products = await this.prisma.product.findMany();
 return products.map((p) => ({ ...p, price: Number(p.price) }));
@@ -219,6 +240,7 @@ return products.map((p) => ({ ...p, price: Number(p.price) }));
 **Cause**: middleware matcher กว้างเกิน (จับ /login ด้วย)
 
 **Fix**: Verify matcher:
+
 ```ts
 matcher: ['/admin/:path*', '/kitchen/:path*'],
 ```
@@ -233,11 +255,13 @@ Login + storefront ไม่ควรอยู่ใน list.
 
 **Q: `$transaction` กับ `$transaction(async (tx) => ...)` ต่างกันไง?**
 A:
+
 - Array form: `prisma.$transaction([query1, query2])` — sequential, all-or-nothing
 - Interactive form: `prisma.$transaction(async (tx) => ...)` — full control, conditional logic OK
 
 **Q: nested write `items: { create: [...] }` กับ explicit loop ต่างไง?**
 A:
+
 - Nested write: 1 SQL (compiled by Prisma) — faster, atomic implicit
 - Explicit loop: N+1 SQL — needs explicit transaction
 
@@ -253,6 +277,7 @@ A: Course skip — Postgres SET TRANSACTION READ ONLY. Performance hint only
 
 **Q: Why declarative VALID_TRANSITIONS map vs nested if?**
 A:
+
 - Map = visual, easy to extend
 - Add new state = add new entry
 - Document business rules in 1 place
@@ -269,6 +294,7 @@ A: Yes — `paidAt` set on PENDING→PREPARING. `completedAt` on READY→COMPLET
 
 **Q: Zustand vs `useState` for global state?**
 A:
+
 - `useState` = local component state. Pass via props/context for sharing
 - Zustand = global, accessible from any component, no prop drilling
 
@@ -287,6 +313,7 @@ A: Zustand SSR-safe. Initial state same on server + client. Persist hydrates aft
 
 **Q: Polling vs WebSocket — เลือกไง?**
 A:
+
 - Scale: 1-shop, 100s req/min = polling OK
 - Real-time critical: WebSocket
 - Simple debug: polling
@@ -294,6 +321,7 @@ A:
 
 **Q: Polling rate trade-off?**
 A:
+
 - 5 sec = good UX, moderate load
 - 1 sec = aggressive, high load
 - 30 sec = light load, sluggish UX
@@ -346,10 +374,10 @@ location.reload();
 
 ## 📊 Common Mistakes Heatmap (อัปเดตหลังสอน)
 
-| Mistake | Frequency | Notes |
-|---|---|---|
-| Use `this.prisma` inside `$transaction` | TBD | — |
-| Static refetchInterval | TBD | — |
-| Missing invalidateQueries | TBD | — |
-| Decimal as string in JSON | TBD | — |
-| Middleware matcher too broad | TBD | — |
+| Mistake                                 | Frequency | Notes |
+| --------------------------------------- | --------- | ----- |
+| Use `this.prisma` inside `$transaction` | TBD       | —     |
+| Static refetchInterval                  | TBD       | —     |
+| Missing invalidateQueries               | TBD       | —     |
+| Decimal as string in JSON               | TBD       | —     |
+| Middleware matcher too broad            | TBD       | —     |

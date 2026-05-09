@@ -13,6 +13,7 @@
 **Why happens**: Student ลืมเปิด Docker Desktop หลัง boot
 
 **Quick fix**:
+
 - macOS/Windows: เปิด Docker Desktop → wait until status "Docker Desktop is running"
 - Linux: `sudo systemctl start docker`
 
@@ -23,16 +24,18 @@
 ### Pitfall #2: Port 5432 ติดเพราะมี Postgres local
 
 **Symptom**:
+
 ```
 Error response from daemon: driver failed programming external connectivity
 ... Bind for 0.0.0.0:5432 failed: port is already allocated
 ```
 
 **Quick fix**:
+
 1. Stop local Postgres: `brew services stop postgresql` (macOS) / `sudo systemctl stop postgresql` (Linux)
 2. หรือเปลี่ยน port mapping ใน compose:
    ```yaml
-   ports: ['5433:5432']   # host 5433 → container 5432
+   ports: ['5433:5432'] # host 5433 → container 5432
    ```
    อัปเดต `DATABASE_URL`: `postgresql://...@localhost:5433/coffee?...`
 
@@ -45,6 +48,7 @@ Error response from daemon: driver failed programming external connectivity
 **Symptom**: `Can't reach database server at localhost:5432`
 
 **Quick fix**:
+
 ```bash
 pnpm db:up                    # start Postgres
 docker ps | grep coffee       # verify container "Up (healthy)"
@@ -61,10 +65,12 @@ pnpm prisma migrate dev --name init
 **Symptom**: เห็น schema เปลี่ยนแล้วแต่ TypeScript ยัง error เก่า ("type 'X' does not exist on type 'PrismaClient'")
 
 **Quick fix**:
+
 ```bash
 cd apps/api
 pnpm prisma generate
 ```
+
 แล้ว VS Code: `Cmd+Shift+P` → "TypeScript: Restart TS Server"
 
 **Prevention**: หลัง schema change → ทำ generate ทุกครั้ง
@@ -76,6 +82,7 @@ pnpm prisma generate
 **Symptom**: `Cannot find module '@coffee/shared' or its corresponding type declarations`
 
 **Causes** (เรียงตามความถี่):
+
 1. ลืมใส่ใน `apps/api/package.json`:
    ```json
    "dependencies": {
@@ -87,6 +94,7 @@ pnpm prisma generate
 4. tsconfig path alias ไม่ตั้ง — เช็ค `extends` ของ apps/api มี `tsconfig.base.json`
 
 **Quick verify**:
+
 ```bash
 ls node_modules/@coffee/shared
 # ควรเป็น symlink → ../../packages/shared
@@ -99,6 +107,7 @@ ls node_modules/@coffee/shared
 **Symptom**: `node-gyp` build error ระหว่าง `pnpm install`
 
 **Quick fix**:
+
 ```bash
 # ลบ bcrypt + ติดตั้งใหม่ in apps/api
 cd apps/api
@@ -107,6 +116,7 @@ pnpm add bcrypt
 ```
 
 ถ้ายังไม่หาย → ใช้ `bcryptjs` (pure JS):
+
 ```bash
 pnpm remove bcrypt
 pnpm add bcryptjs
@@ -116,8 +126,9 @@ pnpm add -D @types/bcryptjs
 **Trade-off**: bcryptjs ช้ากว่า ~30% (still acceptable สำหรับ dev/learning), no native build
 
 **Update import** ใน `auth.service.ts`:
+
 ```ts
-import * as bcrypt from 'bcryptjs';   // เปลี่ยนจาก 'bcrypt'
+import * as bcrypt from 'bcryptjs'; // เปลี่ยนจาก 'bcrypt'
 ```
 
 ---
@@ -125,6 +136,7 @@ import * as bcrypt from 'bcryptjs';   // เปลี่ยนจาก 'bcrypt'
 ### Pitfall #7: JWT_SECRET < 32 chars
 
 **Symptom**: ตอน app start (Task 10 onwards) crash:
+
 ```
 Invalid environment variables:
   - JWT_SECRET: JWT_SECRET must be at least 32 characters
@@ -133,12 +145,14 @@ Invalid environment variables:
 **Why intentional**: Zod env validation. Short secret = brute force easy
 
 **Quick fix**: generate 32+ char secret:
+
 ```bash
 openssl rand -base64 32
 # Output: aBcDe...32+ chars
 ```
 
 แล้ว update `.env`:
+
 ```
 JWT_SECRET="<paste-here>"
 ```
@@ -152,6 +166,7 @@ JWT_SECRET="<paste-here>"
 **Symptom**: Add new dep, restart `pnpm dev` — Turbo บอก "no tasks" หรือ build ไม่ refresh
 
 **Quick fix**:
+
 ```bash
 # Force re-link workspaces
 rm -rf node_modules
@@ -159,6 +174,7 @@ pnpm install
 ```
 
 **Cleaner alternative**:
+
 ```bash
 pnpm --filter @coffee/api add <package>   # add ใน specific app
 ```
@@ -170,11 +186,13 @@ pnpm --filter @coffee/api add <package>   # add ใน specific app
 **Symptom**: Terminal ค้างหลัง `pnpm dev`, ไม่มี "🚀 API ready"
 
 **Common causes**:
+
 1. **Prisma onModuleInit ค้าง** — DB ไม่ตอบ. ตรวจ `pnpm db:up`
 2. **Module circular dependency** — Module A import B, B import A. NestJS log error ใน chunk ก่อน
 3. **Port 4000 ติด** — `lsof -i :4000` หา process กิน port
 
 **Quick fix**:
+
 ```bash
 lsof -i :4000
 kill -9 <PID>
@@ -190,6 +208,7 @@ pnpm dev
 **Why**: `RolesGuard` รันก่อน `JwtAuthGuard` → `req.user` ยังไม่ถูกเซ็ต → check role fail
 
 **Quick fix**: Order matters:
+
 ```ts
 @UseGuards(JwtAuthGuard, RolesGuard)   // ✅ JWT first → set req.user → Roles read
 ```
@@ -247,7 +266,7 @@ A: ได้: `pnpm prisma migrate reset` (⚠️ ลบ data หมด — dev 
 A: ไม่ — `PrismaService extends PrismaClient` → ใช้ตรงๆ: `this.prisma.user.findMany()`
 
 **Q: ทำ raw SQL ได้ไหม?**
-A: ได้: `prisma.$queryRaw\`SELECT * FROM ...\`` (template literal — auto-escape). Prefer Prisma query API ก่อน
+A: ได้: `prisma.$queryRaw\`SELECT \* FROM ...\`` (template literal — auto-escape). Prefer Prisma query API ก่อน
 
 **Q: Prisma generate ทำที่ไหน?**
 A: `node_modules/.prisma/client/`. ห้าม edit. ทุกครั้ง schema change → regenerate
@@ -283,12 +302,14 @@ A: Implement `CanActivate` interface, return `boolean | Promise<boolean> | Obser
 
 **Q: `@UseGuards()` global vs method-level?**
 A:
+
 - Method: `@UseGuards()` บน method
 - Class: `@UseGuards()` บน controller class
 - Global: `app.useGlobalGuards(...)` ใน main.ts
 
 **Q: Pipe vs Guard vs Interceptor?**
 A:
+
 - **Guard**: allow/deny (auth/authz)
 - **Pipe**: transform/validate input
 - **Interceptor**: wrap before/after handler (logging, caching)
@@ -369,12 +390,12 @@ pnpm --filter @coffee/api test
 
 ## 📊 Common Mistakes Heatmap (อัปเดตหลังสอน)
 
-| Mistake | Frequency | Last Updated |
-|---|---|---|
-| Docker Desktop ไม่รัน | TBD | — |
-| Port 5432 collision | TBD | — |
-| Prisma generate ลืมรัน | TBD | — |
-| `@coffee/shared` import broken | TBD | — |
-| bcrypt native build (ARM) | TBD | — |
-| Guard order swap | TBD | — |
-| ... | | |
+| Mistake                        | Frequency | Last Updated |
+| ------------------------------ | --------- | ------------ |
+| Docker Desktop ไม่รัน          | TBD       | —            |
+| Port 5432 collision            | TBD       | —            |
+| Prisma generate ลืมรัน         | TBD       | —            |
+| `@coffee/shared` import broken | TBD       | —            |
+| bcrypt native build (ARM)      | TBD       | —            |
+| Guard order swap               | TBD       | —            |
+| ...                            |           |              |

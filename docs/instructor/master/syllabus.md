@@ -23,17 +23,20 @@
 ## 🛠️ Tech Stack คุณจะได้เรียน
 
 ### Frontend
+
 - **Next.js 15** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS** + **shadcn/ui** (component library)
 - **TanStack Query** (data fetching), **Zustand** (cart state)
 - **React Hook Form** + **Zod** (forms + validation)
 
 ### Backend
+
 - **NestJS** (modules, controllers, providers, guards) + **TypeScript**
 - **Prisma ORM** + **PostgreSQL 16**
 - **JWT auth** + **bcrypt** + **Zod validation**
 
 ### DevOps / Infrastructure
+
 - **pnpm workspaces** + **Turborepo** (monorepo)
 - **Docker** + **Docker Compose**
 - **Caddy** (auto-HTTPS reverse proxy)
@@ -41,6 +44,7 @@
 - **Hetzner / DigitalOcean VPS**
 
 ### Testing
+
 - **Vitest** + **Testing Library** (unit + component tests)
 - **TDD** workflow (Red → Green → Refactor)
 
@@ -51,6 +55,7 @@
 คุณควรมี **ก่อน** เริ่มคอร์ส:
 
 ✅ **Required**
+
 - เขียน HTML / CSS / JavaScript ได้ (อ่าน + ดัดแปลง code ได้)
 - ใช้ Git (commit, branch, push, pull) ได้
 - เข้าใจ database concepts (table, primary/foreign key, JOIN)
@@ -58,11 +63,13 @@
 - ใช้ Terminal / command line สบาย
 
 🆗 **Helpful (แต่ไม่จำเป็น)**
+
 - เคยใช้ Node.js / npm
 - เคย deploy app บน server / cloud
 - เคยเขียน TypeScript
 
 ❌ **ไม่ต้องเคย**
+
 - React / Next.js
 - NestJS / Prisma
 - Docker
@@ -74,11 +81,11 @@
 
 ## ⏱️ Time Commitment
 
-| | Hours/week | Total (6 weeks) |
-|---|---|---|
-| Live class | 2 ชม./สัปดาห์ × 1 session | 12 ชม. |
-| Self-paced homework | 3-5 ชม./สัปดาห์ | 18-30 ชม. |
-| **Total** | **5-7 ชม./สัปดาห์** | **30-42 ชม.** |
+|                     | Hours/week                | Total (6 weeks) |
+| ------------------- | ------------------------- | --------------- |
+| Live class          | 2 ชม./สัปดาห์ × 1 session | 12 ชม.          |
+| Self-paced homework | 3-5 ชม./สัปดาห์           | 18-30 ชม.       |
+| **Total**           | **5-7 ชม./สัปดาห์**       | **30-42 ชม.**   |
 
 > **Realistic expectation**: ถ้าทำงานประจำ — เก็บเวลาเสาร์/อาทิตย์เช้า 2-3 ชม. + 30-60 นาทีหลังเลิกงานวันธรรมดา
 
@@ -87,7 +94,9 @@
 ## 🗓️ 6-Week Schedule
 
 ### Week 1 — Foundation (FE)
+
 **Goal**: Static coffee shop UI ทำงานบน localhost
+
 - Monorepo + pnpm + Turborepo
 - Next.js 15 App Router (layouts, route groups)
 - React Server Components vs Client Components
@@ -95,35 +104,45 @@
 - React Hook Form + Zod (TDD)
 
 ### Week 2 — Foundation (BE)
+
 **Goal**: API + Database พร้อมใช้
+
 - Postgres ใน Docker
 - NestJS (modules, controllers, providers, guards)
 - Prisma (schema, migrations, client)
 - JWT auth + bcrypt password hashing
 
 ### Week 3 — First End-to-End Slice
+
 **Goal**: CRUD เมนูครบทั้ง stack
+
 - Shared Zod schemas (`packages/shared`)
 - Menu module (NestJS)
 - TanStack Query (FE data fetching)
 - Admin Menu CRUD UI
 
 ### Week 4 — Order Flow
+
 **Goal**: ลูกค้าสั่งของได้, staff ดู Kitchen UI ได้
+
 - Cart state (Zustand)
 - Order placement (atomic transaction)
 - Order tracking page
 - Kitchen UI (role-based access)
 
 ### Week 5 — Inventory + Reports ⭐
+
 **Goal**: Auto stock deduct + P&L dashboard
+
 - Recipe (product ↔ ingredient)
 - Stock movements (event-sourced)
 - Order completed → stock − COGS snapshot (atomic)
 - Reports: revenue, COGS, gross profit, top 5 menu, low stock alerts
 
 ### Week 6 — Deploy + GitOps 🚀
+
 **Goal**: Live บน cloud VPS, push to deploy
+
 - Provision VPS (Hetzner / DigitalOcean) + hardening
 - Multi-stage Docker builds
 - Caddy auto-HTTPS reverse proxy
@@ -147,16 +166,19 @@
 ## 🎓 Class Format
 
 ### Live Class (Group Workshop, 2-6 students)
+
 - 1 session / สัปดาห์ × 120 นาที
 - Mix: lecture (30%) + live demo (35%) + hands-on build (25%) + Q&A (10%)
 - ทุก session มี checkpoint Q ทุก 25-30 นาที (กัน autopilot)
 - Recording ของแต่ละ session แชร์ใน Slack หลังคลาส
 
 ### 1-on-1 Mentorship (optional)
+
 - ถ้าตกที่ติดมาก — schedule 30-60 min 1-on-1 ระหว่างสัปดาห์
 - ใช้ session plan เดียวกัน แต่ pace ตามคุณ
 
 ### Communication
+
 - **Live class**: [Zoom / Google Meet / TBA]
 - **Async chat**: [Slack / Discord / LINE TBA]
 - **Code reviews**: GitHub PRs
@@ -167,12 +189,14 @@
 ## ✅ Completion Criteria
 
 **ผ่าน ("Complete") ถ้า:**
+
 - ✅ ทำ homework PR ครบ Week 1-5 (Week 6 deploy เป็น stretch)
 - ✅ Final project deploy ได้ (อย่างน้อย local stack ทำงาน)
 - ✅ Live class attendance ≥ 70% (≥ 5 จาก 7 sessions)
 - ✅ Final project ผ่าน rubric "Functional Baseline" (ดู [rubric](final-project-rubric.md))
 
 **Honor ("Complete with Distinction") ถ้า:**
+
 - ทำเกณฑ์ "ผ่าน" ครบ
 - Final project hit "Production Quality" tier ใน rubric
 - Stretch feature อย่างน้อย 1 อย่าง (real payment, OAuth, real-time, etc.)
@@ -199,12 +223,12 @@
 
 ## 💰 Cost Breakdown (สำหรับ student)
 
-| Item | Cost |
-|---|---|
-| **Course tuition** | [TBA — instructor configures] |
-| **Hetzner CX22 VPS** (Week 6) | ~165 บาท/เดือน |
-| **Domain `.com`** | ~30 บาท/เดือน amortized |
-| **Total infrastructure during course** | ~200 บาท/เดือน × 1-2 เดือน |
+| Item                                   | Cost                          |
+| -------------------------------------- | ----------------------------- |
+| **Course tuition**                     | [TBA — instructor configures] |
+| **Hetzner CX22 VPS** (Week 6)          | ~165 บาท/เดือน                |
+| **Domain `.com`**                      | ~30 บาท/เดือน amortized       |
+| **Total infrastructure during course** | ~200 บาท/เดือน × 1-2 เดือน    |
 
 > **Tip**: Hetzner / DigitalOcean refund ถ้ายกเลิกใน 30 วัน — ทดลองได้
 
@@ -236,6 +260,7 @@ A: ได้ผ่าน WSL2 (Ubuntu). ส่วน macOS / Linux native รอ
 
 **Q: ถ้าตามไม่ทันจะทำยังไง?**
 A: Catch-up plan:
+
 1. ดู recording ของ session
 2. ทำ homework ตาม plan (มีครบทุกบรรทัด code)
 3. Schedule 1-on-1 ก่อน session ถัดไป

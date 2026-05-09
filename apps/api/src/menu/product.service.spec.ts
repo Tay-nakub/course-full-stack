@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 describe('ProductService', () => {
   let service: ProductService;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let prisma: any;
 
   beforeEach(async () => {
@@ -22,10 +22,7 @@ describe('ProductService', () => {
     };
 
     const module = await Test.createTestingModule({
-      providers: [
-        ProductService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [ProductService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get(ProductService);
@@ -39,7 +36,6 @@ describe('ProductService', () => {
         price: 75,
         categoryId: 'missing',
         isActive: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any),
     ).rejects.toThrow(BadRequestException);
   });
@@ -54,8 +50,7 @@ describe('ProductService', () => {
       price: 75,
       categoryId: 'c1',
       isActive: true,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    });
 
     expect(result).toEqual(created);
   });

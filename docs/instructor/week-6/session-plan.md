@@ -8,13 +8,14 @@
 
 ## 📅 Cadence
 
-| Session | When | Duration | Covers (Plan tasks) |
-|---|---|---|---|
-| **1** | Day 1 | 120 min | Tasks 1-7: VPS + hardening + Docker + Dockerfiles + compose + Caddyfile |
-| _Homework_ | Day 2-6 | 3-5 hrs | First manual deploy + verify live |
-| **2** | Day 7 | 120 min | Tasks 8-10: domain DNS + GitHub Actions CI + deploy + backup |
+| Session    | When    | Duration | Covers (Plan tasks)                                                     |
+| ---------- | ------- | -------- | ----------------------------------------------------------------------- |
+| **1**      | Day 1   | 120 min  | Tasks 1-7: VPS + hardening + Docker + Dockerfiles + compose + Caddyfile |
+| _Homework_ | Day 2-6 | 3-5 hrs  | First manual deploy + verify live                                       |
+| **2**      | Day 7   | 120 min  | Tasks 8-10: domain DNS + GitHub Actions CI + deploy + backup            |
 
 > **⚠️ Pre-class IMPORTANT**:
+>
 > - Student ต้อง **มี domain แล้ว** (ซื้อ subdomain ของของที่มีก็ได้ฟรี)
 > - Student ต้อง **มี credit card** สำหรับ Hetzner (~€4.5/mo)
 > - GitHub account ต้อง verified
@@ -23,15 +24,15 @@
 
 ## 🎯 Week 6 Learning Outcomes
 
-| Skill | ทดสอบโดย |
-|---|---|
-| Provision Hetzner VPS + SSH key auth | Live deploy own VPS |
-| Server hardening (ufw + fail2ban + SSH config) | `ufw status` + try root login (fail) |
-| Multi-stage Dockerfile (size + security) | Final image < 300 MB |
-| Docker Compose orchestration | `docker compose up` runs 4-container stack |
-| Caddy auto-HTTPS reverse proxy | https:// works with valid cert |
-| GitHub Actions CI/CD | Push main → deployed |
-| pg_dump backup automation | Daily cron runs |
+| Skill                                          | ทดสอบโดย                                   |
+| ---------------------------------------------- | ------------------------------------------ |
+| Provision Hetzner VPS + SSH key auth           | Live deploy own VPS                        |
+| Server hardening (ufw + fail2ban + SSH config) | `ufw status` + try root login (fail)       |
+| Multi-stage Dockerfile (size + security)       | Final image < 300 MB                       |
+| Docker Compose orchestration                   | `docker compose up` runs 4-container stack |
+| Caddy auto-HTTPS reverse proxy                 | https:// works with valid cert             |
+| GitHub Actions CI/CD                           | Push main → deployed                       |
+| pg_dump backup automation                      | Daily cron runs                            |
 
 ---
 
@@ -41,7 +42,7 @@
 Session 1 (120 min) — VPS + Containers
 ├── Recap Week 5 + Week 6 preview ........ 10 min
 ├── Block A: Provision VPS + SSH ......... 25 min  ← Tasks 1
-├── Block B: Hardening (ufw + fail2ban + 
+├── Block B: Hardening (ufw + fail2ban +
 │           SSH config) ................... 20 min  ← Task 2
 ├── Block C: Install Docker + UFW conflict 10 min  ← Task 3
 ├── Block D: Multi-stage Dockerfiles
@@ -68,12 +69,14 @@ Session 2 (120 min) — GitOps + Polish
 ## 🪜 Cognitive Load Considerations
 
 Week 6 = "many small pieces, must work together":
+
 - VPS commands (Linux fluency varies)
 - Docker (new for ~50% of students)
 - DNS (often confusing)
 - GitHub Actions (YAML syntax + secrets)
 
 **Strategies**:
+
 - **Show, don't tell** — instructor's screen visible always
 - **Verify checkpoint after each block** — don't move on until working
 - **Backup branch ready** — if student ติด Block A, give them path forward
@@ -106,6 +109,7 @@ Week 6 = "many small pieces, must work together":
 ## 🔗 Course Closing
 
 **ใช้จาก Week 1-5:**
+
 - Whole monorepo (Wk 1)
 - NestJS + Prisma + Auth (Wk 2)
 - Menu CRUD UI (Wk 3)
@@ -113,6 +117,7 @@ Week 6 = "many small pieces, must work together":
 - Inventory + Reports + seed (Wk 5)
 
 **ส่งต่อ student**:
+
 - Live URL → portfolio piece
 - Tier 1-3 learning path (from spec § 7.2)
 - Final project rubric self-assessment
@@ -124,6 +129,7 @@ Week 6 = "many small pieces, must work together":
 ## 🎓 Course Stats
 
 After Week 6, student มี:
+
 - 🌐 **Live web app** with HTTPS
 - 📦 **GitHub repo** with clean history (~50+ atomic commits)
 - 🧪 **Test suite** ≥ 25 unit tests

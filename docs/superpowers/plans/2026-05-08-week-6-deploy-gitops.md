@@ -11,6 +11,7 @@
 **Spec Reference:** [course design spec § Week 6](../specs/2026-05-08-fullstack-coffee-shop-course-design.md)
 
 **Pre-requisites:**
+
 - Week 1-5 complete (full stack working locally)
 - **Domain ready** — ซื้อแล้ว (Cloudflare/Namecheap/etc) หรือใช้ subdomain ที่มีอยู่
 - **Credit card** สำหรับ Hetzner (~€4.5/mo)
@@ -86,6 +87,7 @@ Hetzner Console → Security → SSH Keys → Add → Paste public key → Save
 - [ ] **Step 1.4: Create CX22 server**
 
 Hetzner Console → Servers → New Server:
+
 - Location: Falkenstein, Helsinki, or Singapore (closest to user)
 - Image: **Ubuntu 24.04**
 - Type: **CX22** (€4.51/mo, 2 vCPU, 4 GB RAM, 40 GB disk)
@@ -143,12 +145,14 @@ ssh deploy@<server-ip>
 - [ ] **Step 1.8: Document IP + commit (just notes)**
 
 ใน local repo:
+
 ```bash
 echo "VPS_IP=<your-ip>" > .deploy-notes
-echo "Add this to .gitignore (don't commit IP)" 
+echo "Add this to .gitignore (don't commit IP)"
 ```
 
 แก้ `.gitignore`:
+
 ```
 .deploy-notes
 ```
@@ -200,6 +204,7 @@ sudo nano /etc/ssh/sshd_config
 ```
 
 Find + set:
+
 ```
 PermitRootLogin no
 PasswordAuthentication no
@@ -207,6 +212,7 @@ PubkeyAuthentication yes
 ```
 
 Save. Reload SSH:
+
 ```bash
 sudo systemctl reload ssh
 ```
@@ -287,6 +293,7 @@ sudo systemctl restart docker
 ### Task 4: Multi-stage Dockerfile.api
 
 **Files:**
+
 - Create: `infra/docker/Dockerfile.api`
 - Modify: `apps/api/package.json` (add `start:prod` script if missing)
 
@@ -352,6 +359,7 @@ CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
 ```
 
 > 🎓 **Stages explained**:
+>
 > - **Builder**: full deps + source + build → produces dist/ + node_modules
 > - **Runtime**: minimal — just dist + production node_modules + non-root user
 > - **CMD**: `prisma migrate deploy` runs idempotent migrations on container start
@@ -396,6 +404,7 @@ git commit -m "feat(infra): add multi-stage Dockerfile for NestJS API"
 ### Task 5: Multi-stage Dockerfile.web
 
 **Files:**
+
 - Create: `infra/docker/Dockerfile.web`
 - Modify: `apps/web/next.config.ts` (add `output: 'standalone'`)
 
@@ -407,15 +416,13 @@ git commit -m "feat(infra): add multi-stage Dockerfile for NestJS API"
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'standalone',           // ⭐ standalone build for Docker
+  output: 'standalone', // ⭐ standalone build for Docker
   async rewrites() {
     if (process.env.NODE_ENV === 'production') {
       // ใน prod, Caddy จัดการ /api/* → ไม่ต้อง rewrite
       return [];
     }
-    return [
-      { source: '/api/:path*', destination: 'http://localhost:4000/api/:path*' },
-    ];
+    return [{ source: '/api/:path*', destination: 'http://localhost:4000/api/:path*' }];
   },
 };
 
@@ -504,6 +511,7 @@ git commit -m "feat(infra): add multi-stage Dockerfile for Next.js standalone"
 ### Task 6: docker-compose.prod.yml
 
 **Files:**
+
 - Create: `infra/docker-compose.prod.yml`
 - Create: `infra/.env.prod.example`
 
@@ -578,6 +586,7 @@ volumes:
 ```
 
 > 🎓 **Concepts**:
+>
 > - `expose:` (not `ports:`) for internal services — only Caddy gets public ports
 > - `${GH_USER}` + `${TAG}` = parameterized images
 > - Caddy `caddy_data` volume persists Let's Encrypt certs
@@ -606,6 +615,7 @@ git commit -m "feat(infra): production docker-compose with Caddy + apps + postgr
 ### Task 7: Caddyfile (auto-HTTPS reverse proxy)
 
 **Files:**
+
 - Create: `infra/caddy/Caddyfile`
 
 - [ ] **Step 7.1: Caddyfile**
@@ -639,6 +649,7 @@ Create file `infra/caddy/Caddyfile`:
 ```
 
 > 🎓 **Concepts**:
+>
 > - `{$DOMAIN}` = env var substitution
 > - **Auto-HTTPS** = Caddy ดู domain → request Let's Encrypt cert ครั้งแรก → renew ก่อน expire
 > - `handle /api/*` matches first → proxy to NestJS (Caddy doesn't strip prefix unless told)
@@ -667,6 +678,7 @@ git commit -m "feat(infra): Caddy reverse proxy with auto-HTTPS"
 - [ ] **Step 8.1: Point domain A record to VPS IP**
 
 ใน DNS provider (Cloudflare/Namecheap/etc):
+
 - Type: A
 - Name: `@` (apex) or `coffee` (subdomain)
 - Value: `<vps-ip>`
@@ -674,6 +686,7 @@ git commit -m "feat(infra): Caddy reverse proxy with auto-HTTPS"
 - Proxy: OFF (Cloudflare) — direct connection สำคัญสำหรับ Let's Encrypt verification
 
 Wait ~5 min, verify:
+
 ```bash
 dig +short your-coffee-shop.com
 # Should return your VPS IP
@@ -682,6 +695,7 @@ dig +short your-coffee-shop.com
 - [ ] **Step 8.2: Setup repo on VPS (manual deploy first)**
 
 ใน VPS:
+
 ```bash
 mkdir -p ~/coffeeshop
 cd ~/coffeeshop
@@ -692,6 +706,7 @@ mkdir -p caddy
 ```
 
 ใน local:
+
 ```bash
 scp infra/docker-compose.prod.yml deploy@<ip>:~/coffeeshop/docker-compose.yml
 scp infra/caddy/Caddyfile deploy@<ip>:~/coffeeshop/caddy/Caddyfile
@@ -718,12 +733,14 @@ docker push ghcr.io/<your-gh-username>/coffee-web:latest
 - [ ] **Step 8.4: Setup .env บน VPS**
 
 ใน VPS:
+
 ```bash
 cd ~/coffeeshop
 nano .env
 ```
 
 Paste (ปรับ values):
+
 ```
 GH_USER=your-github-username
 TAG=latest
@@ -742,6 +759,7 @@ chmod 600 .env
 - [ ] **Step 8.5: First deploy**
 
 ใน VPS:
+
 ```bash
 cd ~/coffeeshop
 docker compose pull
@@ -750,6 +768,7 @@ docker compose logs -f
 ```
 
 ดู logs:
+
 - caddy: "issuing certificate" → "successfully obtained certificate"
 - api: "🚀 API ready"
 - web: Next.js ready
@@ -797,6 +816,7 @@ docker compose exec postgres psql -U coffee -d coffee -c "SELECT COUNT(*) FROM u
 ### Task 9: GitHub Actions — CI Workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 - [ ] **Step 9.1: CI workflow**
@@ -876,6 +896,7 @@ GitHub → Actions tab → see workflow run
 ### Task 10: GitHub Actions — Deploy Workflow + Backup
 
 **Files:**
+
 - Create: `.github/workflows/deploy.yml`
 - Create: `scripts/backup.sh`
 - Create: `docs/DEPLOY.md`
@@ -884,11 +905,11 @@ GitHub → Actions tab → see workflow run
 
 GitHub repo → Settings → Secrets and variables → Actions → New repository secret:
 
-| Name | Value |
-|---|---|
+| Name              | Value                                         |
+| ----------------- | --------------------------------------------- |
 | `SSH_PRIVATE_KEY` | Contents of `~/.ssh/id_ed25519` (private key) |
-| `VPS_HOST` | Your VPS IP |
-| `VPS_USER` | `deploy` |
+| `VPS_HOST`        | Your VPS IP                                   |
+| `VPS_USER`        | `deploy`                                      |
 
 > 📝 **Note**: For SSH_PRIVATE_KEY, paste entire file including BEGIN/END lines
 
@@ -1003,6 +1024,7 @@ echo "[$(date)] Backup complete: coffee-$DATE.sql.gz" >> "$BACKUP_DIR/backup.log
 - [ ] **Step 10.4: Deploy backup script + cron**
 
 ใน VPS:
+
 ```bash
 sudo mkdir -p /var/backups/coffee
 sudo chown deploy:deploy /var/backups/coffee
@@ -1027,13 +1049,15 @@ crontab -e
 
 Create file `docs/DEPLOY.md`:
 
-```markdown
+````markdown
 # Deployment Runbook
 
 ## Live URL
+
 https://your-coffee-shop.com
 
 ## Architecture
+
 - VPS: Hetzner CX22 (Ubuntu 24.04)
 - Containers: Caddy + Next.js (web) + NestJS (api) + Postgres
 - Reverse proxy: Caddy with auto-HTTPS via Let's Encrypt
@@ -1053,26 +1077,31 @@ cd ~/coffeeshop
 TAG=<commit-sha-short> docker compose pull
 TAG=<commit-sha-short> docker compose up -d
 ```
+````
 
 ## Database operations
 
 ### Run migrations manually
+
 ```bash
 docker compose exec api npx prisma migrate deploy
 ```
 
 ### Backup (daily auto + manual)
+
 ```bash
 ~/scripts/backup.sh
 ```
 
 ### Restore
+
 ```bash
 gunzip < /var/backups/coffee/coffee-YYYY-MM-DD.sql.gz \
   | docker compose exec -T postgres psql -U coffee coffee
 ```
 
 ### Connect to DB
+
 ```bash
 docker compose exec postgres psql -U coffee coffee
 ```
@@ -1092,12 +1121,14 @@ docker compose logs --tail 100 web
 ## Common issues
 
 ### Cert renewal failing
+
 ```bash
 docker compose logs caddy
 # Check Let's Encrypt rate limits
 ```
 
 ### App down after deploy
+
 ```bash
 docker compose ps
 docker compose logs api --tail 200
@@ -1105,11 +1136,13 @@ docker compose logs api --tail 200
 ```
 
 ### Disk full
+
 ```bash
 df -h
 docker system prune -af --volumes  # ⚠️ removes unused volumes too
 ```
-```
+
+````
 
 - [ ] **Step 10.6: Test full GitOps flow**
 
@@ -1122,7 +1155,7 @@ git push origin main
 # GitHub → Actions → see "Deploy" run
 # Wait ~3-5 min
 # Verify https://your-coffee-shop.com still works (or has new feature if you changed something)
-```
+````
 
 🎉 **GitOps complete**: `git push` → live in ~3 min
 
@@ -1141,7 +1174,7 @@ git push origin main
 - [ ] **Network**
   - [ ] Domain DNS points to VPS
   - [ ] Caddy auto-HTTPS works (Let's Encrypt cert valid)
-  - [ ] /api/* routes to NestJS, / to Next.js
+  - [ ] /api/\* routes to NestJS, / to Next.js
 - [ ] **CI/CD**
   - [ ] CI workflow: lint + typecheck + test on PR (green)
   - [ ] Deploy workflow: push main → build + push GHCR → SSH deploy
@@ -1159,6 +1192,7 @@ git push origin main
 ## Self-Review Notes
 
 **Spec coverage:**
+
 - ✅ Day 1 (provision): Tasks 1-2
 - ✅ Day 2 (Dockerfiles): Tasks 4-5
 - ✅ Day 3 (compose + Caddyfile): Tasks 6-7
@@ -1167,6 +1201,7 @@ git push origin main
 - ✅ Day 7 (backup + runbook): Task 10
 
 **Concepts taught:**
+
 - VPS provisioning, ufw, fail2ban, SSH hardening
 - Multi-stage Docker builds (size + security)
 - Docker Compose orchestration
@@ -1177,6 +1212,7 @@ git push origin main
 - Prisma migrate deploy (idempotent migrations on container start)
 
 **Out of Week 6 scope:**
+
 - ❌ k8s, microservices (Tier 3)
 - ❌ Multi-region / load balancer (Tier 3)
 - ❌ Sentry/Datadog (Tier 1 self-study)
@@ -1188,6 +1224,7 @@ git push origin main
 ## 🎉 Course Complete!
 
 หลัง Week 6 → student มี:
+
 - 🌐 Live coffee shop on cloud VPS with HTTPS
 - 🔄 GitOps: git push → auto deploy
 - 🧪 CI on every PR

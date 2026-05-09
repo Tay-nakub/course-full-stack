@@ -2,8 +2,7 @@ import { MenuCard } from '@/components/menu-card';
 import type { Product, Category } from '@coffee/shared';
 import { getServerToken } from '@/lib/auth';
 
-const NESTJS_URL =
-  process.env.NESTJS_INTERNAL_URL ?? 'http://localhost:4000';
+const NESTJS_URL = process.env.NESTJS_INTERNAL_URL ?? 'http://localhost:4000';
 
 async function fetchProducts(): Promise<Product[]> {
   const token = await getServerToken();
@@ -24,10 +23,7 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 export default async function MenuPage() {
-  const [products, categories] = await Promise.all([
-    fetchProducts(),
-    fetchCategories(),
-  ]);
+  const [products, categories] = await Promise.all([fetchProducts(), fetchCategories()]);
 
   if (products.length === 0) {
     return (

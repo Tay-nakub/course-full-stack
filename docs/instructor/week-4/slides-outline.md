@@ -52,7 +52,7 @@ Week 6: Deploy
 
 ```
 Order create involves multiple inserts:
-  
+
   1. INSERT Order
   2. INSERT OrderItem 1
   3. INSERT OrderItem 2
@@ -65,7 +65,7 @@ Solution: $transaction
   - All succeed → COMMIT
   - Any fail → ROLLBACK
   - No partial state ever visible
-  
+
   await prisma.$transaction(async (tx) => {
     await tx.product.findMany(...)
     await tx.order.create(...)
@@ -342,10 +342,12 @@ Week 5 — Inventory + Reports ⭐
 ## 🛠️ Build Notes (instructor)
 
 ### Visual Aids Critical for Week 4
+
 - **2 browser windows side by side** during demo (customer + staff)
 - **DevTools Network tab** showing polling requests
 - **Real-time updates visible** — when staff clicks button, customer page updates within 5 sec
 
 ### Live Coding Tips
+
 - Block A (atomic transaction): pause และเชิงให้ student เขียน VALID_TRANSITIONS table ใน notebook ตัวเอง
 - Block F (Kitchen): split tasks — instructor ทำ KitchenPage, student ทำ OrderCard parallel (15 min)

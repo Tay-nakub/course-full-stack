@@ -30,10 +30,7 @@ describe('AuthService', () => {
           signOptions: { expiresIn: '1h' },
         }),
       ],
-      providers: [
-        AuthService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [AuthService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     authService = module.get(AuthService);

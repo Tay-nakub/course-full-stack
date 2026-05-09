@@ -8,13 +8,14 @@
 
 ## 📅 Cadence
 
-| Session | When | Duration | Covers (Plan tasks) |
-|---|---|---|---|
-| **1** | Day 1 | 120 min | Tasks 1-5: schemas + ingredients + recipes + **stock deduct atomic** |
-| _Homework_ | Day 2-6 | 3-5 hrs | Practice creating ingredients + recipes + verify stock deducts work |
-| **2** | Day 7 | 120 min | Tasks 6-10: Reports backend + UI + dashboard + seed script |
+| Session    | When    | Duration | Covers (Plan tasks)                                                  |
+| ---------- | ------- | -------- | -------------------------------------------------------------------- |
+| **1**      | Day 1   | 120 min  | Tasks 1-5: schemas + ingredients + recipes + **stock deduct atomic** |
+| _Homework_ | Day 2-6 | 3-5 hrs  | Practice creating ingredients + recipes + verify stock deducts work  |
+| **2**      | Day 7   | 120 min  | Tasks 6-10: Reports backend + UI + dashboard + seed script           |
 
-> **⚠️ Why Week 5 is hardest**: 
+> **⚠️ Why Week 5 is hardest**:
+>
 > - Atomic transaction across 4 tables (OrderItem + StockMovement + Ingredient + Order)
 > - Decimal arithmetic + cost calculation
 > - Multiple async data flows (recipe → cogs → snapshot)
@@ -24,15 +25,15 @@
 
 ## 🎯 Week 5 Learning Outcomes
 
-| Skill | ทดสอบโดย |
-|---|---|
-| Event-sourced inventory pattern | Database state inspection |
+| Skill                              | ทดสอบโดย                                          |
+| ---------------------------------- | ------------------------------------------------- |
+| Event-sourced inventory pattern    | Database state inspection                         |
 | Atomic transaction across 4 tables | Test order COMPLETED → verify all 4 tables update |
-| Recipe whole-replace strategy | Edit recipe → verify old items gone, new in |
-| Prisma `groupBy` aggregation | Reports endpoints |
-| `$queryRaw` for date truncation | Revenue chart endpoint |
-| Recharts integration | Dashboard chart |
-| Seed script for repeatable dev env | Run seed → verify state |
+| Recipe whole-replace strategy      | Edit recipe → verify old items gone, new in       |
+| Prisma `groupBy` aggregation       | Reports endpoints                                 |
+| `$queryRaw` for date truncation    | Revenue chart endpoint                            |
+| Recharts integration               | Dashboard chart                                   |
+| Seed script for repeatable dev env | Run seed → verify state                           |
 
 ---
 
@@ -41,7 +42,7 @@
 ```
 Session 1 (120 min) — Backend + Atomic Stock Deduct ⭐
 ├── Recap Week 4 + Week 5 preview ......... 10 min
-├── Block A: Schemas + Ingredients + 
+├── Block A: Schemas + Ingredients +
 │           Stock movements CRUD .......... 40 min  ← Tasks 1-3
 ├── Block B: Recipe module ................ 20 min  ← Task 4
 ├── Block C: ⭐ Order COMPLETED →
@@ -101,11 +102,13 @@ Week 5 = "complex domain logic + multi-table transactions". Strategies:
 ## 🔗 Connection Backwards/Forwards
 
 **ใช้จาก Week 1-4:**
+
 - All previous patterns (schema sharing, NestJS, Prisma, TanStack Query)
 - ⭐ `prisma.$transaction` (Wk 4) — เป็น center of Week 5
 - Snapshot pattern (Wk 4) — extend to cogsSnapshot
 
 **ส่งต่อ Week 6 (Deploy):**
+
 - Seed script → useful for prod fresh deploy + tests
 - Charts → SSR considerations
 - Reports = important — make sure visible after deploy

@@ -11,6 +11,7 @@
 **Spec Reference:** [course design spec § Week 4](../specs/2026-05-08-fullstack-coffee-shop-course-design.md)
 
 **Pre-requisites:**
+
 - Week 3 complete (admin can CRUD menu, storefront shows real data)
 - มี admin + staff users ใน DB (admin จาก Week 2, staff = register ปกติแล้ว default role = STAFF)
 - Menu มี categories + products อย่างน้อย 3-4 อย่าง
@@ -69,6 +70,7 @@ course-full-stack/
 ### Task 1: Order Schemas + Prisma Models
 
 **Files:**
+
 - Create: `packages/shared/src/schemas/order.ts`
 - Modify: `packages/shared/src/index.ts`
 - Modify: `apps/api/prisma/schema.prisma`
@@ -131,6 +133,7 @@ export type UpdateOrderStatusInput = z.infer<typeof UpdateOrderStatusSchema>;
 - [ ] **Step 1.2: Export**
 
 แก้ `packages/shared/src/index.ts`:
+
 ```ts
 export * from './types/user';
 export * from './schemas/auth';
@@ -188,6 +191,7 @@ enum OrderStatus {
 ```
 
 > 🎓 **Concepts**:
+>
 > - `productName` snapshot — เก็บไว้แม้ product ถูก renamed/deleted
 > - `unitPrice` snapshot — historical accuracy
 > - `onDelete: Restrict` ที่ Product — ห้ามลบ product ที่มี order (data integrity)
@@ -220,6 +224,7 @@ git commit -m "feat: add Order and OrderItem schemas + Prisma models"
 ### Task 2: NestJS Orders Module — Atomic Create
 
 **Files:**
+
 - Create: `apps/api/src/orders/orders.module.ts`
 - Create: `apps/api/src/orders/orders.service.ts`
 - Create: `apps/api/src/orders/orders.controller.ts`
@@ -230,20 +235,25 @@ Create file `apps/api/src/orders/orders.service.ts`:
 
 ```ts
 import {
-  Injectable, NotFoundException, BadRequestException, ConflictException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, OrderStatus } from '@prisma/client';
 import type {
-  CreateOrderInput, UpdateOrderStatusInput, OrderStatus as OrderStatusType,
+  CreateOrderInput,
+  UpdateOrderStatusInput,
+  OrderStatus as OrderStatusType,
 } from '@coffee/shared';
 
 const VALID_TRANSITIONS: Record<OrderStatusType, OrderStatusType[]> = {
-  PENDING:    ['PREPARING', 'CANCELLED'],
-  PREPARING:  ['READY', 'CANCELLED'],
-  READY:      ['COMPLETED', 'CANCELLED'],
-  COMPLETED:  [],
-  CANCELLED:  [],
+  PENDING: ['PREPARING', 'CANCELLED'],
+  PREPARING: ['READY', 'CANCELLED'],
+  READY: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [],
+  CANCELLED: [],
 };
 
 @Injectable()
@@ -263,9 +273,7 @@ export class OrdersService {
       }
       const inactive = products.filter((p) => !p.isActive);
       if (inactive.length > 0) {
-        throw new BadRequestException(
-          `สินค้าหมด: ${inactive.map((p) => p.name).join(', ')}`,
-        );
+        throw new BadRequestException(`สินค้าหมด: ${inactive.map((p) => p.name).join(', ')}`);
       }
 
       // 2. Calculate totals (server-side — never trust FE)
@@ -283,7 +291,7 @@ export class OrdersService {
         };
       });
       const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
-      const total = subtotal;     // no tax/discount in MVP
+      const total = subtotal; // no tax/discount in MVP
 
       // 3. Generate orderNumber (last 4 chars of cuid + uppercase)
       const orderNumber = `#${randomOrderNumber()}`;
@@ -343,14 +351,12 @@ export class OrdersService {
     const order = await this.findOne(id);
     const allowed = VALID_TRANSITIONS[order.status];
     if (!allowed.includes(input.status)) {
-      throw new ConflictException(
-        `เปลี่ยนสถานะจาก ${order.status} → ${input.status} ไม่ได้`,
-      );
+      throw new ConflictException(`เปลี่ยนสถานะจาก ${order.status} → ${input.status} ไม่ได้`);
     }
 
     const data: Prisma.OrderUpdateInput = { status: input.status };
     if (input.status === 'PREPARING' && !order.paidAt) {
-      data.paidAt = new Date();      // mark paid when staff accept
+      data.paidAt = new Date(); // mark paid when staff accept
     }
     if (input.status === 'COMPLETED') {
       data.completedAt = new Date();
@@ -365,7 +371,7 @@ export class OrdersService {
 }
 
 function randomOrderNumber(): string {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';      // exclude confusing chars
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // exclude confusing chars
   let result = '';
   for (let i = 0; i < 5; i++) {
     result += chars[Math.floor(Math.random() * chars.length)];
@@ -375,6 +381,7 @@ function randomOrderNumber(): string {
 ```
 
 > 🎓 **Concepts**:
+>
 > - **`prisma.$transaction(async (tx) => ...)`** — interactive transaction. ทุก query ภายใน atomic
 > - **Server-side total calculation** — ห้าม trust FE total (security)
 > - **Status transition state machine** — ป้องกัน invalid transitions
@@ -386,12 +393,24 @@ Create file `apps/api/src/orders/orders.controller.ts`:
 
 ```ts
 import {
-  Body, Controller, Get, Param, Patch, Post, Query, UseGuards, HttpCode, HttpStatus,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import {
-  CreateOrderSchema, UpdateOrderStatusSchema, ORDER_STATUSES,
-  type CreateOrderInput, type UpdateOrderStatusInput,
+  CreateOrderSchema,
+  UpdateOrderStatusSchema,
+  ORDER_STATUSES,
+  type CreateOrderInput,
+  type UpdateOrderStatusInput,
   type OrderStatus,
 } from '@coffee/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -443,6 +462,7 @@ export class OrdersController {
 ```
 
 > 🎓 **Permissions**:
+>
 > - `POST /orders` (create) → public (guest customer)
 > - `GET /orders/:id` → public (anyone with ID can view — for tracking)
 > - `GET /orders` (list) → STAFF + ADMIN (kitchen view)
@@ -513,6 +533,7 @@ git commit -m "feat(api): add Orders module with atomic create and status transi
 ### Task 3: OrdersService Tests
 
 **Files:**
+
 - Create: `apps/api/src/orders/orders.service.spec.ts`
 
 - [ ] **Step 3.1: Tests**
@@ -555,20 +576,26 @@ describe('OrdersService', () => {
   describe('create', () => {
     it('throws BadRequest ถ้า product ไม่มี', async () => {
       tx.product.findMany.mockResolvedValue([]);
-      await expect(service.create({
-        customerName: 'A', customerPhone: '0800000000',
-        items: [{ productId: 'missing', qty: 1 }],
-      })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.create({
+          customerName: 'A',
+          customerPhone: '0800000000',
+          items: [{ productId: 'missing', qty: 1 }],
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('throws BadRequest ถ้า product inactive', async () => {
       tx.product.findMany.mockResolvedValue([
         { id: 'p1', name: 'Latte', price: 75, isActive: false },
       ]);
-      await expect(service.create({
-        customerName: 'A', customerPhone: '0800000000',
-        items: [{ productId: 'p1', qty: 1 }],
-      })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.create({
+          customerName: 'A',
+          customerPhone: '0800000000',
+          items: [{ productId: 'p1', qty: 1 }],
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('สร้าง order + items + คำนวณ total ฝั่ง server', async () => {
@@ -577,74 +604,93 @@ describe('OrdersService', () => {
         { id: 'p2', name: 'Croissant', price: 65, isActive: true },
       ]);
       tx.order.create.mockResolvedValue({
-        id: 'o1', orderNumber: '#ABCDE',
-        customerName: 'A', subtotal: 215, total: 215,
+        id: 'o1',
+        orderNumber: '#ABCDE',
+        customerName: 'A',
+        subtotal: 215,
+        total: 215,
         items: [],
       });
 
       const result = await service.create({
-        customerName: 'A', customerPhone: '0800000000',
+        customerName: 'A',
+        customerPhone: '0800000000',
         items: [
           { productId: 'p1', qty: 2 },
           { productId: 'p2', qty: 1 },
         ],
       });
 
-      expect(tx.order.create).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({
-          subtotal: 215,    // 75*2 + 65*1
-          total: 215,
-          items: {
-            create: expect.arrayContaining([
-              expect.objectContaining({ productId: 'p1', qty: 2, unitPrice: 75, lineTotal: 150 }),
-              expect.objectContaining({ productId: 'p2', qty: 1, unitPrice: 65, lineTotal: 65 }),
-            ]),
-          },
+      expect(tx.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            subtotal: 215, // 75*2 + 65*1
+            total: 215,
+            items: {
+              create: expect.arrayContaining([
+                expect.objectContaining({ productId: 'p1', qty: 2, unitPrice: 75, lineTotal: 150 }),
+                expect.objectContaining({ productId: 'p2', qty: 1, unitPrice: 65, lineTotal: 65 }),
+              ]),
+            },
+          }),
         }),
-      }));
+      );
     });
   });
 
   describe('updateStatus', () => {
     it('throws Conflict ถ้า invalid transition', async () => {
       prisma.order.findUnique.mockResolvedValue({
-        id: 'o1', status: 'COMPLETED', items: [],
+        id: 'o1',
+        status: 'COMPLETED',
+        items: [],
       });
 
-      await expect(service.updateStatus('o1', { status: 'PENDING' }))
-        .rejects.toThrow(ConflictException);
+      await expect(service.updateStatus('o1', { status: 'PENDING' })).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('PENDING → PREPARING ตั้ง paidAt', async () => {
       prisma.order.findUnique.mockResolvedValue({
-        id: 'o1', status: 'PENDING', paidAt: null, items: [],
+        id: 'o1',
+        status: 'PENDING',
+        paidAt: null,
+        items: [],
       });
       prisma.order.update.mockResolvedValue({});
 
       await service.updateStatus('o1', { status: 'PREPARING' });
 
-      expect(prisma.order.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({
-          status: 'PREPARING',
-          paidAt: expect.any(Date),
+      expect(prisma.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'PREPARING',
+            paidAt: expect.any(Date),
+          }),
         }),
-      }));
+      );
     });
 
     it('READY → COMPLETED ตั้ง completedAt', async () => {
       prisma.order.findUnique.mockResolvedValue({
-        id: 'o1', status: 'READY', paidAt: new Date(), items: [],
+        id: 'o1',
+        status: 'READY',
+        paidAt: new Date(),
+        items: [],
       });
       prisma.order.update.mockResolvedValue({});
 
       await service.updateStatus('o1', { status: 'COMPLETED' });
 
-      expect(prisma.order.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({
-          status: 'COMPLETED',
-          completedAt: expect.any(Date),
+      expect(prisma.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'COMPLETED',
+            completedAt: expect.any(Date),
+          }),
         }),
-      }));
+      );
     });
   });
 
@@ -676,6 +722,7 @@ git commit -m "test(api): add OrdersService unit tests for create and status tra
 ### Task 4: Zustand Cart Store
 
 **Files:**
+
 - Create: `apps/web/stores/cart-store.ts`
 
 - [ ] **Step 4.1: Install Zustand**
@@ -734,13 +781,10 @@ export const useCart = create<CartStore>()(
           return;
         }
         set({
-          items: get().items.map((i) =>
-            i.productId === productId ? { ...i, qty } : i,
-          ),
+          items: get().items.map((i) => (i.productId === productId ? { ...i, qty } : i)),
         });
       },
-      remove: (productId) =>
-        set({ items: get().items.filter((i) => i.productId !== productId) }),
+      remove: (productId) => set({ items: get().items.filter((i) => i.productId !== productId) }),
       clear: () => set({ items: [] }),
       totalQty: () => get().items.reduce((s, i) => s + i.qty, 0),
       subtotal: () => get().items.reduce((s, i) => s + i.qty * i.unitPrice, 0),
@@ -751,6 +795,7 @@ export const useCart = create<CartStore>()(
 ```
 
 > 🎓 **Concepts**:
+>
 > - `persist` middleware → save to localStorage automatically
 > - `name: 'coffee-cart'` → key in localStorage
 > - Selectors as functions (`totalQty`, `subtotal`) — call ใน component: `useCart((s) => s.totalQty())`
@@ -785,7 +830,7 @@ export function CartIcon() {
 แก้ `apps/web/components/menu-card.tsx`:
 
 ```tsx
-'use client';      // ⭐ เปลี่ยนเป็น Client Component (button needs onClick)
+'use client'; // ⭐ เปลี่ยนเป็น Client Component (button needs onClick)
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -800,9 +845,15 @@ export function MenuCard({ item }: { item: Product }) {
       <CardHeader>
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.imageUrl} alt={item.name} className="aspect-square w-full rounded object-cover" />
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="aspect-square w-full rounded object-cover"
+          />
         ) : (
-          <div className="flex aspect-square items-center justify-center rounded bg-gray-100 text-4xl">☕</div>
+          <div className="flex aspect-square items-center justify-center rounded bg-gray-100 text-4xl">
+            ☕
+          </div>
         )}
         <CardTitle>{item.name}</CardTitle>
       </CardHeader>
@@ -847,6 +898,7 @@ git commit -m "feat(web): add Zustand cart store with persist + add-to-cart UI"
 ### Task 5: Cart Page
 
 **Files:**
+
 - Create: `apps/web/app/(storefront)/cart/page.tsx`
 - Create: `apps/web/components/cart-line-item.tsx`
 
@@ -870,7 +922,9 @@ export function CartLineItem({ item }: { item: CartItem }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={item.imageUrl} alt={item.name} className="h-16 w-16 rounded object-cover" />
       ) : (
-        <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-2xl">☕</div>
+        <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-2xl">
+          ☕
+        </div>
       )}
 
       <div className="flex-1">
@@ -916,8 +970,8 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold mb-4">ตะกร้าว่างเปล่า</h1>
+      <div className="py-12 text-center">
+        <h1 className="mb-4 text-2xl font-bold">ตะกร้าว่างเปล่า</h1>
         <Button asChild>
           <Link href="/menu">เลือกเมนู</Link>
         </Button>
@@ -927,22 +981,24 @@ export default function CartPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">ตะกร้า</h1>
-      <div className="border rounded">
+      <h1 className="mb-6 text-3xl font-bold">ตะกร้า</h1>
+      <div className="rounded border">
         {items.map((item) => (
           <CartLineItem key={item.productId} item={item} />
         ))}
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <Button variant="ghost" onClick={clear}>ล้างตะกร้า</Button>
+        <Button variant="ghost" onClick={clear}>
+          ล้างตะกร้า
+        </Button>
         <div className="text-right">
           <div className="text-sm text-gray-500">รวม</div>
           <div className="text-2xl font-bold">฿{subtotal}</div>
         </div>
       </div>
 
-      <div className="mt-6 flex gap-4 justify-end">
+      <div className="mt-6 flex justify-end gap-4">
         <Button variant="outline" asChild>
           <Link href="/menu">เพิ่มสินค้า</Link>
         </Button>
@@ -974,6 +1030,7 @@ git commit -m "feat(web): add cart page with qty controls and subtotal"
 ### Task 6: Checkout + Place Order
 
 **Files:**
+
 - Create: `apps/web/app/(storefront)/checkout/page.tsx`
 
 - [ ] **Step 6.1: Checkout page**
@@ -1008,7 +1065,11 @@ export default function CheckoutPage() {
   const subtotal = useCart((s) => s.subtotal());
   const clear = useCart((s) => s.clear);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CheckoutInput>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CheckoutInput>({
     resolver: zodResolver(CheckoutSchema),
   });
 
@@ -1035,25 +1096,25 @@ export default function CheckoutPage() {
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       {/* Customer info form */}
       <div>
-        <h1 className="text-2xl font-bold mb-6">ชำระเงิน</h1>
+        <h1 className="mb-6 text-2xl font-bold">ชำระเงิน</h1>
         <form onSubmit={handleSubmit((d) => placeOrder.mutate(d))} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="customerName">ชื่อ</Label>
             <Input id="customerName" {...register('customerName')} />
             {errors.customerName && (
-              <p className="text-sm text-destructive">{errors.customerName.message}</p>
+              <p className="text-destructive text-sm">{errors.customerName.message}</p>
             )}
           </div>
           <div className="space-y-1">
             <Label htmlFor="customerPhone">เบอร์โทร</Label>
             <Input id="customerPhone" {...register('customerPhone')} />
             {errors.customerPhone && (
-              <p className="text-sm text-destructive">{errors.customerPhone.message}</p>
+              <p className="text-destructive text-sm">{errors.customerPhone.message}</p>
             )}
           </div>
 
           {placeOrder.error instanceof ApiError && (
-            <p className="rounded border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+            <p className="border-destructive/50 bg-destructive/10 text-destructive rounded border p-2 text-sm">
               {(placeOrder.error.details as any)?.message ?? 'สั่งซื้อไม่สำเร็จ'}
             </p>
           )}
@@ -1066,15 +1127,17 @@ export default function CheckoutPage() {
 
       {/* Order summary */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">สรุปออเดอร์</h2>
-        <div className="border rounded p-4">
+        <h2 className="mb-4 text-xl font-semibold">สรุปออเดอร์</h2>
+        <div className="rounded border p-4">
           {items.map((i) => (
             <div key={i.productId} className="flex justify-between py-1">
-              <span>{i.name} × {i.qty}</span>
+              <span>
+                {i.name} × {i.qty}
+              </span>
               <span>฿{i.qty * i.unitPrice}</span>
             </div>
           ))}
-          <div className="border-t mt-3 pt-3 flex justify-between font-bold text-lg">
+          <div className="mt-3 flex justify-between border-t pt-3 text-lg font-bold">
             <span>รวม</span>
             <span>฿{subtotal}</span>
           </div>
@@ -1086,6 +1149,7 @@ export default function CheckoutPage() {
 ```
 
 > 🎓 **Concepts**:
+>
 > - แยก CheckoutSchema (just customer info) จาก CreateOrderSchema (full)
 > - `placeOrder.mutate(d)` → on success: clear cart + navigate to tracking
 > - Error from server → show banner
@@ -1111,6 +1175,7 @@ git commit -m "feat(web): add checkout flow with form validation and place order
 ### Task 7: Order Tracking Page (Polling)
 
 **Files:**
+
 - Create: `apps/web/app/(storefront)/order/[id]/page.tsx`
 - Create: `apps/web/components/order-status-badge.tsx`
 
@@ -1162,49 +1227,56 @@ import type { Order } from '@coffee/shared';
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
-  const { data: order, isLoading, error } = useQuery({
+  const {
+    data: order,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['order', id],
     queryFn: () => apiFetch<Order>(`/orders/${id}`),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       if (status === 'COMPLETED' || status === 'CANCELLED') return false;
-      return 5000;       // poll every 5 sec until terminal
+      return 5000; // poll every 5 sec until terminal
     },
   });
 
-  if (isLoading) return <p className="text-center py-12">กำลังโหลด...</p>;
-  if (error || !order) return <p className="text-center py-12 text-red-600">ไม่พบออเดอร์</p>;
+  if (isLoading) return <p className="py-12 text-center">กำลังโหลด...</p>;
+  if (error || !order) return <p className="py-12 text-center text-red-600">ไม่พบออเดอร์</p>;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">ออเดอร์ {order.orderNumber}</h1>
-        <p className="text-gray-500 mb-4">{order.customerName} · {order.customerPhone}</p>
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-8 text-center">
+        <h1 className="mb-2 text-3xl font-bold">ออเดอร์ {order.orderNumber}</h1>
+        <p className="mb-4 text-gray-500">
+          {order.customerName} · {order.customerPhone}
+        </p>
         <OrderStatusBadge status={order.status} />
       </div>
 
-      <div className="border rounded p-4 mb-4">
+      <div className="mb-4 rounded border p-4">
         {order.items.map((i) => (
           <div key={i.id} className="flex justify-between py-1">
-            <span>{i.productName} × {i.qty}</span>
+            <span>
+              {i.productName} × {i.qty}
+            </span>
             <span>฿{Number(i.lineTotal)}</span>
           </div>
         ))}
-        <div className="border-t mt-3 pt-3 flex justify-between font-bold text-lg">
+        <div className="mt-3 flex justify-between border-t pt-3 text-lg font-bold">
           <span>รวม</span>
           <span>฿{Number(order.total)}</span>
         </div>
       </div>
 
-      <p className="text-center text-sm text-gray-500">
-        🔄 หน้านี้รีเฟรชอัตโนมัติทุก 5 วินาที
-      </p>
+      <p className="text-center text-sm text-gray-500">🔄 หน้านี้รีเฟรชอัตโนมัติทุก 5 วินาที</p>
     </div>
   );
 }
 ```
 
 > 🎓 **Concepts**:
+>
 > - `use(params)` — Next.js 15 unwrap Promise params (Client Component)
 > - `refetchInterval` (function) — poll dynamically. Return false → stop polling
 > - Stop polling เมื่อถึง terminal state (COMPLETED/CANCELLED) → ประหยัด requests
@@ -1230,6 +1302,7 @@ git commit -m "feat(web): add order tracking page with smart polling"
 ### Task 8: Kitchen Route Group + Middleware
 
 **Files:**
+
 - Modify: `apps/web/middleware.ts`
 - Create: `apps/web/app/(kitchen)/layout.tsx`
 - Modify: `apps/web/lib/auth.ts`
@@ -1303,6 +1376,7 @@ git commit -m "feat(web): add kitchen route group with auth middleware"
 ### Task 9: Kitchen UI — List + Status Updates
 
 **Files:**
+
 - Create: `apps/web/app/(kitchen)/kitchen/page.tsx`
 - Create: `apps/web/app/(kitchen)/kitchen/components/order-card.tsx`
 
@@ -1320,9 +1394,9 @@ import { Button } from '@/components/ui/button';
 import { OrderStatusBadge } from '@/components/order-status-badge';
 
 const NEXT_STATUS: Partial<Record<OrderStatus, { next: OrderStatus; label: string }>> = {
-  PENDING:   { next: 'PREPARING', label: 'รับออเดอร์' },
-  PREPARING: { next: 'READY',     label: 'ทำเสร็จ' },
-  READY:     { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },
+  PENDING: { next: 'PREPARING', label: 'รับออเดอร์' },
+  PREPARING: { next: 'READY', label: 'ทำเสร็จ' },
+  READY: { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },
 };
 
 export function OrderCard({ order }: { order: Order }) {
@@ -1350,24 +1424,28 @@ export function OrderCard({ order }: { order: Order }) {
 
   return (
     <div className="rounded border bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between mb-3">
+      <div className="mb-3 flex items-start justify-between">
         <div>
           <div className="text-lg font-bold">{order.orderNumber}</div>
-          <div className="text-sm text-gray-500">{order.customerName} · {order.customerPhone}</div>
+          <div className="text-sm text-gray-500">
+            {order.customerName} · {order.customerPhone}
+          </div>
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
 
-      <div className="border-t pt-3 mb-3 space-y-1">
+      <div className="mb-3 space-y-1 border-t pt-3">
         {order.items.map((i) => (
           <div key={i.id} className="flex justify-between text-sm">
-            <span>{i.productName} × {i.qty}</span>
+            <span>
+              {i.productName} × {i.qty}
+            </span>
             <span className="text-gray-500">฿{Number(i.lineTotal)}</span>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-between items-center pt-3 border-t">
+      <div className="flex items-center justify-between border-t pt-3">
         <span className="font-bold">฿{Number(order.total)}</span>
 
         <div className="flex gap-2">
@@ -1382,7 +1460,8 @@ export function OrderCard({ order }: { order: Order }) {
           )}
           {(order.status === 'PENDING' || order.status === 'PREPARING') && (
             <Button
-              variant="outline" size="sm"
+              variant="outline"
+              size="sm"
               onClick={() => confirm('ยกเลิกออเดอร์?') && cancel.mutate()}
             >
               ยกเลิก
@@ -1411,31 +1490,27 @@ export default function KitchenPage() {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['orders', { activeOnly: true }],
     queryFn: () => apiFetch<Order[]>('/orders?activeOnly=true'),
-    refetchInterval: 5000,    // poll every 5 sec
+    refetchInterval: 5000, // poll every 5 sec
   });
 
   if (isLoading) return <p>กำลังโหลด...</p>;
 
   if (orders.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        🎉 ยังไม่มีออเดอร์ค้าง
-      </div>
-    );
+    return <div className="py-12 text-center text-gray-500">🎉 ยังไม่มีออเดอร์ค้าง</div>;
   }
 
   // Group by status for visual order
   const byStatus = {
-    PENDING:   orders.filter((o) => o.status === 'PENDING'),
+    PENDING: orders.filter((o) => o.status === 'PENDING'),
     PREPARING: orders.filter((o) => o.status === 'PREPARING'),
-    READY:     orders.filter((o) => o.status === 'READY'),
+    READY: orders.filter((o) => o.status === 'READY'),
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">ออเดอร์ที่ค้าง ({orders.length})</h1>
+      <h1 className="mb-6 text-2xl font-bold">ออเดอร์ที่ค้าง ({orders.length})</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Column title="🕐 รอชำระ" orders={byStatus.PENDING} />
         <Column title="🔥 กำลังเตรียม" orders={byStatus.PREPARING} />
         <Column title="✅ พร้อมรับ" orders={byStatus.READY} />
@@ -1447,7 +1522,9 @@ export default function KitchenPage() {
 function Column({ title, orders }: { title: string; orders: Order[] }) {
   return (
     <div>
-      <h2 className="font-semibold text-lg mb-3">{title} ({orders.length})</h2>
+      <h2 className="mb-3 text-lg font-semibold">
+        {title} ({orders.length})
+      </h2>
       <div className="space-y-3">
         {orders.length === 0 ? (
           <p className="text-sm text-gray-400">ว่าง</p>
@@ -1484,6 +1561,7 @@ git commit -m "feat(web): add Kitchen UI with kanban board and status mutations"
 ### Task 10: Admin Orders View (Read-only)
 
 **Files:**
+
 - Create: `apps/web/app/(admin)/admin/orders/page.tsx`
 
 > 📝 **Note**: Admin = ดูภาพรวม. Status updates ทำที่ Kitchen UI
@@ -1499,7 +1577,12 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import { OrderStatusBadge } from '@/components/order-status-badge';
 import type { Order, OrderStatus } from '@coffee/shared';
@@ -1509,21 +1592,20 @@ export default function AdminOrdersPage() {
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['orders', { status: filter }],
-    queryFn: () =>
-      apiFetch<Order[]>(filter === 'ALL' ? '/orders' : `/orders?status=${filter}`),
+    queryFn: () => apiFetch<Order[]>(filter === 'ALL' ? '/orders' : `/orders?status=${filter}`),
     refetchInterval: 10_000,
   });
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">ออเดอร์ทั้งหมด</h1>
+      <h1 className="mb-6 text-3xl font-bold">ออเดอร์ทั้งหมด</h1>
 
       <div className="mb-4 flex gap-2">
         {['ALL', 'PENDING', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'].map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s as any)}
-            className={`px-3 py-1 rounded text-sm ${
+            className={`rounded px-3 py-1 text-sm ${
               filter === s ? 'bg-amber-700 text-white' : 'bg-gray-100'
             }`}
           >
@@ -1555,7 +1637,9 @@ export default function AdminOrdersPage() {
                 <TableCell>{o.customerName}</TableCell>
                 <TableCell>{o.items.reduce((s, i) => s + i.qty, 0)} ชิ้น</TableCell>
                 <TableCell>฿{Number(o.total)}</TableCell>
-                <TableCell><OrderStatusBadge status={o.status} /></TableCell>
+                <TableCell>
+                  <OrderStatusBadge status={o.status} />
+                </TableCell>
                 <TableCell className="text-xs text-gray-500">
                   {new Date(o.createdAt).toLocaleString('th-TH')}
                 </TableCell>
@@ -1607,6 +1691,7 @@ git commit -m "feat(web): add admin orders view with status filter"
 ## Self-Review Notes
 
 **Spec coverage:**
+
 - ✅ Day 1-2 (Cart Zustand): Tasks 4-5
 - ✅ Day 3-4 (Order module + atomic): Tasks 1-3, 6
 - ✅ Day 5 (Tracking page polling): Task 7
@@ -1614,6 +1699,7 @@ git commit -m "feat(web): add admin orders view with status filter"
 - ✅ Bonus: admin orders view (Task 10)
 
 **Concepts taught:**
+
 - Prisma `$transaction` (atomic operations)
 - State machine pattern (status transitions)
 - Server-side total calculation (security)
@@ -1623,6 +1709,7 @@ git commit -m "feat(web): add admin orders view with status filter"
 - Kanban-style UI
 
 **Out of Week 4 scope:**
+
 - ❌ Real payment (mock — just POST creates order)
 - ❌ Customer signup (guest only)
 - ❌ Email/SMS notification

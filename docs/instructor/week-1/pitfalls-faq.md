@@ -11,6 +11,7 @@
 ### Pitfall #1: ลืม `'use client'` แล้ว debug ผิดทาง
 
 **Symptom**: error ใน terminal:
+
 ```
 Error: useState only works in Client Components.
 Add the "use client" directive at the top of the file...
@@ -19,11 +20,13 @@ Add the "use client" directive at the top of the file...
 **Why students get stuck**: error message ดี แต่ student อาจไม่อ่าน เพราะ panic — focus ที่ stack trace แทน
 
 **Quick fix**:
+
 1. หา file ที่ใช้ `useState`
 2. เพิ่ม `'use client';` บรรทัดแรก
 3. Save → re-build
 
 **Teaching opportunity**:
+
 > "Next.js error message ส่วนใหญ่บอกวิธีแก้ตรงๆ. **อ่าน error ก่อน google**"
 
 ---
@@ -35,6 +38,7 @@ Add the "use client" directive at the top of the file...
 **Why happens**: instructor demo cd เข้า apps/web แล้ว — student อาจไม่ทันสังเกต
 
 **Quick fix**:
+
 ```bash
 # ลบ components.json + components/ที่ root
 rm -rf components.json components/
@@ -52,17 +56,19 @@ pnpm dlx shadcn@latest init
 **Symptom**: ใส่ `className="text-red-500"` แต่ไม่เป็นสีแดง
 
 **Common causes** (เรียงตามความถี่):
+
 1. **Tailwind config `content` ไม่ครอบ file** → ตรวจ `tailwind.config.ts`:
    ```ts
-   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}']
+   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'];
    ```
 2. **Class spelling ผิด** — `text-red-500` ไม่ใช่ `text-red500`
 3. **Cache** — Stop dev → `rm -rf .next` → restart `pnpm dev`
 4. **Missing `globals.css` import** ใน `app/layout.tsx`
 
 **Quick test**:
+
 ```tsx
-<div className="bg-red-500 text-white p-4">If this is red, Tailwind works</div>
+<div className="bg-red-500 p-4 text-white">If this is red, Tailwind works</div>
 ```
 
 ---
@@ -74,13 +80,16 @@ pnpm dlx shadcn@latest init
 **Why**: student มี mental model ของ React traditional. ไม่รู้ว่า Server Component fetch ตรงๆ ใน async function ได้
 
 **Teaching point** (ใช้ตอบจริง):
+
 > "Server Component ไม่ต้อง useEffect เพื่อ fetch — เขียน async function ใน component ตรงๆ:
+>
 > ```tsx
 > export default async function Page() {
 >   const data = await fetch('https://api.example.com/menu').then(r => r.json());
 >   return <ul>{data.map(...)}</ul>;
 > }
 > ```
+>
 > นี่คือ feature ของ RSC. Week 3 จะลงรายละเอียด."
 
 ---
@@ -90,10 +99,12 @@ pnpm dlx shadcn@latest init
 **Symptom**: `Cannot find module '@/components/ui/button'`
 
 **Causes**:
+
 1. `tsconfig.json` ไม่มี `paths` setup
 2. `tsconfig.json` extend แต่ไม่ override `paths` ที่ extends ตั้งไว้
 
 **Fix**:
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -112,11 +123,13 @@ pnpm dlx shadcn@latest init
 **Symptom**: install hangs หรือ timeout
 
 **Causes**:
+
 1. Corporate firewall block npm registry
 2. Slow Internet
 3. Registry mirror config ผิด
 
 **Quick fix**:
+
 ```bash
 # ใช้ Asia-Pacific mirror
 pnpm config set registry https://registry.npmmirror.com
@@ -137,9 +150,11 @@ pnpm config set registry https://registry.npmjs.org
 **Symptom**: student commit "fix everything" ที่มี 200 lines change รวมหลาย concerns
 
 **Teaching opportunity** (ครั้งแรกที่เจอใน class):
+
 > "Commit เดียวควร = 1 logical change. ถ้า message ต้องใช้ ‘and’ → quote: ‘init monorepo AND scaffold Next.js’ → ควรแยก 2 commits"
 
 **Quick fix**:
+
 ```bash
 git reset HEAD~1                   # undo commit, keep changes
 git add <file1>
@@ -184,12 +199,14 @@ A: ยังใช้ได้ใน Next.js แต่ไม่มี new featur
 
 **Q: ทำไม Next.js 15 แรงเรื่อง async params?**
 A: Next.js 15 เปลี่ยน `params` ใน dynamic routes เป็น `Promise` — ต้อง `await` ก่อน. คอร์สนี้ตรงตาม:
+
 ```tsx
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   ...
 }
 ```
+
 จะเจอครั้งแรกใน Week 4 (`/order/[id]`)
 
 **Q: Turbopack กับ Webpack ต่างยังไง?**
@@ -210,16 +227,21 @@ A: shadcn primitive ที่ใช้ Radix UI + state (Dialog, DropdownMenu, S
 
 **Q: ถ้า Client Component ต้อง fetch จาก DB?**
 A: Client ไม่ access DB ตรง. ทำผ่าน:
+
 - API route (`/api/...`) — แต่คอร์สเลือก NestJS แยก
 - Server Action (Next.js feature) — out of scope คอร์สนี้
 - TanStack Query เรียก API — Week 3 onwards
 
 **Q: ถ้าผม render `<MenuCard>` (Server) ใน `<CartIcon>` (Client) ได้ไหม?**
 A: **ผ่าน import โดยตรง — ไม่ได้**. แต่**ผ่าน children prop — ได้**:
+
 ```tsx
 // Server Component
-<CartIcon><MenuCard /></CartIcon>
+<CartIcon>
+  <MenuCard />
+</CartIcon>
 ```
+
 Pattern นี้เรียก "interleaving" — Week 4 จะใช้
 
 **Q: Server Component log ขึ้นไหน?**
@@ -318,9 +340,9 @@ pnpm dev -- --port 3001
 
 > Instructor: หลังสอนแต่ละ batch อัปเดตตารางนี้ — ทำให้ FAQ ตามจริง
 
-| Mistake | Frequency | Last Updated |
-|---|---|---|
-| ลืม `'use client'` | TBD | — |
-| Tailwind config content array | TBD | — |
-| `pnpm install` ช้า | TBD | — |
-| ... | | |
+| Mistake                       | Frequency | Last Updated |
+| ----------------------------- | --------- | ------------ |
+| ลืม `'use client'`            | TBD       | —            |
+| Tailwind config content array | TBD       | —            |
+| `pnpm install` ช้า            | TBD       | —            |
+| ...                           |           |              |

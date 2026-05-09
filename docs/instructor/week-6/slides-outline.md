@@ -75,7 +75,7 @@ Single-stage:                Multi-stage:
 FROM node:20                 Stage 1 (builder):
 COPY everything                FROM node:20
 RUN install (dev too)          install + build
-RUN build                      
+RUN build
 CMD start                    Stage 2 (runtime):
                                FROM node:20-alpine
                                COPY --from=builder
@@ -110,14 +110,14 @@ services:
   caddy:        ports: [80, 443]    # public
     image: caddy:2-alpine
     volumes: [Caddyfile, certs]
-    
+
   web:          expose: 3000        # internal
     image: ghcr.io/<user>/coffee-web
-    
+
   api:          expose: 4000        # internal
     image: ghcr.io/<user>/coffee-api
     depends_on: postgres
-    
+
   postgres:     expose: 5432        # internal
     image: postgres:16-alpine
     volumes: [data]
@@ -132,11 +132,11 @@ services:
 ```
 {$DOMAIN} {
     encode zstd gzip
-    
+
     handle /api/* {
         reverse_proxy api:4000
     }
-    
+
     handle {
         reverse_proxy web:3000
     }
@@ -201,7 +201,7 @@ CI = Continuous Integration
   - Block bad merges
   - Quality gate
 
-CD = Continuous Deployment  
+CD = Continuous Deployment
   - Every main push triggers
   - Build + push images
   - SSH deploy
@@ -224,12 +224,12 @@ Together: "Push to main = trustworthy live"
         ├── docker compose pull
         ├── docker compose up -d
         └── docker image prune
-        
+
 [VPS]
   → pulls new images
   → recreates web + api containers
   → Caddy holds connections during ~3s restart
-  
+
 [Live]
   ~3 minutes total
 ```
@@ -237,19 +237,19 @@ Together: "Push to main = trustworthy live"
 ### Slide 2.04 — GitHub Actions Workflow Anatomy
 
 ```yaml
-on:                       # trigger
+on: # trigger
   pull_request:
     branches: [main]
   push:
     branches: [main]
 
-jobs:                     # parallel by default
-  quality:                # job name
+jobs: # parallel by default
+  quality: # job name
     runs-on: ubuntu-latest
-    services:             # sidecar (DB, Redis)
+    services: # sidecar (DB, Redis)
       postgres: ...
-    
-    steps:                # sequential
+
+    steps: # sequential
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - run: pnpm install
@@ -373,11 +373,13 @@ The rest is practice + reading docs.
 ## 🛠️ Build Notes
 
 ### Critical Visual Aids
+
 - **2 browsers**: GitHub Actions tab + live URL (verify deploy)
 - **Live demo deploy**: actually push during class, watch run live
 - **DBeaver**: verify data persistence across deploys
 
 ### Closing Tone
+
 - Celebrate — student built real thing
 - Encourage continuation
 - Share live URLs in group chat

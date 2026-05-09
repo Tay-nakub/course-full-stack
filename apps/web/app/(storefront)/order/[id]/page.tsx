@@ -6,11 +6,7 @@ import { apiFetch } from '@/lib/api-client';
 import { OrderStatusBadge } from '@/components/order-status-badge';
 import type { Order } from '@coffee/shared';
 
-export default function OrderPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
   const {
@@ -27,10 +23,8 @@ export default function OrderPage({
     },
   });
 
-  if (isLoading)
-    return <p className="py-12 text-center">กำลังโหลด...</p>;
-  if (error || !order)
-    return <p className="py-12 text-center text-red-600">ไม่พบออเดอร์</p>;
+  if (isLoading) return <p className="py-12 text-center">กำลังโหลด...</p>;
+  if (error || !order) return <p className="py-12 text-center text-red-600">ไม่พบออเดอร์</p>;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -57,9 +51,7 @@ export default function OrderPage({
         </div>
       </div>
 
-      <p className="text-center text-sm text-gray-500">
-        🔄 หน้านี้รีเฟรชอัตโนมัติทุก 5 วินาที
-      </p>
+      <p className="text-center text-sm text-gray-500">🔄 หน้านี้รีเฟรชอัตโนมัติทุก 5 วินาที</p>
     </div>
   );
 }

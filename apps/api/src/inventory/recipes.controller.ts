@@ -10,10 +10,7 @@ import {
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { z } from 'zod';
-import {
-  SetRecipeItemSchema,
-  type SetRecipeItemInput,
-} from '@coffee/shared';
+import { SetRecipeItemSchema, type SetRecipeItemInput } from '@coffee/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

@@ -11,6 +11,7 @@
 **Spec Reference:** [course design spec § Week 5](../specs/2026-05-08-fullstack-coffee-shop-course-design.md)
 
 **Pre-requisites:**
+
 - Week 4 complete (Order flow + Kitchen UI + state transitions)
 - มี orders ใน DB อย่างน้อย 5-10 records (mix statuses) สำหรับ test reports
 - Admin user promoted แล้ว
@@ -73,6 +74,7 @@ course-full-stack/
 ### Task 1: Inventory + Reports Schemas + Prisma Models
 
 **Files:**
+
 - Create: `packages/shared/src/schemas/inventory.ts`
 - Create: `packages/shared/src/schemas/reports.ts`
 - Modify: `packages/shared/src/index.ts`
@@ -139,10 +141,12 @@ export type RecipeItem = z.infer<typeof RecipeItemSchema>;
 
 export const SetRecipeSchema = z.object({
   productId: z.string(),
-  items: z.array(z.object({
-    ingredientId: z.string(),
-    quantity: z.number().positive('จำนวนต้องมากกว่า 0'),
-  })),
+  items: z.array(
+    z.object({
+      ingredientId: z.string(),
+      quantity: z.number().positive('จำนวนต้องมากกว่า 0'),
+    }),
+  ),
 });
 export type SetRecipeInput = z.infer<typeof SetRecipeSchema>;
 ```
@@ -186,6 +190,7 @@ export type LowStockItem = z.infer<typeof LowStockItemSchema>;
 - [ ] **Step 1.3: Export**
 
 แก้ `packages/shared/src/index.ts`:
+
 ```ts
 export * from './types/user';
 export * from './schemas/auth';
@@ -310,6 +315,7 @@ git commit -m "feat: add inventory schemas + Prisma models with cogsSnapshot"
 ### Task 2: Ingredients CRUD
 
 **Files:**
+
 - Create: `apps/api/src/inventory/inventory.module.ts`
 - Create: `apps/api/src/inventory/ingredients.service.ts`
 - Create: `apps/api/src/inventory/ingredients.controller.ts`
@@ -364,12 +370,23 @@ Create file `apps/api/src/inventory/ingredients.controller.ts`:
 
 ```ts
 import {
-  Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, HttpCode, HttpStatus,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import {
-  CreateIngredientSchema, UpdateIngredientSchema,
-  type CreateIngredientInput, type UpdateIngredientInput,
+  CreateIngredientSchema,
+  UpdateIngredientSchema,
+  type CreateIngredientInput,
+  type UpdateIngredientInput,
 } from '@coffee/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -462,6 +479,7 @@ git commit -m "feat(api): add Ingredients CRUD with admin guards"
 ### Task 3: Stock Movements (Manual Entry)
 
 **Files:**
+
 - Create: `apps/api/src/inventory/stock-movements.service.ts`
 - Modify: `apps/api/src/inventory/inventory.module.ts`
 - Add endpoints to: `apps/api/src/inventory/ingredients.controller.ts` (or new `stock-movements.controller.ts`)
@@ -587,6 +605,7 @@ recompute(@Param('id') id: string) {
 - [ ] **Step 3.3: Register service**
 
 แก้ `apps/api/src/inventory/inventory.module.ts`:
+
 ```ts
 import { StockMovementsService } from './stock-movements.service';
 
@@ -633,6 +652,7 @@ git commit -m "feat(api): add stock movements (PURCHASE/SALE/WASTE/ADJUSTMENT)"
 ### Task 4: Recipe Module (Product ↔ Ingredient)
 
 **Files:**
+
 - Create: `apps/api/src/inventory/recipes.service.ts`
 - Create: `apps/api/src/inventory/recipes.controller.ts`
 - Modify: `apps/api/src/inventory/inventory.module.ts`
@@ -703,9 +723,7 @@ export class RecipesService {
 Create file `apps/api/src/inventory/recipes.controller.ts`:
 
 ```ts
-import {
-  Body, Controller, Get, Param, Put, UseGuards, HttpCode, HttpStatus,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { SetRecipeSchema, type SetRecipeInput } from '@coffee/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -728,7 +746,8 @@ export class RecipesController {
   @HttpCode(HttpStatus.OK)
   set(
     @Param('productId') productId: string,
-    @Body(new ZodValidationPipe(SetRecipeSchema.shape.items.array())) items: SetRecipeInput['items'],
+    @Body(new ZodValidationPipe(SetRecipeSchema.shape.items.array()))
+    items: SetRecipeInput['items'],
   ) {
     return this.service.setRecipe(productId, items);
   }
@@ -740,6 +759,7 @@ export class RecipesController {
 - [ ] **Step 4.3: Register**
 
 แก้ `apps/api/src/inventory/inventory.module.ts`:
+
 ```ts
 import { RecipesController } from './recipes.controller';
 import { RecipesService } from './recipes.service';
@@ -781,10 +801,12 @@ git commit -m "feat(api): add Recipe module with whole-replace strategy"
 ### Task 5: ⭐ Order COMPLETED → Stock Deduct + COGS (THE BIG ONE)
 
 **Files:**
+
 - Modify: `apps/api/src/orders/orders.service.ts`
 - Create: `apps/api/src/orders/orders.service.spec.ts` (extend existing tests)
 
 > 🎯 **THIS IS THE WEEK 5 CENTERPIECE**: เมื่อ order เปลี่ยนเป็น COMPLETED → atomic transaction ที่:
+>
 > 1. คำนวณ COGS ของแต่ละ OrderItem จาก recipe
 > 2. Update OrderItem.cogsSnapshot
 > 3. Create StockMovement (SALE) สำหรับ ingredient ทุกตัวใน recipe
@@ -909,6 +931,7 @@ private async deductStockAndSnapshotCogs(
 ```
 
 > 🎓 **Critical concepts**:
+>
 > - **One transaction**: ทุก operation atomic. ถ้าระหว่างกลางมี error → rollback ทุกอย่าง (รวม order status update)
 > - **Recipe ที่ไม่มี**: log warning + cogsSnapshot=0, ไม่ throw (ให้ business ทำงานต่อ — admin ค่อยตามไปแก้ recipe ทีหลัง)
 > - **Decimal arithmetic**: Number() conversion. Production: ใช้ decimal.js สำหรับ exact precision (course OK with Number)
@@ -932,22 +955,20 @@ describe('updateStatus → COMPLETED stock deduct', () => {
     prisma.order.findUnique.mockResolvedValue({
       id: 'o1',
       status: 'READY',
-      items: [
-        { id: 'oi1', productId: 'p-latte', qty: 2 },
-      ],
+      items: [{ id: 'oi1', productId: 'p-latte', qty: 2 }],
     });
 
     tx.recipeItem.findMany.mockResolvedValue([
       {
         productId: 'p-latte',
         ingredientId: 'i-coffee',
-        quantity: 18,            // 18g per latte
+        quantity: 18, // 18g per latte
         ingredient: { id: 'i-coffee', costPerUnit: 0.8 },
       },
       {
         productId: 'p-latte',
         ingredientId: 'i-milk',
-        quantity: 200,           // 200ml per latte
+        quantity: 200, // 200ml per latte
         ingredient: { id: 'i-milk', costPerUnit: 0.05 },
       },
     ]);
@@ -958,23 +979,27 @@ describe('updateStatus → COMPLETED stock deduct', () => {
 
     // Verify stock movements created
     expect(tx.stockMovement.create).toHaveBeenCalledTimes(2);
-    expect(tx.stockMovement.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        ingredientId: 'i-coffee',
-        quantity: -36,                  // 18g × 2 latte = 36g out
-        reason: 'SALE',
-        refOrderId: 'o1',
+    expect(tx.stockMovement.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          ingredientId: 'i-coffee',
+          quantity: -36, // 18g × 2 latte = 36g out
+          reason: 'SALE',
+          refOrderId: 'o1',
+        }),
       }),
-    }));
+    );
 
     // Verify currentStock decremented
     expect(tx.ingredient.update).toHaveBeenCalledTimes(2);
 
     // Verify cogsSnapshot = 18×0.8 + 200×0.05 (per latte) × 2 = 28.8 × 2 = 57.6
-    expect(tx.orderItem.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'oi1' },
-      data: { cogsSnapshot: 57.6 },
-    }));
+    expect(tx.orderItem.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'oi1' },
+        data: { cogsSnapshot: 57.6 },
+      }),
+    );
   });
 
   it('product ไม่มี recipe — log warn + cogsSnapshot=0, ไม่ throw', async () => {
@@ -984,14 +1009,16 @@ describe('updateStatus → COMPLETED stock deduct', () => {
       items: [{ id: 'oi1', productId: 'p-no-recipe', qty: 1 }],
     });
 
-    tx.recipeItem.findMany.mockResolvedValue([]);  // no recipe
+    tx.recipeItem.findMany.mockResolvedValue([]); // no recipe
 
     await service.updateStatus('o1', { status: 'COMPLETED' });
 
     expect(tx.stockMovement.create).not.toHaveBeenCalled();
-    expect(tx.orderItem.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: { cogsSnapshot: 0 },
-    }));
+    expect(tx.orderItem.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { cogsSnapshot: 0 },
+      }),
+    );
   });
 });
 ```
@@ -1036,6 +1063,7 @@ git commit -m "feat(api): order COMPLETED → atomic stock deduct + COGS snapsho
 ### Task 6: Reports Module — Daily Summary
 
 **Files:**
+
 - Create: `apps/api/src/reports/reports.module.ts`
 - Create: `apps/api/src/reports/reports.service.ts`
 - Create: `apps/api/src/reports/reports.controller.ts`
@@ -1159,6 +1187,7 @@ export class ReportsService {
 ```
 
 > 🎓 **Concepts**:
+>
 > - **Prisma `groupBy`** — aggregate per `productId`. `_sum: { qty: true }` = SUM(qty)
 > - **`$queryRaw`** for date grouping — Prisma `groupBy` ไม่ support truncate date
 > - **`gte` + `lt`** for day range — half-open interval (gte 00:00, lt next day 00:00)
@@ -1187,10 +1216,7 @@ export class ReportsController {
 
   @Get('top-products')
   topProducts(@Query('days') days?: string, @Query('limit') limit?: string) {
-    return this.service.topProducts(
-      days ? parseInt(days) : 7,
-      limit ? parseInt(limit) : 5,
-    );
+    return this.service.topProducts(days ? parseInt(days) : 7, limit ? parseInt(limit) : 5);
   }
 
   @Get('low-stock')
@@ -1251,6 +1277,7 @@ git commit -m "feat(api): Reports module with daily summary, top products, low s
 ### Task 7: Admin UI — Ingredients
 
 **Files:**
+
 - Create: `apps/web/app/(admin)/admin/inventory/page.tsx`
 - Create: `apps/web/app/(admin)/admin/inventory/components/ingredient-list.tsx`
 - Create: `apps/web/app/(admin)/admin/inventory/components/ingredient-form.tsx`
@@ -1268,7 +1295,7 @@ import { IngredientList } from './components/ingredient-list';
 export default function InventoryPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">วัตถุดิบ</h1>
+      <h1 className="mb-6 text-3xl font-bold">วัตถุดิบ</h1>
       <IngredientList />
     </div>
   );
@@ -1285,10 +1312,21 @@ Create file `apps/web/app/(admin)/admin/inventory/components/ingredient-list.tsx
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { apiFetch } from '@/lib/api-client';
 import { type Ingredient, INGREDIENT_UNIT_LABELS } from '@coffee/shared';
 import { IngredientForm } from './ingredient-form';
@@ -1315,18 +1353,25 @@ export function IngredientList() {
     <section>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          จำนวน {items.length} รายการ — Stock เปลี่ยนผ่าน Stock Movement (PURCHASE / SALE / WASTE / ADJUSTMENT)
+          จำนวน {items.length} รายการ — Stock เปลี่ยนผ่าน Stock Movement (PURCHASE / SALE / WASTE /
+          ADJUSTMENT)
         </p>
         <Dialog open={creating} onOpenChange={setCreating}>
-          <DialogTrigger asChild><Button>+ เพิ่มวัตถุดิบ</Button></DialogTrigger>
+          <DialogTrigger asChild>
+            <Button>+ เพิ่มวัตถุดิบ</Button>
+          </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>เพิ่มวัตถุดิบใหม่</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>เพิ่มวัตถุดิบใหม่</DialogTitle>
+            </DialogHeader>
             <IngredientForm onSuccess={() => setCreating(false)} />
           </DialogContent>
         </Dialog>
       </div>
 
-      {isLoading ? <p>กำลังโหลด...</p> : (
+      {isLoading ? (
+        <p>กำลังโหลด...</p>
+      ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -1354,11 +1399,16 @@ export function IngredientList() {
                     <Button variant="outline" size="sm" onClick={() => setRecordingMovement(i)}>
                       ปรับ Stock
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setEditing(i)}>แก้ไข</Button>
+                    <Button variant="outline" size="sm" onClick={() => setEditing(i)}>
+                      แก้ไข
+                    </Button>
                     <Button
-                      variant="outline" size="sm"
+                      variant="outline"
+                      size="sm"
                       onClick={() => confirm(`ลบ "${i.name}"?`) && removeMutation.mutate(i.id)}
-                    >ลบ</Button>
+                    >
+                      ลบ
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
@@ -1369,14 +1419,18 @@ export function IngredientList() {
 
       <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>แก้ไขวัตถุดิบ</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>แก้ไขวัตถุดิบ</DialogTitle>
+          </DialogHeader>
           {editing && <IngredientForm ingredient={editing} onSuccess={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!recordingMovement} onOpenChange={() => setRecordingMovement(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>ปรับ Stock: {recordingMovement?.name}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>ปรับ Stock: {recordingMovement?.name}</DialogTitle>
+          </DialogHeader>
           {recordingMovement && (
             <StockMovementForm
               ingredient={recordingMovement}
@@ -1401,8 +1455,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  CreateIngredientSchema, INGREDIENT_UNITS, INGREDIENT_UNIT_LABELS,
-  type CreateIngredientInput, type Ingredient,
+  CreateIngredientSchema,
+  INGREDIENT_UNITS,
+  INGREDIENT_UNIT_LABELS,
+  type CreateIngredientInput,
+  type Ingredient,
 } from '@coffee/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1410,29 +1467,37 @@ import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
 
 export function IngredientForm({
-  ingredient, onSuccess,
-}: { ingredient?: Ingredient; onSuccess: () => void }) {
+  ingredient,
+  onSuccess,
+}: {
+  ingredient?: Ingredient;
+  onSuccess: () => void;
+}) {
   const qc = useQueryClient();
   const isEdit = !!ingredient;
 
   const {
-    register, handleSubmit, formState: { errors, isSubmitting },
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<CreateIngredientInput>({
     resolver: zodResolver(CreateIngredientSchema),
-    defaultValues: ingredient ? {
-      name: ingredient.name,
-      unit: ingredient.unit,
-      costPerUnit: Number(ingredient.costPerUnit),
-      minStock: Number(ingredient.minStock),
-    } : { unit: 'GRAM', costPerUnit: 0, minStock: 0 },
+    defaultValues: ingredient
+      ? {
+          name: ingredient.name,
+          unit: ingredient.unit,
+          costPerUnit: Number(ingredient.costPerUnit),
+          minStock: Number(ingredient.minStock),
+        }
+      : { unit: 'GRAM', costPerUnit: 0, minStock: 0 },
   });
 
   const mutation = useMutation({
     mutationFn: (input: CreateIngredientInput) =>
-      apiFetch(
-        isEdit ? `/inventory/ingredients/${ingredient!.id}` : '/inventory/ingredients',
-        { method: isEdit ? 'PATCH' : 'POST', body: input },
-      ),
+      apiFetch(isEdit ? `/inventory/ingredients/${ingredient!.id}` : '/inventory/ingredients', {
+        method: isEdit ? 'PATCH' : 'POST',
+        body: input,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ingredients'] });
       onSuccess();
@@ -1444,18 +1509,21 @@ export function IngredientForm({
       <div className="space-y-1">
         <Label htmlFor="name">ชื่อ</Label>
         <Input id="name" {...register('name')} />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <Label htmlFor="unit">หน่วย</Label>
           <select
-            id="unit" {...register('unit')}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            id="unit"
+            {...register('unit')}
+            className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
           >
             {INGREDIENT_UNITS.map((u) => (
-              <option key={u} value={u}>{INGREDIENT_UNIT_LABELS[u]}</option>
+              <option key={u} value={u}>
+                {INGREDIENT_UNIT_LABELS[u]}
+              </option>
             ))}
           </select>
         </div>
@@ -1463,17 +1531,23 @@ export function IngredientForm({
         <div className="space-y-1">
           <Label htmlFor="costPerUnit">ต้นทุน/หน่วย (บาท)</Label>
           <Input
-            id="costPerUnit" type="number" step="0.0001"
+            id="costPerUnit"
+            type="number"
+            step="0.0001"
             {...register('costPerUnit', { valueAsNumber: true })}
           />
-          {errors.costPerUnit && <p className="text-sm text-destructive">{errors.costPerUnit.message}</p>}
+          {errors.costPerUnit && (
+            <p className="text-destructive text-sm">{errors.costPerUnit.message}</p>
+          )}
         </div>
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="minStock">Stock ขั้นต่ำ (เพื่อแจ้งเตือน)</Label>
         <Input
-          id="minStock" type="number" step="0.01"
+          id="minStock"
+          type="number"
+          step="0.01"
           {...register('minStock', { valueAsNumber: true })}
         />
       </div>
@@ -1497,8 +1571,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  CreateStockMovementSchema, STOCK_MOVEMENT_REASONS,
-  type CreateStockMovementInput, type Ingredient, INGREDIENT_UNIT_LABELS,
+  CreateStockMovementSchema,
+  STOCK_MOVEMENT_REASONS,
+  type CreateStockMovementInput,
+  type Ingredient,
+  INGREDIENT_UNIT_LABELS,
 } from '@coffee/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1508,12 +1585,19 @@ import { apiFetch } from '@/lib/api-client';
 const ALLOWED_REASONS = STOCK_MOVEMENT_REASONS.filter((r) => r !== 'SALE');
 
 export function StockMovementForm({
-  ingredient, onSuccess,
-}: { ingredient: Ingredient; onSuccess: () => void }) {
+  ingredient,
+  onSuccess,
+}: {
+  ingredient: Ingredient;
+  onSuccess: () => void;
+}) {
   const qc = useQueryClient();
 
   const {
-    register, handleSubmit, watch, formState: { errors, isSubmitting },
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm<CreateStockMovementInput>({
     resolver: zodResolver(CreateStockMovementSchema),
     defaultValues: { ingredientId: ingredient.id, reason: 'PURCHASE' as const, quantity: 0 },
@@ -1528,8 +1612,8 @@ export function StockMovementForm({
         input.reason === 'PURCHASE'
           ? Math.abs(input.quantity)
           : input.reason === 'WASTE'
-          ? -Math.abs(input.quantity)
-          : input.quantity;
+            ? -Math.abs(input.quantity)
+            : input.quantity;
       return apiFetch('/inventory/ingredients/movements', {
         method: 'POST',
         body: { ...input, quantity: signedQuantity },
@@ -1547,11 +1631,14 @@ export function StockMovementForm({
       <div className="space-y-1">
         <Label htmlFor="reason">ประเภท</Label>
         <select
-          id="reason" {...register('reason')}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          id="reason"
+          {...register('reason')}
+          className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
         >
           {ALLOWED_REASONS.map((r) => (
-            <option key={r} value={r}>{r}</option>
+            <option key={r} value={r}>
+              {r}
+            </option>
           ))}
         </select>
       </div>
@@ -1561,13 +1648,17 @@ export function StockMovementForm({
           จำนวน ({INGREDIENT_UNIT_LABELS[ingredient.unit]})
           {reason === 'WASTE' && <span className="text-red-500"> — จะลด stock</span>}
           {reason === 'PURCHASE' && <span className="text-green-700"> — จะเพิ่ม stock</span>}
-          {reason === 'ADJUSTMENT' && <span className="text-gray-500"> — ใส่ +/- ตามที่ต้องการ</span>}
+          {reason === 'ADJUSTMENT' && (
+            <span className="text-gray-500"> — ใส่ +/- ตามที่ต้องการ</span>
+          )}
         </Label>
         <Input
-          id="quantity" type="number" step="0.0001"
+          id="quantity"
+          type="number"
+          step="0.0001"
           {...register('quantity', { valueAsNumber: true })}
         />
-        {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message}</p>}
+        {errors.quantity && <p className="text-destructive text-sm">{errors.quantity.message}</p>}
       </div>
 
       <div className="space-y-1">
@@ -1617,6 +1708,7 @@ git commit -m "feat(web): admin Ingredients UI with stock movement entry"
 ### Task 8: Recipe Editor (Per Product)
 
 **Files:**
+
 - Create: `apps/web/app/(admin)/admin/menu/components/recipe-editor.tsx`
 - Modify: `apps/web/app/(admin)/admin/menu/components/product-list.tsx`
 
@@ -1629,9 +1721,7 @@ Create file `apps/web/app/(admin)/admin/menu/components/recipe-editor.tsx`:
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type {
-  Product, Ingredient, RecipeItem, INGREDIENT_UNIT_LABELS,
-} from '@coffee/shared';
+import type { Product, Ingredient, RecipeItem, INGREDIENT_UNIT_LABELS } from '@coffee/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiFetch } from '@/lib/api-client';
@@ -1641,9 +1731,7 @@ interface RecipeRow {
   quantity: number;
 }
 
-export function RecipeEditor({
-  product, onSuccess,
-}: { product: Product; onSuccess: () => void }) {
+export function RecipeEditor({ product, onSuccess }: { product: Product; onSuccess: () => void }) {
   const qc = useQueryClient();
 
   const { data: ingredients = [] } = useQuery({
@@ -1661,10 +1749,12 @@ export function RecipeEditor({
   // Sync existing → state when load
   useEffect(() => {
     if (!isLoading) {
-      setRows(existing.map((e) => ({
-        ingredientId: e.ingredientId,
-        quantity: Number(e.quantity),
-      })));
+      setRows(
+        existing.map((e) => ({
+          ingredientId: e.ingredientId,
+          quantity: Number(e.quantity),
+        })),
+      );
     }
   }, [isLoading, existing]);
 
@@ -1692,7 +1782,7 @@ export function RecipeEditor({
       </p>
 
       {rows.length === 0 && (
-        <p className="text-gray-400 text-center py-4">ยังไม่มีวัตถุดิบในสูตร</p>
+        <p className="py-4 text-center text-gray-400">ยังไม่มีวัตถุดิบในสูตร</p>
       )}
 
       {rows.map((row, idx) => {
@@ -1701,27 +1791,34 @@ export function RecipeEditor({
           <div key={row.ingredientId} className="flex items-center gap-2">
             <span className="flex-1 font-medium">{ing?.name ?? '?'}</span>
             <Input
-              type="number" step="0.0001" className="w-32"
+              type="number"
+              step="0.0001"
+              className="w-32"
               value={row.quantity}
               onChange={(e) => {
                 const q = parseFloat(e.target.value);
-                setRows(rows.map((r, i) => i === idx ? { ...r, quantity: q } : r));
+                setRows(rows.map((r, i) => (i === idx ? { ...r, quantity: q } : r)));
               }}
             />
-            <span className="text-sm text-gray-500 w-16">
+            <span className="w-16 text-sm text-gray-500">
               {ing ? INGREDIENT_UNIT_LABELS[ing.unit] : ''}
             </span>
             <Button
-              variant="outline" size="sm"
+              variant="outline"
+              size="sm"
               onClick={() => setRows(rows.filter((_, i) => i !== idx))}
-            >ลบ</Button>
+            >
+              ลบ
+            </Button>
           </div>
         );
       })}
 
       {available.length > 0 && (
         <div className="border-t pt-4">
-          <Label htmlFor="add-ing" className="block mb-2">เพิ่มวัตถุดิบ</Label>
+          <Label htmlFor="add-ing" className="mb-2 block">
+            เพิ่มวัตถุดิบ
+          </Label>
           <select
             id="add-ing"
             onChange={(e) => {
@@ -1729,7 +1826,7 @@ export function RecipeEditor({
               setRows([...rows, { ingredientId: e.target.value, quantity: 0 }]);
               e.target.value = '';
             }}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
           >
             <option value="">-- เลือกวัตถุดิบ --</option>
             {available.map((i) => (
@@ -1802,6 +1899,7 @@ git commit -m "feat(web): RecipeEditor — link product to ingredients"
 ### Task 9: Reports Dashboard
 
 **Files:**
+
 - Create: `apps/web/app/(admin)/admin/reports/page.tsx`
 - Create: `apps/web/app/(admin)/admin/reports/components/kpi-cards.tsx`
 - Create: `apps/web/app/(admin)/admin/reports/components/revenue-chart.tsx`
@@ -1837,23 +1935,36 @@ export function KpiCards() {
   if (isLoading || !data) return <p>กำลังโหลด...</p>;
 
   const cards = [
-    { label: 'รายได้วันนี้', value: `฿${data.revenue.toFixed(2)}`, color: 'text-blue-700 bg-blue-50' },
-    { label: 'ต้นทุนวันนี้', value: `฿${data.cogs.toFixed(2)}`, color: 'text-orange-700 bg-orange-50' },
-    { label: 'กำไรขั้นต้น', value: `฿${data.grossProfit.toFixed(2)}`, color: 'text-green-700 bg-green-50' },
+    {
+      label: 'รายได้วันนี้',
+      value: `฿${data.revenue.toFixed(2)}`,
+      color: 'text-blue-700 bg-blue-50',
+    },
+    {
+      label: 'ต้นทุนวันนี้',
+      value: `฿${data.cogs.toFixed(2)}`,
+      color: 'text-orange-700 bg-orange-50',
+    },
+    {
+      label: 'กำไรขั้นต้น',
+      value: `฿${data.grossProfit.toFixed(2)}`,
+      color: 'text-green-700 bg-green-50',
+    },
     {
       label: 'อัตรากำไร',
       value: `${data.grossMarginPct.toFixed(1)}%`,
-      color: data.grossMarginPct >= 50 ? 'text-green-700 bg-green-50' : 'text-yellow-700 bg-yellow-50',
+      color:
+        data.grossMarginPct >= 50 ? 'text-green-700 bg-green-50' : 'text-yellow-700 bg-yellow-50',
     },
     { label: 'จำนวนออเดอร์', value: data.orderCount.toString(), color: 'text-gray-700 bg-gray-50' },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       {cards.map((c) => (
         <div key={c.label} className={`rounded p-4 ${c.color}`}>
           <div className="text-xs uppercase opacity-70">{c.label}</div>
-          <div className="text-2xl font-bold mt-1">{c.value}</div>
+          <div className="mt-1 text-2xl font-bold">{c.value}</div>
         </div>
       ))}
     </div>
@@ -1870,7 +1981,14 @@ Create file `apps/web/app/(admin)/admin/reports/components/revenue-chart.tsx`:
 
 import { useQuery } from '@tanstack/react-query';
 import {
-  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts';
 import { apiFetch } from '@/lib/api-client';
 
@@ -1890,12 +2008,12 @@ export function RevenueChart() {
 
   if (isLoading) return <p>กำลังโหลด...</p>;
   if (data.length === 0) {
-    return <p className="text-gray-500 text-center py-12">ยังไม่มีข้อมูลรายได้</p>;
+    return <p className="py-12 text-center text-gray-500">ยังไม่มีข้อมูลรายได้</p>;
   }
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">รายได้ 7 วันที่ผ่านมา</h2>
+      <h2 className="mb-4 text-xl font-semibold">รายได้ 7 วันที่ผ่านมา</h2>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -1922,7 +2040,14 @@ Create file `apps/web/app/(admin)/admin/reports/components/top-products-table.ts
 
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { TopProduct } from '@coffee/shared';
 
 export function TopProductsTable() {
@@ -1934,8 +2059,10 @@ export function TopProductsTable() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">เมนูขายดี (7 วัน)</h2>
-      {isLoading ? <p>กำลังโหลด...</p> : (
+      <h2 className="mb-4 text-xl font-semibold">เมนูขายดี (7 วัน)</h2>
+      {isLoading ? (
+        <p>กำลังโหลด...</p>
+      ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -1947,17 +2074,21 @@ export function TopProductsTable() {
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="text-center text-gray-500">
-                ไม่มีข้อมูล
-              </TableCell></TableRow>
-            ) : data.map((p, i) => (
-              <TableRow key={p.productId}>
-                <TableCell>#{i + 1}</TableCell>
-                <TableCell>{p.productName}</TableCell>
-                <TableCell>{p.totalQty} ชิ้น</TableCell>
-                <TableCell>฿{p.totalRevenue.toFixed(2)}</TableCell>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-gray-500">
+                  ไม่มีข้อมูล
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((p, i) => (
+                <TableRow key={p.productId}>
+                  <TableCell>#{i + 1}</TableCell>
+                  <TableCell>{p.productName}</TableCell>
+                  <TableCell>{p.totalQty} ชิ้น</TableCell>
+                  <TableCell>฿{p.totalRevenue.toFixed(2)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       )}
@@ -1984,21 +2115,20 @@ export function LowStockAlerts() {
 
   if (data.length === 0) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded p-4 text-green-800">
+      <div className="rounded border border-green-200 bg-green-50 p-4 text-green-800">
         ✅ Stock ทุกตัวอยู่ในเกณฑ์
       </div>
     );
   }
 
   return (
-    <div className="bg-red-50 border border-red-200 rounded p-4">
-      <h3 className="font-bold text-red-800 mb-2">⚠️ Stock ใกล้หมด</h3>
+    <div className="rounded border border-red-200 bg-red-50 p-4">
+      <h3 className="mb-2 font-bold text-red-800">⚠️ Stock ใกล้หมด</h3>
       <ul className="space-y-1 text-sm">
         {data.map((i) => (
           <li key={i.ingredientId}>
-            <span className="font-medium">{i.name}</span>:
-            {' '}เหลือ {i.currentStock} {i.unit} (ขั้นต่ำ {i.minStock})
-            {' — '}
+            <span className="font-medium">{i.name}</span>: เหลือ {i.currentStock} {i.unit} (ขั้นต่ำ{' '}
+            {i.minStock}){' — '}
             <span className="text-red-700">ขาด {i.shortfall.toFixed(2)}</span>
           </li>
         ))}
@@ -2024,7 +2154,7 @@ export default function ReportsPage() {
       <h1 className="text-3xl font-bold">รายงาน</h1>
       <LowStockAlerts />
       <KpiCards />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <RevenueChart />
         <TopProductsTable />
       </div>
@@ -2055,6 +2185,7 @@ git commit -m "feat(web): Reports dashboard — KPIs + chart + top products + al
 ### Task 10: Manual End-to-End Test + Seed Script
 
 **Files:**
+
 - Create: `apps/api/prisma/seed.ts` (optional but recommended)
 
 - [ ] **Step 10.1: เขียน seed script (สำหรับ reset DB)**
@@ -2095,7 +2226,10 @@ async function main() {
     where: { name: 'Latte' } as any,
     update: {},
     create: {
-      name: 'Latte', price: 75, isActive: true, categoryId: drinks.id,
+      name: 'Latte',
+      price: 75,
+      isActive: true,
+      categoryId: drinks.id,
     },
   });
 
@@ -2104,14 +2238,20 @@ async function main() {
     where: { name: 'เมล็ดกาแฟ' },
     update: {},
     create: {
-      name: 'เมล็ดกาแฟ', unit: 'GRAM', costPerUnit: 0.8, minStock: 200,
+      name: 'เมล็ดกาแฟ',
+      unit: 'GRAM',
+      costPerUnit: 0.8,
+      minStock: 200,
     },
   });
   const milk = await prisma.ingredient.upsert({
     where: { name: 'นม' },
     update: {},
     create: {
-      name: 'นม', unit: 'MILLILITER', costPerUnit: 0.05, minStock: 1000,
+      name: 'นม',
+      unit: 'MILLILITER',
+      costPerUnit: 0.05,
+      minStock: 1000,
     },
   });
 
@@ -2128,12 +2268,18 @@ async function main() {
   await prisma.stockMovement.createMany({
     data: [
       {
-        ingredientId: coffee.id, quantity: 5000, reason: 'PURCHASE',
-        costAtTime: 0.8, note: 'Initial seed',
+        ingredientId: coffee.id,
+        quantity: 5000,
+        reason: 'PURCHASE',
+        costAtTime: 0.8,
+        note: 'Initial seed',
       },
       {
-        ingredientId: milk.id, quantity: 10000, reason: 'PURCHASE',
-        costAtTime: 0.05, note: 'Initial seed',
+        ingredientId: milk.id,
+        quantity: 10000,
+        reason: 'PURCHASE',
+        costAtTime: 0.05,
+        note: 'Initial seed',
       },
     ],
   });
@@ -2167,6 +2313,7 @@ cd ../..
 ```
 
 แก้ `apps/api/package.json`:
+
 ```json
 {
   "prisma": {
@@ -2232,6 +2379,7 @@ git commit -m "feat(api): add Prisma seed script for fresh dev environment"
 ## Self-Review Notes
 
 **Spec coverage:**
+
 - ✅ Day 1 (Ingredient + StockMovement schema): Tasks 1-3
 - ✅ Day 2 (Recipe CRUD): Task 4
 - ✅ Day 3-4 (Transaction COMPLETED → COGS+stock): Task 5 ⭐ centerpiece
@@ -2239,6 +2387,7 @@ git commit -m "feat(api): add Prisma seed script for fresh dev environment"
 - ✅ Day 6-7 (Reports dashboard): Tasks 7-9 + seed (Task 10)
 
 **Concepts taught:**
+
 - Event-sourced inventory (StockMovement = source of truth, currentStock = cache)
 - Atomic transaction across 4 tables (OrderItem + StockMovement + Ingredient + Order)
 - Recipe whole-replace strategy (idempotent)
@@ -2248,6 +2397,7 @@ git commit -m "feat(api): add Prisma seed script for fresh dev environment"
 - Seed script pattern
 
 **Out of Week 5 scope:**
+
 - ❌ Stock auto-reorder (Tier 3)
 - ❌ Multi-warehouse / multi-shop (Tier 3 — multi-tenant)
 - ❌ Predictive analytics (Tier 3)

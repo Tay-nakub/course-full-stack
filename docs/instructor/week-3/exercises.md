@@ -6,14 +6,14 @@
 
 ## 📋 Exercise Map
 
-| # | Type | When | Difficulty | Time |
-|---|---|---|---|---|
-| **EX-3.1** | In-class | Session 1, Block A end | ⭐⭐ | 5 min |
-| **EX-3.2** | In-class | Session 1, Block C end | ⭐⭐ | 5 min |
-| **HW-3-mid** | Homework | Between Session 1 & 2 | ⭐⭐⭐ | 3 hrs |
-| **EX-3.3** | In-class | Session 2, Block F | ⭐⭐⭐ | 12 min |
-| **HW-3-post** | Homework | After Session 2 | ⭐⭐⭐ | 3-4 hrs |
-| **HW-3-stretch** | Optional | Anytime | ⭐⭐⭐⭐ | 2-4 hrs |
+| #                | Type     | When                   | Difficulty | Time    |
+| ---------------- | -------- | ---------------------- | ---------- | ------- |
+| **EX-3.1**       | In-class | Session 1, Block A end | ⭐⭐       | 5 min   |
+| **EX-3.2**       | In-class | Session 1, Block C end | ⭐⭐       | 5 min   |
+| **HW-3-mid**     | Homework | Between Session 1 & 2  | ⭐⭐⭐     | 3 hrs   |
+| **EX-3.3**       | In-class | Session 2, Block F     | ⭐⭐⭐     | 12 min  |
+| **HW-3-post**    | Homework | After Session 2        | ⭐⭐⭐     | 3-4 hrs |
+| **HW-3-stretch** | Optional | Anytime                | ⭐⭐⭐⭐   | 2-4 hrs |
 
 ---
 
@@ -25,12 +25,13 @@
 **Time**: 5 min
 
 ### Task
+
 ดู NestJS code ต่อไปนี้ — ผิดอะไร? ปรับยังไง?
 
 ```ts
 @Controller('menu/categories')
 export class CategoryController {
-  constructor(private readonly prisma: PrismaService) {}     // ← ❌
+  constructor(private readonly prisma: PrismaService) {} // ← ❌
 
   @Get()
   async list() {
@@ -47,19 +48,21 @@ export class CategoryController {
 ### 🟢 Solution
 
 **Violations**:
+
 1. **Controller injects PrismaService directly** — should go through Service layer
 2. **Business logic in controller** (sort, error handling) — should move to service
 3. **Throwing on empty list** — empty list ≠ error. Return [] instead
 
 **Refactored**:
+
 ```ts
 @Injectable()
 class CategoryService {
   constructor(private readonly prisma: PrismaService) {}
-  
+
   findAll() {
     return this.prisma.category.findMany({
-      orderBy: { sortOrder: 'asc' },     // sort in DB, not in JS
+      orderBy: { sortOrder: 'asc' }, // sort in DB, not in JS
     });
   }
 }
@@ -67,7 +70,7 @@ class CategoryService {
 @Controller('menu/categories')
 class CategoryController {
   constructor(private readonly service: CategoryService) {}
-  
+
   @Get()
   list() {
     return this.service.findAll();
@@ -89,10 +92,11 @@ class CategoryController {
 ### Task
 
 ดู code:
+
 ```ts
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 60_000 },     // 1 minute
+    queries: { staleTime: 60_000 }, // 1 minute
   },
 });
 
@@ -148,6 +152,7 @@ const { data } = useQuery({
    - **No CRUD actions yet** (Session 2 จะใส่)
 
 ### Acceptance Criteria
+
 - [ ] `useQuery` ใช้ถูกต้อง (queryKey + queryFn)
 - [ ] Loading state (`isLoading`)
 - [ ] Empty state ("ยังไม่มีหมวด")
@@ -160,7 +165,14 @@ const { data } = useQuery({
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { Category } from '@coffee/shared';
 
 export function CategoryList() {
@@ -194,6 +206,7 @@ export function CategoryList() {
 ```
 
 ### Common Mistakes
+
 - ลืม `'use client'` → useQuery ใน Server Component → error
 - ใช้ `fetch` ตรงๆ แทน `apiFetch` → no cookie + no error class
 - queryKey ไม่ตรง → cache miss ตลอด
@@ -208,30 +221,35 @@ export function CategoryList() {
 **Time**: 12 min in-class (with instructor support)
 
 ### Task
+
 ทำ ProductList + ProductForm ตาม pattern ของ Category (instructor demo Categories แล้ว)
 
 ### Requirements
+
 - ProductList: แสดงสินค้าใน table, columns: ชื่อ, ราคา, หมวด, สถานะ, actions
 - ProductForm: name + price (number) + categoryId (select dropdown) + imageUrl (optional) + isActive (checkbox)
 - ProductForm ใน edit mode: pre-fill values
 - Cache invalidation: products + (อาจ) categories ถ้าจำเป็น
 
 ### 🟢 Solution
+
 ดู Plan Task 9.5 — full code
 
 ### Hints (instructor offers when student stuck)
+
 - "categoryId select dropdown — fetch categories ผ่าน useQuery + map options"
 - "price input — ใช้ `valueAsNumber: true` ใน register"
 - "imageUrl optional — Zod `.nullable().optional()`"
 - "isActive checkbox — Zod `.default(true)` + register normally"
 
 ### Common Mistakes
-| Mistake | Fix |
-|---|---|
-| Price comes as string | `register('price', { valueAsNumber: true })` |
-| categoryId required แต่ Zod พลาด | Make sure `min(1)` in schema |
-| Edit mode ไม่ pre-fill | `defaultValues` ใน useForm |
-| imageUrl `null` ทำให้ Zod fail | `.nullable()` + handle ใน apiFetch |
+
+| Mistake                          | Fix                                          |
+| -------------------------------- | -------------------------------------------- |
+| Price comes as string            | `register('price', { valueAsNumber: true })` |
+| categoryId required แต่ Zod พลาด | Make sure `min(1)` in schema                 |
+| Edit mode ไม่ pre-fill           | `defaultValues` ใน useForm                   |
+| imageUrl `null` ทำให้ Zod fail   | `.nullable()` + handle ใน apiFetch           |
 
 ---
 
@@ -263,6 +281,7 @@ export function CategoryList() {
 ### 🟢 Solution sketch
 
 **Search input**:
+
 ```tsx
 const [search, setSearch] = useState('');
 const deferredSearch = useDeferredValue(search);
@@ -281,6 +300,7 @@ return (
 ```
 
 **Component test**:
+
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -289,7 +309,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CategoryForm } from './category-form';
 
 const renderWithQuery = (ui: React.ReactElement) => {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } }});
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
 };
 
@@ -297,17 +317,18 @@ it('submits valid input', async () => {
   global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), status: 201 });
   const onSuccess = vi.fn();
   const user = userEvent.setup();
-  
+
   renderWithQuery(<CategoryForm onSuccess={onSuccess} />);
-  
+
   await user.type(screen.getByLabelText(/ชื่อหมวด/), 'เครื่องดื่ม');
   await user.click(screen.getByRole('button', { name: /เพิ่ม/ }));
-  
+
   await vi.waitFor(() => expect(onSuccess).toHaveBeenCalled());
 });
 ```
 
 ### Acceptance Criteria
+
 - [ ] All admin UI has loading + empty states
 - [ ] Search filters products real-time
 - [ ] CategoryForm test passes
@@ -329,9 +350,7 @@ const removeMutation = useMutation({
   onMutate: async (id) => {
     await qc.cancelQueries({ queryKey: queryKeys.categories });
     const previous = qc.getQueryData(queryKeys.categories);
-    qc.setQueryData(queryKeys.categories, (old: Category[] = []) =>
-      old.filter(c => c.id !== id)
-    );
+    qc.setQueryData(queryKeys.categories, (old: Category[] = []) => old.filter((c) => c.id !== id));
     return { previous };
   },
   onError: (_err, _id, context) => {
@@ -342,6 +361,7 @@ const removeMutation = useMutation({
 ```
 
 ### Stretch 2: Image Upload (3-4 hrs)
+
 - POST `/api/upload` route handler ที่รับ FormData
 - Forward to S3 / Cloudinary / Supabase Storage
 - Return URL
@@ -350,12 +370,14 @@ const removeMutation = useMutation({
 **Why valuable**: real apps มี file upload — pattern transferable
 
 ### Stretch 3: Bulk Operations (2 hrs)
+
 - Checkbox column in ProductList
 - "Activate selected" / "Deactivate selected" / "Delete selected"
 - Mutation ที่ accept array of IDs
 - BE: `PATCH /api/menu/products/bulk` endpoint
 
 ### Stretch 4: Category Reorder Drag-and-Drop (3 hrs)
+
 - Use `@dnd-kit/sortable`
 - Drag categories → update sortOrder
 - Mutation: PATCH multiple categories at once
@@ -365,6 +387,7 @@ const removeMutation = useMutation({
 ## 📤 Student-Facing Format
 
 **ก่อนแชร์ exercises ให้ student**:
+
 1. ลบ section "🟢 Solution" ทั้งหมด
 2. เก็บ "Common Mistakes" hints ไว้ใน HW-3-Mid (ใหม่ student → useful guardrail)
 3. ลบ "Common Mistakes" hints ของ EX-3.3 (in-class instructor offer when stuck)

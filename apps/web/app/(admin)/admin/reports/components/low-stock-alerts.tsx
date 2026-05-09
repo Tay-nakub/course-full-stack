@@ -25,9 +25,8 @@ export function LowStockAlerts() {
       <ul className="space-y-1 text-sm">
         {data.map((i) => (
           <li key={i.ingredientId}>
-            <span className="font-medium">{i.name}</span>: เหลือ{' '}
-            {i.currentStock} {i.unit} (ขั้นต่ำ {i.minStock}) —{' '}
-            <span className="text-red-700">ขาด {i.shortfall.toFixed(2)}</span>
+            <span className="font-medium">{i.name}</span>: เหลือ {i.currentStock} {i.unit} (ขั้นต่ำ{' '}
+            {i.minStock}) — <span className="text-red-700">ขาด {i.shortfall.toFixed(2)}</span>
           </li>
         ))}
       </ul>

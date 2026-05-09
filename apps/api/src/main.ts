@@ -9,4 +9,4 @@ async function bootstrap() {
   console.log(`🚀 API ready on http://localhost:4000/api`);
 }
 
-bootstrap();
+void bootstrap();

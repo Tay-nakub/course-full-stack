@@ -12,6 +12,7 @@
 ## 🎯 Session Goals
 
 จบ session นี้ student แต่ละคนต้อง:
+
 - ✅ Checkout page → place order via mutation → redirect to tracking
 - ✅ Tracking page polls every 5 sec until terminal state
 - ✅ Kitchen UI (kanban) shows active orders + status transitions work
@@ -31,26 +32,28 @@
 
 ## 🗓️ Time-Blocked Agenda
 
-| Time | Block | Activity |
-|---|---|---|
-| 0-10 | **Recap + Homework Review** | Cart skeleton showcase |
-| **10-45** | **Block D** | **Checkout flow + place order mutation** |
-| **45-65** | **Block E** | **Order tracking with smart polling** |
-| **65-105** | **Block F** | **Kitchen UI (kanban + transitions)** |
-| **105-115** | **Block G** | **Admin orders view** |
-| 115-120 | Wrap-up | Week 5 preview |
+| Time        | Block                       | Activity                                 |
+| ----------- | --------------------------- | ---------------------------------------- |
+| 0-10        | **Recap + Homework Review** | Cart skeleton showcase                   |
+| **10-45**   | **Block D**                 | **Checkout flow + place order mutation** |
+| **45-65**   | **Block E**                 | **Order tracking with smart polling**    |
+| **65-105**  | **Block F**                 | **Kitchen UI (kanban + transitions)**    |
+| **105-115** | **Block G**                 | **Admin orders view**                    |
+| 115-120     | Wrap-up                     | Week 5 preview                           |
 
 ---
 
 ## 🟢 Recap + Homework Review (0-10 min)
 
 ### Recap (2 min)
+
 - "Prisma `$transaction` ใช้เพื่ออะไร?"
 - "Snapshot pattern แก้ปัญหาอะไร?"
 
 ### Homework Showcase (8 min)
 
 Show 1-2 student PR — common items:
+
 - Cart page UX (empty state, qty controls)
 - Subtotal calculation correct?
 - Checkout skeleton form
@@ -62,6 +65,7 @@ Show 1-2 student PR — common items:
 ## 💳 Block D: Checkout Flow (10-45 min, 35 min)
 
 ### 🎯 Block Goals
+
 - Wire CheckoutForm to mutation
 - Place order → clear cart → redirect
 - Handle server errors gracefully
@@ -139,6 +143,7 @@ const placeOrder = useMutation({
 ```
 
 📢 **อธิบาย onSuccess**:
+
 1. `clear()` — empty cart store (persist update → localStorage)
 2. `router.push` — navigate to tracking
 3. ถ้า fail → mutation.error → display banner
@@ -158,23 +163,25 @@ const placeOrder = useMutation({
 7. ตรวจ DBeaver: orders + order_items มี row ใหม่
 
 Commit:
+
 ```bash
 git commit -m "feat(web): checkout flow with place order mutation"
 ```
 
 ### ❓ Common Questions (Block D)
 
-| Q | A |
-|---|---|
+| Q                                                        | A                                                                                           |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | Cart cleared แต่ user back-button — เห็น checkout เปล่า? | ใช่ — UX issue. Solution: keep cart in sessionStorage until tracking page mounted (stretch) |
-| Server error 400 (invalid item) → user งง? | mutation.error → display Thai message. Could improve: highlight specific item |
-| Inventory check at checkout? | Course Week 4 = no stock check. Week 5 จะ deduct stock ตอน COMPLETED — separate concern |
+| Server error 400 (invalid item) → user งง?               | mutation.error → display Thai message. Could improve: highlight specific item               |
+| Inventory check at checkout?                             | Course Week 4 = no stock check. Week 5 จะ deduct stock ตอน COMPLETED — separate concern     |
 
 ---
 
 ## 📡 Block E: Order Tracking with Polling (45-65 min, 20 min)
 
 ### 🎯 Block Goals
+
 - Customer-facing order detail page
 - TanStack Query smart polling (`refetchInterval`)
 - Stop polling when terminal state
@@ -196,11 +203,13 @@ useQuery({
 ```
 
 📢 **Why function form**:
+
 - Static `refetchInterval: 5000` = poll forever (waste)
 - Function form = decide based on current data
 - Return `false` → stop polling
 
 **Trade-offs**:
+
 - Polling = simple, works offline-friendly
 - WebSocket = realtime but complex setup
 - Course choice: polling (sufficient for 1-shop scale)
@@ -212,6 +221,7 @@ useQuery({
 (พิมพ์ตาม Plan)
 
 📢 **เน้น mapping**:
+
 ```ts
 const LABELS: Record<OrderStatus, string> = {
   PENDING: 'รอชำระ',
@@ -227,6 +237,7 @@ const LABELS: Record<OrderStatus, string> = {
 (พิมพ์ตาม Plan)
 
 📢 **Walkthrough**:
+
 - `use(params)` — Next.js 15 unwrap async params
 - `refetchInterval` callback — return false on terminal
 - Polling indicator at bottom (transparent UX)
@@ -241,23 +252,25 @@ const LABELS: Record<OrderStatus, string> = {
 6. PATCH → COMPLETED — polling หยุด (Network tab confirm)
 
 Commit:
+
 ```bash
 git commit -m "feat(web): tracking page with smart polling"
 ```
 
 ### ❓ Common Questions (Block E)
 
-| Q | A |
-|---|---|
-| `query.state.data` มี types ไหม? | ใช่ — TanStack Query infers จาก queryFn return |
-| Polling เพิ่ม load ที่ DB? | 1 query ต่อ 5 sec = ~17 req/min/order. Small scale OK. Optimize: cache headers + Last-Modified |
-| Stop polling ถ้า user switch tab? | TanStack default: pause when window blurred. ใช้ `refetchOnWindowFocus` config |
+| Q                                 | A                                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `query.state.data` มี types ไหม?  | ใช่ — TanStack Query infers จาก queryFn return                                                 |
+| Polling เพิ่ม load ที่ DB?        | 1 query ต่อ 5 sec = ~17 req/min/order. Small scale OK. Optimize: cache headers + Last-Modified |
+| Stop polling ถ้า user switch tab? | TanStack default: pause when window blurred. ใช้ `refetchOnWindowFocus` config                 |
 
 ---
 
 ## 🍳 Block F: Kitchen UI (65-105 min, 40 min)
 
 ### 🎯 Block Goals
+
 - New `(kitchen)` route group with auth middleware
 - Kanban board: 3 columns (Pending / Preparing / Ready)
 - OrderCard with status transition mutations
@@ -282,9 +295,9 @@ git commit -m "feat(web): tracking page with smart polling"
 
 ```ts
 const NEXT_STATUS = {
-  PENDING:   { next: 'PREPARING', label: 'รับออเดอร์' },
-  PREPARING: { next: 'READY',     label: 'ทำเสร็จ' },
-  READY:     { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },
+  PENDING: { next: 'PREPARING', label: 'รับออเดอร์' },
+  PREPARING: { next: 'READY', label: 'ทำเสร็จ' },
+  READY: { next: 'COMPLETED', label: 'ลูกค้ารับแล้ว' },
 };
 ```
 
@@ -297,6 +310,7 @@ const NEXT_STATUS = {
 (พิมพ์ middleware update + layout — short)
 
 📢 **เน้น middleware matcher**:
+
 ```ts
 matcher: ['/admin/:path*', '/kitchen/:path*'],
 ```
@@ -308,6 +322,7 @@ matcher: ['/admin/:path*', '/kitchen/:path*'],
 (พิมพ์ตาม Plan)
 
 📢 **Walkthrough mutations**:
+
 ```ts
 const advance = useMutation({
   mutationFn: (next) => apiFetch(...),
@@ -327,6 +342,7 @@ const cancel = useMutation({
 (พิมพ์ตาม Plan)
 
 📢 **เน้น polling**:
+
 ```ts
 useQuery({
   queryKey: ['orders', { activeOnly: true }],
@@ -344,6 +360,7 @@ useQuery({
 **5. End-to-end test** (2 min)
 
 Setup: 2 browser windows
+
 - Customer (incognito): place order
 - Staff: /kitchen
 
@@ -354,27 +371,30 @@ Setup: 2 browser windows
 5. ขณะเดียวกัน — customer tracking page เห็น status update ทุก 5 sec
 
 📢 **Big moment**:
+
 > "🎉 First multi-actor flow! Customer + Staff working with shared state via DB"
 
 Commit:
+
 ```bash
 git commit -m "feat(web): Kitchen UI kanban with status transitions"
 ```
 
 ### ❓ Common Questions (Block F)
 
-| Q | A |
-|---|---|
-| Kitchen UI ใช้ websocket แทน polling ได้ไหม? | ได้ — Tier 2 stretch (Socket.io). Polling 5 sec = sufficient for course |
+| Q                                                  | A                                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Kitchen UI ใช้ websocket แทน polling ได้ไหม?       | ได้ — Tier 2 stretch (Socket.io). Polling 5 sec = sufficient for course                                 |
 | 2 staff คลิก same order พร้อมกัน — race condition? | NestJS state machine block invalid transition (409). Whoever loses sees error. Stretch: optimistic lock |
-| Order ที่ pending ค้างนาน — alert? | Stretch: highlight ถ้า PENDING > 5 min (visual aging) |
-| Ringtone notification เมื่อ order ใหม่? | Stretch — `<audio>` element + diff detection (new id ใน list) |
+| Order ที่ pending ค้างนาน — alert?                 | Stretch: highlight ถ้า PENDING > 5 min (visual aging)                                                   |
+| Ringtone notification เมื่อ order ใหม่?            | Stretch — `<audio>` element + diff detection (new id ใน list)                                           |
 
 ---
 
 ## 📊 Block G: Admin Orders View (105-115 min, 10 min)
 
 ### 🎯 Block Goals
+
 - Read-only admin view of all orders
 - Status filter
 
@@ -385,6 +405,7 @@ git commit -m "feat(web): Kitchen UI kanban with status transitions"
 (พิมพ์ตาม Plan)
 
 📢 **Highlights**:
+
 - Filter buttons (ALL / per status)
 - Polling slower (10s — admin = monitor, not realtime)
 - Read-only (no mutation buttons)
@@ -397,6 +418,7 @@ git commit -m "feat(web): Kitchen UI kanban with status transitions"
 4. ตรวจ time formatted ภาษาไทย
 
 Commit:
+
 ```bash
 git commit -m "feat(web): admin orders view with status filter"
 ```
@@ -406,6 +428,7 @@ git commit -m "feat(web): admin orders view with status filter"
 ## 🏁 Wrap-up + Week 5 Preview (115-120 min, 5 min)
 
 ### Recap (2 min)
+
 - "Smart polling — function form ทำอะไร?"
 - "Kanban UI ในห้องครัว — ทำไม visual?"
 
@@ -414,6 +437,7 @@ git commit -m "feat(web): admin orders view with status filter"
 Goal: **Heart of business logic** — Recipe + Stock auto-deduct + Reports
 
 จะเพิ่ม:
+
 - 🆕 Ingredient + Recipe + StockMovement (Prisma + schemas)
 - 🆕 Recipe CRUD UI
 - 🆕 Critical: order COMPLETED → atomic transaction → cogsSnapshot + stock deduct + log movement
@@ -421,6 +445,7 @@ Goal: **Heart of business logic** — Recipe + Stock auto-deduct + Reports
 - 🆕 Reports dashboard with Recharts
 
 ใช้:
+
 - ✅ Atomic transaction (Wk 4)
 - ✅ NestJS module pattern
 - ✅ TanStack Query
@@ -429,16 +454,17 @@ Goal: **Heart of business logic** — Recipe + Stock auto-deduct + Reports
 > "Week 5 = the **point** of the coffee shop course. Stock + cost + profit = real business value"
 
 ### Final Q&A
+
 รับคำถาม
 
 ---
 
 ## 📝 Post-Session Self-Review (instructor)
 
-| Item | Note |
-|---|---|
-| End-to-end demo สำเร็จทุกคน? | ___ |
-| Polling concept ติดที่ใคร? | ___ |
-| Kitchen kanban — UI build จบไหม? | ___ |
-| Block ไหน over-run? | ___ |
-| Pre-Week 5 readiness | ___ |
+| Item                             | Note   |
+| -------------------------------- | ------ |
+| End-to-end demo สำเร็จทุกคน?     | \_\_\_ |
+| Polling concept ติดที่ใคร?       | \_\_\_ |
+| Kitchen kanban — UI build จบไหม? | \_\_\_ |
+| Block ไหน over-run?              | \_\_\_ |
+| Pre-Week 5 readiness             | \_\_\_ |

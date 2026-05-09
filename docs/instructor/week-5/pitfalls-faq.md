@@ -11,11 +11,13 @@
 **Symptom**: Order COMPLETED แต่ `order_items.cogs_snapshot` = NULL ใน DB
 
 **Common causes**:
+
 1. Recipe ไม่ได้ set สำหรับ product
 2. `deductStockAndSnapshotCogs` ไม่ถูกเรียก (logic check ผิด)
 3. `tx.orderItem.update` ใช้ `id: order.id` แทน `id: item.id` (อัปเดตผิด record)
 
 **Quick debug**:
+
 ```sql
 -- 1. ตรวจ recipe มีไหม
 SELECT * FROM recipe_items WHERE product_id = '<product-id>';
@@ -37,17 +39,20 @@ WHERE order_id = '<order-id>';
 **Symptom**: Order COMPLETED แต่ ingredient.currentStock เท่าเดิม
 
 **Common causes**:
+
 1. ใช้ `this.prisma.ingredient.update` แทน `tx.ingredient.update` (leak จาก transaction)
 2. Transaction rollback (มี error อื่นใน flow)
 3. `decrement` ใช้ value ผิดหน่วย
 
 **Quick debug**:
+
 - ดู API logs — มี error message ไหม?
 - ดู `stock_movements` table — มี SALE row ของ order นั้นไหม?
   - ถ้าไม่มี → transaction rollback หรือ logic ไม่ทำงาน
   - ถ้ามี → cache update ไม่ทำงาน → run `recompute-stock` endpoint
 
 **Recovery**:
+
 ```bash
 POST /api/inventory/ingredients/<id>/recompute-stock
 # → recalculate currentStock from movements SUM
@@ -62,15 +67,18 @@ POST /api/inventory/ingredients/<id>/recompute-stock
 **Cause**: Order COMPLETED แต่ stock ไม่พอ. Course default = allow negative (ไม่ throw)
 
 **Why allowed**:
+
 - "Order ตามจริง" — ยังไงลูกค้าก็ได้ของไป (จากบาง batch ที่ไม่นับ stock)
 - Negative stock = data quality signal — admin เห็นแล้วต้องตรวจ
 
 **Fix** (manual):
+
 1. ตรวจว่าเปิด order จริงหรือ test
 2. PURCHASE adjustment เพื่อ catch up
 3. หรือ ADJUSTMENT บวก correct amount
 
 **Stretch (prevent)**:
+
 ```ts
 // ใน deductStockAndSnapshotCogs:
 if (Number(r.ingredient.currentStock) < totalAmount) {
@@ -87,6 +95,7 @@ if (Number(r.ingredient.currentStock) < totalAmount) {
 **Cause**: JS `Number` ไม่ exact precision
 
 **Quick check**:
+
 - ทำตัวอย่างเล็ก: 18 × 0.8 = 14.4 ✓
 - ทำใหญ่: 18 × 0.8 + 200 × 0.05 = 24.4 ✓
 - หลายหลัก decimal: 18 × 0.8001 + ... = drift
@@ -94,6 +103,7 @@ if (Number(r.ingredient.currentStock) < totalAmount) {
 **Course default**: accept small drift (cents level OK สำหรับ learning project)
 
 **Production**: ใช้ decimal.js:
+
 ```ts
 import Decimal from 'decimal.js';
 const cogs = new Decimal(r.quantity).mul(item.qty).mul(r.ingredient.costPerUnit);
@@ -106,12 +116,14 @@ const cogs = new Decimal(r.quantity).mul(item.qty).mul(r.ingredient.costPerUnit)
 **Symptom**: Chart container ว่าง, ไม่มี error
 
 **Common causes**:
+
 1. ResponsiveContainer parent ไม่มี height
 2. data array ว่าง
 3. dataKey ไม่ตรงกับ field name
 4. Chart รัน server-side (Server Component) — Recharts ต้อง browser
 
 **Fix**:
+
 ```tsx
 // 1. Set container height
 <div className="h-80">
@@ -132,11 +144,13 @@ data: [{ date: '2026-01-01', revenue: 100 }]
 **Symptom**: `Cannot read 'date' of undefined` หรือ types ผิดประเภท
 
 **Common causes**:
+
 1. ลืม type generic: `prisma.$queryRaw<T[]>`
 2. SQL returns different column names than expected
 3. Decimal returns string but TS thinks number
 
 **Fix**:
+
 ```ts
 const rows = await prisma.$queryRaw<{ date: string; revenue: number }[]>`
   SELECT
@@ -159,6 +173,7 @@ const rows = await prisma.$queryRaw<{ date: string; revenue: number }[]>`
 **Pain point**: ถ้า student รำคาญที่ ID เก่าหายไปหลังแก้ — explain trade-off
 
 **Mitigation (stretch)**: implement diff approach
+
 1. Compare incoming items vs existing
 2. Identify add/remove/update sets
 3. Apply individually
@@ -172,23 +187,26 @@ const rows = await prisma.$queryRaw<{ date: string; revenue: number }[]>`
 **Symptom**: /admin/reports → revenue 0 แต่มี orders COMPLETED
 
 **Common causes**:
+
 1. Orders จาก yesterday → today's daily report ไม่นับ
 2. completedAt = null (status changed but field not set)
 3. Timezone issue — server UTC but expectation Bangkok
 
 **Quick debug**:
+
 ```sql
 SELECT id, status, completed_at FROM orders WHERE status = 'COMPLETED';
 -- check completed_at populated?
 -- check timezone match?
 
 -- Today (server time):
-SELECT COUNT(*) FROM orders 
+SELECT COUNT(*) FROM orders
 WHERE status = 'COMPLETED'
   AND completed_at >= date_trunc('day', NOW());
 ```
 
 **Fix**:
+
 - Verify Week 4 status logic sets completedAt
 - Production: configure timezone via Postgres `timezone` setting + ensure consistent
 
@@ -199,11 +217,13 @@ WHERE status = 'COMPLETED'
 **Symptom**: stock = 100, minStock = 200, แต่ no alert
 
 **Common causes**:
+
 1. Decimal comparison: `Number(currentStock) <= Number(minStock)` — strings ไม่ parse
 2. Filter logic ผิด direction (`>=` แทน `<=`)
 3. Front-end cache stale
 
 **Fix**:
+
 ```ts
 .filter((i) => Number(i.currentStock) <= Number(i.minStock))
 //             ^^^^^^^^                 ^^^^^^^^^
@@ -219,6 +239,7 @@ WHERE status = 'COMPLETED'
 **Cause**: Seed รันซ้ำโดยไม่ใช้ `upsert`
 
 **Fix**: ใช้ `upsert` ทุกที่ที่มี unique field:
+
 ```ts
 await prisma.user.upsert({
   where: { email: 'admin@coffee.com' },
@@ -311,6 +332,7 @@ A: Same as Decimal in Prisma. Postgres NUMERIC = arbitrary precision
 
 **Q: When should seed run?**
 A:
+
 - Once on fresh DB
 - After `prisma migrate reset`
 - Optional: CI before tests
@@ -318,6 +340,7 @@ A:
 
 **Q: Test data vs seed data?**
 A:
+
 - Seed = baseline starting state (admin user, default categories)
 - Test data = scenario-specific (in test files)
 
@@ -371,10 +394,10 @@ CREATE INDEX idx_orders_completed_at ON orders(completed_at);
 
 ## 📊 Common Mistakes Heatmap (อัปเดตหลังสอน)
 
-| Mistake | Frequency | Notes |
-|---|---|---|
-| `this.prisma` inside `$transaction` (leak) | TBD | — |
-| Decimal not converted with Number() | TBD | — |
-| Recharts no parent height | TBD | — |
-| Recipe missing — student forgot | TBD | — |
-| Stock negative — student panicked | TBD | — |
+| Mistake                                    | Frequency | Notes |
+| ------------------------------------------ | --------- | ----- |
+| `this.prisma` inside `$transaction` (leak) | TBD       | —     |
+| Decimal not converted with Number()        | TBD       | —     |
+| Recharts no parent height                  | TBD       | —     |
+| Recipe missing — student forgot            | TBD       | —     |
+| Stock negative — student panicked          | TBD       | —     |

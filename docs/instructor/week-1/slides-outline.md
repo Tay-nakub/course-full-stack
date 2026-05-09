@@ -412,12 +412,12 @@ Pre-class:
 
 ### Recommended Tools
 
-| Tool | Why |
-|---|---|
-| **Slidev** | Markdown-based, code-friendly, version-control friendly |
-| **Keynote** | Apple polish, presenter notes, animations |
-| **PowerPoint** | Universal, chart features |
-| **Google Slides** | Realtime collaboration, web-shareable |
+| Tool              | Why                                                     |
+| ----------------- | ------------------------------------------------------- |
+| **Slidev**        | Markdown-based, code-friendly, version-control friendly |
+| **Keynote**       | Apple polish, presenter notes, animations               |
+| **PowerPoint**    | Universal, chart features                               |
+| **Google Slides** | Realtime collaboration, web-shareable                   |
 
 ### If Using Slidev
 
